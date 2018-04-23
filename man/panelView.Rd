@@ -55,8 +55,7 @@
 \examples{
 library(panelView)
 data(panelView)
-panelView(Y ~ D + X1 + X2, data = simdata,
-          index = c("id", "time"), type = "raw")
+panelView(turnout ~ policy_edr + policy_mail_in + policy_motor, data = turnout, index = c("abb","year"))
 }
 
 

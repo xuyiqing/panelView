@@ -17,9 +17,9 @@
   \item{index}{a two-element string vector specifying the unit (group)
     and time indicators. Must be of length 2.}
   \item{na.rm}{a logical flag indicating whether to list-wise delete missing data. The algorithm will report an error if missing data exist.}
-  \item{outcome.type}{a string that specifies the numerial type of outcome variable. Must be either \code{"c"}(default) for continuous response or 
+  \item{outcome.type}{a string that specifies the numerical type of outcome variable. Must be either \code{"c"}(default) for continuous response or 
   \code{"d"} for discrete response. For continuous response, time series lines 
-  for specifed units will be plotted, and for discrete response, jittered points at each period will be plotted.}
+  for specified units will be plotted, and for discrete response, jittered points at each period will be plotted.}
   \item{type}{a string that specifies the type of the plot. Must be either \code{"missing"} (default), which plots the treatment/missing-data status of each unit at each time point) or \code{"raw"}, which plots the raw outcome data}
   \item{by.group}{a logic flag indicating whether the data should be plotted in separate groups based on treatment status changes.}
   \item{theme.bw}{a logical flag specifying whether to use the theme with white 
@@ -47,7 +47,6 @@
 
 \author{
   Licheng Liu <liulch.16@sem.tsinghua.edu.cn>
-
   Yiqing Xu <yiqingxu@ucsd.edu>
 }
 

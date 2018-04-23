@@ -1,0 +1,13 @@
+Package: panelView
+Type: Package
+Title: Visualizing Panel Data with Dichotomous Treatments
+Version: 1.0.1
+Date: 2018-04-22
+Author: Licheng Liu, Yiqing Xu
+Maintainer: Licheng Liu<liulch.16@sem.tsinghua.edu.cn>, Yiqing Xu <yiqingxu@ucsd.edu>
+Description: Visualizes panel data with dichotomous treatments. panelView has two main functionalities: (1) it visualizes the treatment and missing-value statuses of each observation in a panel/time-series-cross-sectional (TSCS) dataset; and (2) it plots the outcome variable (either continuous or discrete) in a time-series fashion.
+URL: http://yiqingxu.org/software/panelView/panelView.html
+License: GPL-2
+Imports: ggplot2 (>= 2.1.0), gridExtra, grid
+Depends: R (>= 2.10)
+RoxygenNote: 6.0.1

@@ -9,5 +9,5 @@ We believe it's always a good idea to check out the raw data before conducting a
 
 **Authors:** Licheng Liu [<liulch.16@sem.tsinghua.edu.cn>]; Yiqing Xu [<yiqingxu@ucsd.edu>] 
 
-**How to Uses:** [Examples](http://yiqingxu.org/software/panelView/panelview.html)
+**How to Uses:** [Examples](http://yiqingxu.org/software/panelView/panelView.html)
 

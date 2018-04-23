@@ -44,6 +44,13 @@ panelView <- function(formula,
 
     p <- length(X)
 
+    namesData <- names(data)
+    for (i in 1:length(varnames)) {
+        if(!varnames[i] %in% namesData) {
+            stop(paste("variable \"", varnames[i],"\" is not in the data set.", sep = ""))
+        }
+    }
+
     ##store variable names
     ## id.old <- id
     if (is.null(id)) {
@@ -83,7 +90,7 @@ panelView <- function(formula,
     
     unique_label <- unique(paste(data[,index[1]],"_",data[,index[2]],sep=""))
     if (length(unique_label)!=dim(data)[1]) {
-        stop("Some records may be replicated or wrongly marked in the data set.")
+        stop("Some records may be duplicated or wrongly marked in the data set.")
     }
 
     ## remove missing values

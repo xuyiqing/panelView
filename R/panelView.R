@@ -51,6 +51,11 @@ panelView <- function(formula,
         }
     }
 
+    if (na.rm == TRUE) {
+        data <- data[,c(index, Y, D, X)] ## covariates are excluded
+        data <- na.omit(data)
+    } 
+
     ##store variable names
     ## id.old <- id
     if (is.null(id)) {
@@ -65,6 +70,14 @@ panelView <- function(formula,
     
     id <- index[1]
     time <- index[2]
+
+    if (class(data[,id])=="factor") {
+        data[,id] <- as.character(data[,id])
+    }
+
+    if (class(data[,time])=="factor") {
+        data[,time] <- as.character(data[,time])
+    }    
 
     TT <- length(unique(data[,time]))
     N <- length(unique(data[,id]))
@@ -169,11 +182,6 @@ panelView <- function(formula,
     ##     x.na <- apply(is.na(data.x), 1, sum)
     ##     x.na <- ifelse(x.na > 0, 1, 0)
     ## }
-
-    if (na.rm == TRUE) {
-        data <- data[,c(index, Y, D, X)] ## covariates are excluded
-        data <- na.omit(data)
-    } 
 
     ## check missingness
     if (sum(is.na(data[, Yname])) > 0) {
@@ -820,6 +828,10 @@ panelView <- function(formula,
                                               "outcome" = factor(c(Y[show, co.pos])),
                                               "type" = factor(c(rep("co", (Nco*nT)))),
                                               "id" = c(rep(1:Nco, each = nT)))
+                    ## remove NA
+                    if (sum(is.na(data1[,"outcome"])) > 0) {
+                        data1 <- data1[-which(is.na(data1[,"outcome"])),]
+                    }
 
                 }
                 limits1 <- c("co", "tr")
@@ -843,6 +855,12 @@ panelView <- function(formula,
                                               "outcome" = factor(c(Y[show, tr.pos])),
                                               "type" = factor(c(rep("tr",(Ntr*nT)))),
                                               "id" = c(rep(1:Ntr,each = nT)))
+
+                    ## remove NA
+                    if (sum(is.na(data2[,"outcome"])) > 0) {
+                        data2 <- data2[-which(is.na(data2[,"outcome"])),]
+                    }
+
                 }
                 limits2 <- c("co", "tr")
                 #limits2 <- "tr"
@@ -897,6 +915,22 @@ panelView <- function(formula,
                                               "type" = factor(c(rep("co",(Nrv*nT)),
                                                        rep("tr",length(ut.id)))),
                                               "id" = c(rep(1:Nrv,each = nT), ut.id))
+
+                    data3 <- cbind.data.frame("time" = c(rep(time[show], Nrv)),
+                                              "outcome" = factor(c(c(Y[show, rv.pos]))),
+                                              "type2" = factor(c(obs.missing[show, rv.pos])),
+                                              "id" = c(rep(1:Nrv,each = nT)))
+
+                    type <- rep(NA, dim(data3)[1])
+                    type[which(data3[,"type2"] == 2)] <- "co"
+                    type[which(data3[,"type2"] == 1)] <- "tr"
+                    data3[,"type"] <- type
+
+                    ## remove NA
+                    if (sum(is.na(data3[,"outcome"])) > 0) {
+                        data3 <- data3[-which(is.na(data3[,"outcome"])),]
+                    }
+
                 }
                 limits3 <- c("co", "tr")
                 colors3 <- raw.color[1:2]

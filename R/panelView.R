@@ -1,5 +1,5 @@
 ## A pre-view function for tscs data
-## 2018-3-10
+## 2018-6-24
 
 ## raw: plot raw data
 ## missing: plot treatment status 
@@ -8,10 +8,11 @@
 ## preview of data treatment status, missing values and raw data ##
 ##---------------------------------------------------------------##
 
-panelView <- function(formula,
-                      data, # a data frame (long-form)
+panelView <- function(data, # a data frame (long-form)
+                      formula,
                       index, # c(unit, time) indicators
                       na.rm = FALSE, # remove missing values
+                      treatment = TRUE,
                       outcome.type = "c", # c or d: continuous or discrete
                       type = "missing",
                       by.group = FALSE, # (color pre-treatment treated differently)
@@ -26,67 +27,38 @@ panelView <- function(formula,
                       id = NULL,
                       show.id = NULL,
                       raw.color = NULL,
+                      missing.color = NULL,
                       axis.adjust = FALSE,
                       axis.lab = "both",
                       axis.lab.gap = c(0, 0)
                     ) {  
-    ## ------------------------------------- ##
-    ##          part 1: parsing data
-    ## ------------------------------------- ##
+        
+    ## ------------------------------- ##
+    ## part1. parsing data             ##
+    ## ------------------------------- ##
+
+    ## ------------------------- ##
+    ## parse variable.           ##
+    ## ------------------------- ##
+
     varnames <- all.vars(formula)
     Y <- varnames[1]
-    D <- varnames[2]
-    if (length(varnames) > 2) {
-        X <- varnames[3:length(varnames)]
-    } else {
-        X <- NULL
-    }
 
+    if (length(varnames) == 1) { ## only y
+        D <- X <- NULL
+    } else if (length(varnames) == 2) {
+        D <- varnames[2]
+        X <- NULL
+    } else {
+        D <- varnames[2]
+        X <- varnames[3:length(varnames)]
+    }
+    
     p <- length(X)
 
-    namesData <- names(data)
-    for (i in 1:length(varnames)) {
-        if(!varnames[i] %in% namesData) {
-            stop(paste("variable \"", varnames[i],"\" is not in the data set.", sep = ""))
-        }
-    }
-
-    if (na.rm == TRUE) {
-        data <- data[,c(index, Y, D, X)] ## covariates are excluded
-        data <- na.omit(data)
-    } 
-
-    ##store variable names
-    ## id.old <- id
-    if (is.null(id)) {
-        id.old <- NULL
-    } else {
-        id.old <- sort(id)
-    }
-    data.old <- data
-    Yname <- Y
-    Dname <- D
-    Xname <- X
-    
-    id <- index[1]
-    time <- index[2]
-
-    if (class(data[,id])=="factor") {
-        data[,id] <- as.character(data[,id])
-    }
-
-    if (class(data[,time])=="factor") {
-        data[,time] <- as.character(data[,time])
-    }    
-
-    TT <- length(unique(data[,time]))
-    N <- length(unique(data[,id]))
-    id.series <- unique(sort(data[,id])) ## unit id
-    time.uni <- unique(sort(data[,time])) ## period
     ##-------------------------------##
     ## Checking Parameters
     ##-------------------------------## 
-    ## library(ggplot2)
 
     if (!type %in% c("missing", "raw")) {
         stop("\"type\" option misspecified.")
@@ -125,6 +97,54 @@ panelView <- function(formula,
         legend.labs <- as.character(legend.labs)
     }
 
+    ## ------------------------ ##
+    ## parsing data.            ##
+    ## ------------------------ ##
+
+    namesData <- names(data)
+    for (i in 1:length(varnames)) {
+        if(!varnames[i] %in% namesData) {
+            stop(paste("variable \"", varnames[i],"\" is not in the data set.", sep = ""))
+        }
+    }
+
+    data <- data[,c(index, Y, D, X)] ## covariates are excluded
+    if (na.rm == FALSE & sum(is.na(data)) > 0) {
+        stop("Missing values in dataset.\n")
+    } 
+    if (na.rm == TRUE) {
+        data <- na.omit(data)
+    } 
+
+    ##store variable names
+    ## specified id 
+    if (is.null(id)) {
+        id.old <- NULL
+    } else {
+        id.old <- sort(id)
+    }
+
+    data.old <- data
+    Yname <- Y
+    Dname <- D
+    Xname <- X
+    
+    id <- index[1]
+    time <- index[2]
+
+    ## if (class(data[,id])=="factor") {
+    ##     data[,id] <- as.character(data[,id])
+    ## }
+
+    ## if (class(data[,time])=="factor") {
+    ##     data[,time] <- as.character(data[,time])
+    ## }    
+
+    TT <- length(unique(data[,time]))
+    N <- length(unique(data[,id]))
+    id.series <- unique(sort(data[,id])) ## unit id
+    time.uni <- unique(sort(data[,time])) ## period
+
     ## missing plot : y-axis
     if (!is.null(id.old)) {
         if (!is.null(show.id)) {
@@ -159,42 +179,25 @@ panelView <- function(formula,
         }
     }
 
-    ##-------------------------------##
-    ## Parsing raw data
-    ##-------------------------------##  
-
     ## sort data
     data <- data[order(data[,id], data[,time]), ]
     id.all <- time.all <- count <- coordin <- data.x <- x.na <- NULL
-    
-    ## if (p > 0) { ## covariates may contain missing values
-        ## location
-    ##     id.all <- as.matrix(data[, id])
-    ##     time.all <- as.matrix(data[, time])
 
-    ##     count <- dim(data)[1]
-    ##     coordin <- matrix(NA, count, 2)
-    ##     for (i in 1:count) {
-    ## 	    coordin[i, 2] <- which(id.series == id.all[i])
-    ##	    coordin[i, 1] <- which(time.uni == time.all[i]) ## obs.missing: T*N
-    ##     }
-    ##     data.x <- as.matrix(data[, X])
-    ##     x.na <- apply(is.na(data.x), 1, sum)
-    ##     x.na <- ifelse(x.na > 0, 1, 0)
-    ## }
+    ## check treatment indicator
+    ## treatment <- 1
+    if ( ((is.null(Dname)) | (!(1%in%data[, Dname] & 0%in%data[,Dname] & length(unique(data[,Dname])) == 2))) & treatment == 1) {
+        ## stop(paste("Error values in variable \"", Dname,"\".", sep = ""))
+        warning("No treatment indicator.\n")
+        treatment <- 0
+    }
 
     ## check missingness
     if (sum(is.na(data[, Yname])) > 0) {
         stop(paste("Missing values in variable \"", Yname,"\".", sep = ""))
     }
-    if (sum(is.na(data[, Dname])) > 0) {
+    if (treatment ==1 & sum(is.na(data[, Dname])) > 0) {
         stop(paste("Missing values in variable \"", Dname,"\".", sep = ""))
     }
-
-    if (!(1%in%data[, Dname]&0%in%data[,Dname]&length(unique(data[,Dname]))==2)) {
-        stop(paste("Error values in variable \"", Dname,"\".", sep = ""))
-    }
-
     if (sum(is.na(data[, id])) > 0) {
         stop(paste("Missing values in variable \"", id,"\".", sep = ""))
     }
@@ -203,23 +206,31 @@ panelView <- function(formula,
     } 
 
     ## check balanced panel and fill unbalanced panel
+    Y <- I <- D <- NULL
     if (var(table(data[,id])) + var(table(data[, time])) > 0 | TT == N) {
 
         data[,id] <- as.numeric(as.factor(data[,id]))
         data[,time] <- as.numeric(as.factor(data[,time]))
 
         Y <- matrix(NA, TT, N)
-        I <- D <- matrix(0, TT, N)
+        I <- matrix(0, TT, N)
+        if (treatment == 1) {
+            D <- matrix(0, TT, N)
+        }
         for (i in 1:dim(data)[1]) {
             Y[data[i,time],data[i,id]] <- data[i,Yname]
-            D[data[i,time],data[i,id]] <- data[i,Dname]
+            if (treatment == 1) {
+                D[data[i,time],data[i,id]] <- data[i,Dname]
+            }
             I[data[i,time],data[i,id]] <- 1
         }
 
     } else {
         I <- matrix(1, TT, N)
         Y <- matrix(data[,Yname], TT, N)
-        D <- matrix(data[,Dname], TT, N)
+        if (treatment == 1) {
+            D <- matrix(data[,Dname], TT, N)
+        }
     }
 
     ## index matrix that indicates if data is observed 
@@ -233,54 +244,74 @@ panelView <- function(formula,
     
     ##treatment indicator
     ## D <- matrix(data[,Dname],TT,N)
-    D.old <- D ## store D 
+    
+    if (treatment == 1) {
+        D.old <- D ## store D 
 
-    ## once treated, always treated
-    D <- apply(D, 2, function(vec){cumsum(vec)})
-    D <- ifelse(D > 0, 1, 0)
+        ## once treated, always treated
+        D <- apply(D, 2, function(vec){cumsum(vec)})
+        D <- ifelse(D > 0, 1, 0)
 
-    ## DID timing
-    tr.old <- D[TT,]==1
-    D.tr.old <- as.matrix(D[,which(tr.old==1)])
-    T0 <- apply(D.tr.old==0,2,sum) 
-    DID <- length(unique(T0))==1
+        ## DID timing
+        tr.old <- D[TT,]==1
+        D.tr.old <- as.matrix(D[,which(tr.old==1)])
+        T0 <- apply(D.tr.old==0,2,sum) 
+        DID <- length(unique(T0))==1
 
-    ## check DID mode
-    if (sum(abs(D.old[which(I==1)] - D[which(I==1)])) == 0) {
-        by.group <- by.group
-        FEmode <- 0
-    } else { ## FE mode
-        DID <- 0
-        if (by.group == FALSE & type == "raw") {
-            warning("Treatment has reversals.\n")
+        ## check DID mode
+        if (sum(abs(D.old[which(I==1)] - D[which(I==1)])) == 0) {
+            by.group <- by.group
+            FEmode <- 0
+        } else { ## FE mode
+            DID <- 0
+            if (by.group == FALSE & type == "raw") {
+                warning("Treatment has reversals.\n")
+            }
+            ## by.group <- TRUE
+            FEmode <- 1
         }
-        ## by.group <- TRUE
-        FEmode <- 1
     }
 
     ## raw plot color setting
     if (is.null(raw.color)) {
         if (theme.bw == FALSE) {
-            raw.color <- c("#99999950", "#FC8D6280", "red")
+            if (treatment == 1) {
+                raw.color <- c("#99999950", "#FC8D6280", "red")
+            } else {
+                raw.color <- "#99999950"
+            }
         } else {
             if (outcome.type == "c") {
-                raw.color <- c("#5e5e5e50", "#4671D565", "#06266F")
+                if (treatment == 1) {
+                    raw.color <- c("#5e5e5e50", "#4671D565", "#06266F")
+                } else {
+                    raw.color <- "#5e5e5e50"
+                }
             } else {
-                raw.color <- c("#5e5e5e60", "#4671D5", "#06266F")
+                if (treatment == 1) {
+                    raw.color <- c("#5e5e5e60", "#4671D5", "#06266F")
+                } else {
+                    raw.color <- "#5e5e5e60"
+                }
             }
         }
-    } else {
-        
-        if (FEmode == 1) {
-            if (length(raw.color) != 2) {
-                stop("Length of \"raw.color\" shold be equal to 2.\n")    
+    } else {        
+        if (treatment == 1) {
+            if (FEmode == 1) {
+                if (length(raw.color) != 2) {
+                    stop("Length of \"raw.color\" shold be equal to 2.\n")    
+                }
+            } else {
+                if (by.group == FALSE & length(raw.color) != 3) {
+                    stop("Length of \"raw.color\" shold be equal to 3.\n")
+                }
+                else if (by.group == TRUE & length(raw.color) != 2) {
+                    stop("Length of \"raw.color\" shold be equal to 2.\n")
+                }
             }
         } else {
-            if (by.group == FALSE & length(raw.color) != 3) {
-                stop("Length of \"raw.color\" shold be equal to 3.\n")
-            }
-            else if (by.group == TRUE & length(raw.color) != 2) {
-                stop("Length of \"raw.color\" shold be equal to 2.\n")
+            if (length(raw.color) != 1) {
+               stop("Length of \"raw.color\" shold be equal to 1.\n") 
             }
         }
     }
@@ -288,16 +319,8 @@ panelView <- function(formula,
     ##-------------------------------##
     ## storage
     ##-------------------------------##    
-    ## if (is.null(id.old)) {
-        iname <- unique(sort(data.old[,id]))
-    ## } else {
-    ##     iname <- sort(id.old)
-    ## }
+    iname <- unique(sort(data.old[,id]))
     tname <- unique(sort(data.old[,time]))
-
-    ## outcome variable
-    ## Y <- matrix(data[,Yname],TT,N)
-    ## Y[which(I==0)] <- NA
 
     ## plot a part of outcomes: raw plot
     if (!is.null(id.old)) {
@@ -312,52 +335,61 @@ panelView <- function(formula,
         N <- length(id.old)
         Y <- as.matrix(Y[, id.pos])
         I <- as.matrix(I[, id.pos])
-        D <- as.matrix(D[, id.pos])
-        D.old <- as.matrix(D.old[, id.pos])
+        if (treatment == 1) {
+            D <- as.matrix(D[, id.pos])
+            D.old <- as.matrix(D.old[, id.pos])
+        }
         iname <- id.old
     }
 
-    if (FEmode == 0 && by.group == FALSE) {
-        tr <- D[TT,]==1     # cross-sectional: treated unit
-        pre <- as.matrix(D[,which(tr==1)]==0&I[,which(tr==1)]==1) # a matrix indicating before treatment
-        post <- as.matrix(D[,which(tr==1)]==1&I[,which(tr==1)]==1)
-        id.tr <- which(tr==1)
-        id.co <- which(tr==0)
+    ## missing matrix 
+    obs.missing <- NULL
+    if (treatment == 1) {
+        if (FEmode == 0 && by.group == FALSE) {
+            tr <- D[TT,]==1     # cross-sectional: treated unit
+            pre <- as.matrix(D[,which(tr==1)]==0&I[,which(tr==1)]==1) # a matrix indicating before treatment
+            post <- as.matrix(D[,which(tr==1)]==1&I[,which(tr==1)]==1)
+            id.tr <- which(tr==1)
+            id.co <- which(tr==0)
 
-        D.tr <- as.matrix(D[,which(tr==1)])
-        I.tr <- as.matrix(I[,which(tr==1)])
-        Y.tr <- as.matrix(Y[,which(tr==1)])
-        Y.co <- as.matrix(Y[,which(tr==0)])
+            D.tr <- as.matrix(D[,which(tr==1)])
+            I.tr <- as.matrix(I[,which(tr==1)])
+            Y.tr <- as.matrix(Y[,which(tr==1)])
+            Y.co <- as.matrix(Y[,which(tr==0)])
 
-        Ntr <- sum(tr)
-        Nco <- N - Ntr
+            Ntr <- sum(tr)
+            Nco <- N - Ntr
 
-        obs.missing <- matrix(3, TT, N) ## control group:1
-        pre[which(pre==1)] <- 1 ## pre 2
-        post[which(post==1)] <- 2 ## post 3
-        obs.missing[,id.tr] <- pre + post
-        obs.missing[which(I==0)] <- 4 ## missing
+            obs.missing <- matrix(3, TT, N) ## control group:1
+            pre[which(pre==1)] <- 1 ## pre 2
+            post[which(post==1)] <- 2 ## post 3
+            obs.missing[,id.tr] <- pre + post
+            obs.missing[which(I==0)] <- 4 ## missing
 
-        id.tr <- iname[which(tr==1)] ## re-define id
-        id.co <- iname[which(tr==0)]
-    } else {
-        unit.type <- rep(NA, N) ## 1 for control; 2 for treated; 3 for reversal
-        for (i in 1:N) {
-            di <- D.old[, i]
-            ii <- I[, i]
-            if (length(unique(di[which(ii==1)])) == 1) { ## treated or control
-                if (0 %in% unique(di[which(ii==1)])) {
-                    unit.type[i] <- 1 ## control
+            id.tr <- iname[which(tr==1)] ## re-define id
+            id.co <- iname[which(tr==0)]
+        } else {
+            unit.type <- rep(NA, N) ## 1 for control; 2 for treated; 3 for reversal
+            for (i in 1:N) {
+                di <- D.old[, i]
+                ii <- I[, i]
+                if (length(unique(di[which(ii==1)])) == 1) { ## treated or control
+                    if (0 %in% unique(di[which(ii==1)])) {
+                        unit.type[i] <- 1 ## control
+                    } else {
+                        unit.type[i] <- 2 ## treated
+                    }
                 } else {
-                    unit.type[i] <- 2 ## treated
+                    unit.type[i] <- 3 ## reversal
                 }
-            } else {
-                unit.type[i] <- 3 ## reversal
             }
-        }
         
-        obs.missing <- matrix(2, TT, N) ## not under treatment
-        obs.missing[which(D.old==1)] <- 1 ## under treatment
+            obs.missing <- matrix(2, TT, N) ## not under treatment
+            obs.missing[which(D.old==1)] <- 1 ## under treatment
+            obs.missing[which(I==0)] <- 4 ## missing
+        }
+    } else {
+        obs.missing <- matrix(2, TT, N) ## observed 
         obs.missing[which(I==0)] <- 4 ## missing
     }
 
@@ -526,7 +558,6 @@ panelView <- function(formula,
 
     ############  START  ############### 
     if (type == "raw") {
-
         ## axes labels
         if (is.null(xlab)==TRUE) {
             xlab <- index[2]
@@ -539,7 +570,137 @@ panelView <- function(formula,
             ylab <- NULL
         }
 
-        if (by.group == FALSE) { ## Mixed units
+        if (treatment == 0) {
+            if (outcome.type == "c") {
+                data <- cbind.data.frame("time" = rep(time[show], N),
+                                         "outcome" = c(Y[show,]),
+                                         "type" = rep("co",(N*nT)),
+                                         "id" = rep(1:N,each = nT))
+            } else {
+                data <- cbind.data.frame("time" = rep(time[show], N), 
+                                         "outcome" = factor(c(Y[show,])),
+                                         "type" = factor(rep("co",(N*nT))))
+                ## remove NA
+                if (sum(is.na(data[,"outcome"])) > 0) {
+                    data <- data[-which(is.na(data[,"outcome"])),]
+                }
+            }
+
+            ## theme
+            p <- ggplot(data) + xlab(xlab) +  ylab(ylab)
+
+            if (theme.bw == FALSE) {
+                p <- p + theme(legend.position = legend.pos,
+                               axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
+                               plot.title = element_text(size=20,
+                                                         hjust = 0.5,
+                                                         face="bold",
+                                                         margin = margin(10, 0, 10, 0)))
+            } else {
+                p <- p + theme_bw()
+                p <- p + theme(panel.grid.major = element_blank(),
+                               panel.grid.minor = element_blank(),
+                               legend.position = legend.pos,
+                               axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
+                                plot.title = element_text(size=20,
+                                                          hjust = 0.5,
+                                                          face="bold",
+                                                          margin = margin(10, 0, 10, 0)))
+            }
+
+            if (outcome.type == "c") {
+                ## main
+                p <- p + geom_line(aes(time, outcome,
+                                       colour = type,
+                                       size = type,
+                                       linetype = type,
+                                       group = id))
+
+                ## legend
+                set.limits = "co"
+                set.colors = raw.color
+                set.linetypes = "solid"
+                set.linewidth = 0.5
+                if (!is.null(legend.labs)) {
+                    if (length(legend.labs) != 1) {
+                        warning("Wrong number of labels in the legend. Using default.\n")
+                        set.labels = "Observed"  
+                    } else {
+                        set.labels <- legend.labs
+                    }
+                } else {
+                    set.labels <- "Observed"
+                }
+                labels.ncol <- 1
+
+                ## scale
+                p <- p + scale_colour_manual(limits = set.limits,
+                                             labels = set.labels,
+                                             values =set.colors) +
+                    scale_linetype_manual(limits = set.limits,
+                                          labels = set.labels,
+                                          values = set.linetypes) +
+                    scale_size_manual(limits = set.limits,
+                                      labels = set.labels,
+                                      values = set.linewidth) +
+                    guides(linetype = guide_legend(title=NULL, ncol=labels.ncol),
+                           colour = guide_legend(title=NULL, ncol=labels.ncol),
+                           size = guide_legend(title=NULL, ncol=labels.ncol))
+
+            } else { ## categorical data
+              
+                ## main
+                p <- p + geom_jitter(width = 0.15, height = 0.15,
+                                     aes(x = time, y = outcome, colour = type, shape = type))
+
+                ## scale
+                set.limits = "co"
+                set.colors = raw.color
+                set.shapes = 1
+                if (!is.null(legend.labs)) {
+                    if (length(legend.labs) != 1) {
+                        warning("Wrong number of labels in the legend. Using default.\n")
+                        set.labels = "Observed"
+                    } else {
+                        set.labels <- legend.labs
+                    }
+                } else {                      
+                    set.labels = "Observed"
+                }
+              
+                labels.ncol <- 1
+
+                p <- p + scale_colour_manual(limits = set.limits,
+                                             labels = set.labels,
+                                             values =set.colors) + 
+                         scale_shape_manual(limits = set.limits,
+                                            labels = set.labels,
+                                            values =set.shapes) + 
+                         guides(colour = guide_legend(title=NULL, ncol=labels.ncol),
+                                shape = guide_legend(title=NULL, ncol=labels.ncol))
+            }
+            if (!is.numeric(time.label)) {
+                p <- p + 
+                     scale_x_continuous(expand = c(0, 0), breaks = show[T.b], labels = time.label[T.b])
+            }
+
+            ## title
+            if (is.null(main) == TRUE) {
+                p <- p + ggtitle("Raw Data")
+            } else if (main!="") {
+                p <- p + ggtitle(main)
+            }
+
+            ## ylim
+            if (is.null(ylim) == FALSE) {
+                p <- p + coord_cartesian(ylim = ylim)
+            }
+            
+            suppressWarnings(print(p))
+
+        }
+
+        else if (treatment == 1 && by.group == FALSE) { ## Mixed units
             
             ## time-line
             if (outcome.type == "c") { ## continuous outcome
@@ -1125,9 +1286,7 @@ panelView <- function(formula,
                                          top = textGrob(main, gp = gpar(fontsize=20,font=2))))
                 }
             }
-            ## end of raw plot
-        }
-        
+        }    ## end of raw plot
     } else if (type=="missing") {
         
         if (is.null(xlab)==TRUE) {
@@ -1176,6 +1335,7 @@ panelView <- function(formula,
                 breaks <- c(breaks,3)
                 label <- c(label,"Controls")
             }
+
         } else {
             if (1%in%all) {
                 col <- c(col,"#06266F")
@@ -1185,13 +1345,24 @@ panelView <- function(formula,
             if (2%in%all) {
                 col <- c(col,"#B0C4DE")
                 breaks <- c(breaks,2)
-                label <- c(label,"Under Control")
+                if (treatment == 1) {
+                    label <- c(label,"Under Control")
+                } else {
+                    label <- c(label, "observed")
+                }
             }
         }
         if (4%in%all) {
             col <- c(col,"#FFFFFF")
             breaks <- c(breaks,4)
             label <- c(label,"Missing")
+        }
+        if (!is.null(missing.color)) {
+            if (length(col) == length(missing.color)) {
+                col <- missing.color
+            } else {
+                stop(paste("Length of \"missing.color\" shold be equal to ",length(col),".\n", sep=""))
+            }
         }
         if (!is.null(legend.labs)) {
             if (length(legend.labs) != length(all)) {
@@ -1267,6 +1438,7 @@ panelView <- function(formula,
                                         hjust = 0.5,
                                         face="bold",
                                         margin = margin(10, 0, 10, 0)))
+
         if (axis.lab == "both") {
             p <- p + scale_x_continuous(expand = c(0, 0), breaks = T.b, labels = time.label[T.b]) +
             scale_y_continuous(expand = c(0, 0), breaks = N.b, labels = id[N.b])
@@ -1295,5 +1467,5 @@ panelView <- function(formula,
     ## } else {
     ##     out <- list(plot = p)
     ## }
-    ## return(out)   
+    ## return(p)   
 }

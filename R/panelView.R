@@ -11,7 +11,7 @@
 panelView <- function(data, # a data frame (long-form)
                       formula,
                       index, # c(unit, time) indicators
-                      na.rm = FALSE, # remove missing values
+                      na.rm = TRUE, # remove missing values
                       treatment = TRUE,
                       outcome.type = "c", # c or d: continuous or discrete
                       type = "missing",
@@ -110,7 +110,7 @@ panelView <- function(data, # a data frame (long-form)
 
     data <- data[,c(index, Y, D, X)] ## covariates are excluded
     if (na.rm == FALSE & sum(is.na(data)) > 0) {
-        stop("Missing values in dataset.\n")
+        stop("Missing values in dataset. Try set na.rm = TRUE.\n")
     } 
     if (na.rm == TRUE) {
         data <- na.omit(data)

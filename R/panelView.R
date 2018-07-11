@@ -108,6 +108,9 @@ panelView <- function(data, # a data frame (long-form)
         }
     }
 
+    ## raw id 
+    id.series.old <- unique(data[,index[1]])
+
     data <- data[,c(index, Y, D, X)] ## covariates are excluded
     if (na.rm == FALSE & sum(is.na(data)) > 0) {
         stop("Missing values in dataset. Try set na.rm = TRUE.\n")
@@ -145,6 +148,14 @@ panelView <- function(data, # a data frame (long-form)
     id.series <- unique(sort(data[,id])) ## unit id
     time.uni <- unique(sort(data[,time])) ## period
 
+    remove.id <- NULL
+
+    if (length(id.series.old) > length(id.series)) {
+        remove.id <- setdiff(id.series.old, id.series)
+        cat("list of removed units from dataset:", remove.id)
+        cat("\n\n")
+    }
+
     ## missing plot : y-axis
     if (!is.null(id.old)) {
         if (!is.null(show.id)) {
@@ -153,8 +164,21 @@ panelView <- function(data, # a data frame (long-form)
         if (length(unique(id.old)) != length(id.old)) {
             stop("Repeated values in \"id\" option.")
         }
+
+        if (sum(id.old%in%id.series.old) < length(id.old)) {
+            id.old.err <- which(!id.old%in%id.series.old)
+            cat("Some specified units are not in the data:", id.old[id.old.err])
+            cat("\n")
+            cat("They will be removed.")
+            cat("\n\n")  
+            id.old <- id.old[-id.old.err]
+        }
+
         if (sum(id.old%in%id.series) < length(id.old)) {
-            stop("Some specified units are not in the data.\n")    
+            id.old.rm <- which(id.old %in% remove.id)
+            cat("list of removed units from \"id\":", id.old[id.old.rm], sep = " ")
+            cat("\n\n")
+            id.old <- id.old[-id.old.rm]
         } 
         ## else {
         ##     id.series <- sort(id.old)

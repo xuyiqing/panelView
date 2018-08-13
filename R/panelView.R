@@ -13,7 +13,7 @@ panelView <- function(data, # a data frame (long-form)
                       index, # c(unit, time) indicators
                       na.rm = TRUE, # remove missing values
                       treatment = TRUE,
-                      outcome.type = "c", # c or d: continuous or discrete
+                      outcome.type = "continuous", # continuous or discrete
                       type = "missing",
                       by.group = FALSE, # (color pre-treatment treated differently)
                       theme.bw = FALSE,
@@ -24,10 +24,10 @@ panelView <- function(data, # a data frame (long-form)
                       legendOff = FALSE,
                       legend.labs = NULL,
                       main = NULL,
+                      by.treatment = FALSE,
                       id = NULL,
                       show.id = NULL,
-                      raw.color = NULL,
-                      missing.color = NULL,
+                      color = NULL,
                       axis.adjust = FALSE,
                       axis.lab = "both",
                       axis.lab.gap = c(0, 0)
@@ -46,15 +46,39 @@ panelView <- function(data, # a data frame (long-form)
 
     if (length(varnames) == 1) { ## only y
         D <- X <- NULL
+        treatment <- 0
     } else if (length(varnames) == 2) {
-        D <- varnames[2]
-        X <- NULL
+        if (treatment == 1) {
+            D <- varnames[2]
+            X <- NULL
+        } else {
+            D <- NULL
+            X <- varnames[2]
+        }   
     } else {
-        D <- varnames[2]
-        X <- varnames[3:length(varnames)]
+        if (treatment == 1) {
+            D <- varnames[2]
+            X <- varnames[3:length(varnames)]
+        } else {
+            D <- NULL
+            X <- varnames[2:length(varnames)]
+        }
     }
+
+    if (is.data.frame(data) == FALSE || length(class(data)) > 1) {
+        data <- as.data.frame(data)
+        warning("Not a data frame.")
+    }
+
+    data <- data[,c(index, Y, D, X)] ## covariates are excluded
+    if (na.rm == FALSE & sum(is.na(data)) > 0) {
+        stop("Missing values in dataset. Try set na.rm = TRUE.\n")
+    } 
+    if (na.rm == TRUE) {
+        data <- na.omit(data)
+    } 
     
-    p <- length(X)
+    ## p <- length(X)
 
     ##-------------------------------##
     ## Checking Parameters
@@ -64,10 +88,6 @@ panelView <- function(data, # a data frame (long-form)
         stop("\"type\" option misspecified.")
     }
 
-    if (is.data.frame(data) == FALSE) {
-        data <- as.data.frame(data)
-        warning("Not a data frame.")
-    }
     ## index
     if (length(index) != 2 | sum(index %in% colnames(data)) != 2) {
         stop("\"index\" option misspecified. Try, for example, index = c(\"unit.id\", \"time\").")
@@ -97,6 +117,21 @@ panelView <- function(data, # a data frame (long-form)
         legend.labs <- as.character(legend.labs)
     }
 
+    ## outcome.type
+    if (!outcome.type %in% c("continuous", "discrete")) {
+        stop("\"outcome.type\" option misspecified. Try, for example, outcome.type = c(\"continuous\", \"discrete\").")
+    }
+
+    ## treatment indicator
+    if (treatment == 1) {
+        if (!(1%in%data[, D] & 0%in%data[, D] & length(unique(data[,D])) == 2)) {
+            stop(paste("variable \"", D, "\" should contain only 0 and 1.\n"))
+        }
+    }
+
+    ## plot
+    raw.color <- NULL
+
     ## ------------------------ ##
     ## parsing data.            ##
     ## ------------------------ ##
@@ -110,14 +145,6 @@ panelView <- function(data, # a data frame (long-form)
 
     ## raw id 
     id.series.old <- unique(data[,index[1]])
-
-    data <- data[,c(index, Y, D, X)] ## covariates are excluded
-    if (na.rm == FALSE & sum(is.na(data)) > 0) {
-        stop("Missing values in dataset. Try set na.rm = TRUE.\n")
-    } 
-    if (na.rm == TRUE) {
-        data <- na.omit(data)
-    } 
 
     ##store variable names
     ## specified id 
@@ -200,7 +227,14 @@ panelView <- function(data, # a data frame (long-form)
                 stop("Repeated values in \"show.id\" option.")
             }
             id.old <- id.series[sort(show.id)] 
+        } else {
+            id.old <- id.series
         }
+    }
+
+    if (length(id.old) != length(id.series)) {
+        data.old <- data <- data[which(data[,id] %in% id.old),]
+        N <- length(id.old)
     }
 
     ## sort data
@@ -209,29 +243,28 @@ panelView <- function(data, # a data frame (long-form)
 
     ## check treatment indicator
     ## treatment <- 1
-    if ( ((is.null(Dname)) | (!(1%in%data[, Dname] & 0%in%data[,Dname] & length(unique(data[,Dname])) == 2))) & treatment == 1) {
-        ## stop(paste("Error values in variable \"", Dname,"\".", sep = ""))
+    if (treatment == 1 & is.null(Dname)) {
         warning("No treatment indicator.\n")
-        treatment <- 0
+        treatment <- 0    
     }
 
     ## check missingness
-    if (sum(is.na(data[, Yname])) > 0) {
-        stop(paste("Missing values in variable \"", Yname,"\".", sep = ""))
-    }
-    if (treatment ==1 & sum(is.na(data[, Dname])) > 0) {
-        stop(paste("Missing values in variable \"", Dname,"\".", sep = ""))
-    }
-    if (sum(is.na(data[, id])) > 0) {
-        stop(paste("Missing values in variable \"", id,"\".", sep = ""))
-    }
-    if (sum(is.na(data[, time])) > 0) {
-        stop(paste("Missing values in variable \"", time,"\".", sep = ""))
-    } 
+    ## if (sum(is.na(data[, Yname])) > 0) {
+    ##     stop(paste("Missing values in variable \"", Yname,"\".", sep = ""))
+    ## }
+    ## if (treatment ==1 & sum(is.na(data[, Dname])) > 0) {
+    ##     stop(paste("Missing values in variable \"", Dname,"\".", sep = ""))
+    ## }
+    ## if (sum(is.na(data[, id])) > 0) {
+    ##     stop(paste("Missing values in variable \"", id,"\".", sep = ""))
+    ## }
+    ## if (sum(is.na(data[, time])) > 0) {
+    ##     stop(paste("Missing values in variable \"", time,"\".", sep = ""))
+    ## } 
 
     ## check balanced panel and fill unbalanced panel
     Y <- I <- D <- NULL
-    if (var(table(data[,id])) + var(table(data[, time])) > 0 | TT == N) {
+    if (dim(data)[1] != TT*N) {
 
         data[,id] <- as.numeric(as.factor(data[,id]))
         data[,time] <- as.numeric(as.factor(data[,time]))
@@ -297,48 +330,61 @@ panelView <- function(data, # a data frame (long-form)
     }
 
     ## raw plot color setting
-    if (is.null(raw.color)) {
-        if (theme.bw == FALSE) {
+    if (type == "raw") {
+        if (is.null(color)) {
+            if (theme.bw == FALSE) {
+                if (treatment == 1) {
+                    raw.color <- c("#99999950", "#FC8D6280", "red")
+                } else {
+                    raw.color <- "#99999950"
+                }
+            } else {
+                if (outcome.type == "continuous") {
+                    if (treatment == 1) {
+                        raw.color <- c("#5e5e5e50", "#4671D565", "#06266F")
+                    } else {
+                        raw.color <- "#5e5e5e50"
+                    }
+                } else {
+                    if (treatment == 1) {
+                        raw.color <- c("#5e5e5e60", "#4671D5", "#06266F")
+                    } else {
+                        raw.color <- "#5e5e5e60"
+                    }
+                }
+            }
+        } else {        
             if (treatment == 1) {
-                raw.color <- c("#99999950", "#FC8D6280", "red")
-            } else {
-                raw.color <- "#99999950"
-            }
-        } else {
-            if (outcome.type == "c") {
-                if (treatment == 1) {
-                    raw.color <- c("#5e5e5e50", "#4671D565", "#06266F")
+                if (FEmode == 1) {
+                    if (length(color) != 2) {
+                        stop("Length of \"color\" shold be equal to 2.\n")    
+                    } else {
+                        cat("Specified color in sequence of \"under treatment\", \"under control\".\n")
+                        raw.color <- color[c(2,1)]
+                    }
                 } else {
-                    raw.color <- "#5e5e5e50"
+                    if (by.group == FALSE & length(color) != 3) {
+                        stop("Length of \"color\" shold be equal to 3.\n")
+                    }
+                    else if (by.group == TRUE & length(color) != 2) {
+                        stop("Length of \"color\" shold be equal to 2.\n")
+                    }
+                    else if (by.group == FALSE & length(color) == 3) {
+                        cat("Specified color in sequence of \"treated pre\", \"treated post\", \"control\".\n")
+                        raw.color <- color[c(3,1,2)]
+                    }
+                    else {
+                        cat("Specified color in sequence of \"under treatment\", \"under control\".\n")
+                        raw.color <- color[c(2,1)]
+                    }
                 }
             } else {
-                if (treatment == 1) {
-                    raw.color <- c("#5e5e5e60", "#4671D5", "#06266F")
-                } else {
-                    raw.color <- "#5e5e5e60"
+                if (length(color) != 1) {
+                   stop("Length of \"raw.color\" shold be equal to 1.\n") 
                 }
             }
         }
-    } else {        
-        if (treatment == 1) {
-            if (FEmode == 1) {
-                if (length(raw.color) != 2) {
-                    stop("Length of \"raw.color\" shold be equal to 2.\n")    
-                }
-            } else {
-                if (by.group == FALSE & length(raw.color) != 3) {
-                    stop("Length of \"raw.color\" shold be equal to 3.\n")
-                }
-                else if (by.group == TRUE & length(raw.color) != 2) {
-                    stop("Length of \"raw.color\" shold be equal to 2.\n")
-                }
-            }
-        } else {
-            if (length(raw.color) != 1) {
-               stop("Length of \"raw.color\" shold be equal to 1.\n") 
-            }
-        }
-    }
+    } 
 
     ##-------------------------------##
     ## storage
@@ -347,24 +393,24 @@ panelView <- function(data, # a data frame (long-form)
     tname <- unique(sort(data.old[,time]))
 
     ## plot a part of outcomes: raw plot
-    if (!is.null(id.old)) {
-        id.pos <- rep(NA, length(id.old))
-        for (i in 1:length(id.old)) {
-            if (id.old[i]%in%iname) {
-                id.pos[i] <- which(iname == id.old[i])
-            } else {
-                stop("Some specified units are not in the data.")
-            }
-        }
-        N <- length(id.old)
-        Y <- as.matrix(Y[, id.pos])
-        I <- as.matrix(I[, id.pos])
-        if (treatment == 1) {
-            D <- as.matrix(D[, id.pos])
-            D.old <- as.matrix(D.old[, id.pos])
-        }
-        iname <- id.old
-    }
+    ## if (!is.null(id.old)) {
+    ##     id.pos <- rep(NA, length(id.old))
+    ##     for (i in 1:length(id.old)) {
+    ##         if (id.old[i]%in%iname) {
+    ##             id.pos[i] <- which(iname == id.old[i])
+    ##         } else {
+    ##             stop("Some specified units are not in the data.")
+    ##         }
+    ##     }
+    ##     N <- length(id.old)
+    ##     Y <- as.matrix(Y[, id.pos])
+    ##     I <- as.matrix(I[, id.pos])
+    ##     if (treatment == 1) {
+    ##         D <- as.matrix(D[, id.pos])
+    ##         D.old <- as.matrix(D.old[, id.pos])
+    ##     }
+    ##     iname <- id.old
+    ## }
 
     ## missing matrix 
     obs.missing <- NULL
@@ -541,21 +587,21 @@ panelView <- function(data, # a data frame (long-form)
         }
     }
     
-    if (type == "missing") {
-        if (is.null(id) == TRUE) {
+    ## if (type == "missing") {
+    ##     if (is.null(id) == TRUE) {
             ## if (is.null(show.id) == TRUE) {
-                id <- colnames(obs.missing)
+    ##             id <- colnames(obs.missing)
             ## } else {
             ##     id <- colnames(obs.missing)[show.id]
             ## }
-        }
+    ##     }
         ## m.l <- length(id)
         ## for (i in 1:m.l) {
         ##     if (!id[i]%in%colnames(obs.missing)) {
         ##         stop("Some specified units are not in the data.")
         ##     }
         ## }
-    }
+    ## }
   
     ## type of plots
     if (!is.numeric(time[1])) {
@@ -595,7 +641,7 @@ panelView <- function(data, # a data frame (long-form)
         }
 
         if (treatment == 0) {
-            if (outcome.type == "c") {
+            if (outcome.type == "continuous") {
                 data <- cbind.data.frame("time" = rep(time[show], N),
                                          "outcome" = c(Y[show,]),
                                          "type" = rep("co",(N*nT)),
@@ -632,7 +678,7 @@ panelView <- function(data, # a data frame (long-form)
                                                           margin = margin(10, 0, 10, 0)))
             }
 
-            if (outcome.type == "c") {
+            if (outcome.type == "continuous") {
                 ## main
                 p <- p + geom_line(aes(time, outcome,
                                        colour = type,
@@ -727,7 +773,7 @@ panelView <- function(data, # a data frame (long-form)
         else if (treatment == 1 && by.group == FALSE) { ## Mixed units
             
             ## time-line
-            if (outcome.type == "c") { ## continuous outcome
+            if (outcome.type == "continuous") { ## continuous outcome
                 if (FEmode == 0) { ## DID data
                     ## if (length(id) == 1) {
                     ##     time.bf <- time[T0[which(id == id.tr)]]
@@ -752,6 +798,7 @@ panelView <- function(data, # a data frame (long-form)
                                                         rep("co",(Nco*nT)),
                                                         rep("tr.pst",length(Y.tr.pst))),
                                              "id" = c(rep(1:N,each = nT), id.tr.pst*(-1)))
+
                 } else { ## FE mode data
                 
                     D.plot <- D.old
@@ -1003,7 +1050,7 @@ panelView <- function(data, # a data frame (long-form)
             if (1 %in% unit.type) {
                 co.pos <- which(unit.type == 1)
                 Nco <- length(co.pos)
-                if (outcome.type == "c") {
+                if (outcome.type == "continuous") {
                     data1 <- cbind.data.frame("time" = c(rep(time[show], Nco)),
                                               "outcome" = c(Y[show, co.pos]),
                                               "type" = c(rep("co", (Nco*nT))),
@@ -1030,7 +1077,7 @@ panelView <- function(data, # a data frame (long-form)
             if (2 %in% unit.type) {
                 tr.pos <- which(unit.type == 2)
                 Ntr <- length(tr.pos)
-                if (outcome.type == "c") {
+                if (outcome.type == "continuous") {
                     data2 <- cbind.data.frame("time" = c(rep(time[show], Ntr)),
                                               "outcome" = c(Y[show, tr.pos]),
                                               "type" = c(rep("tr",(Ntr*nT))),
@@ -1086,7 +1133,7 @@ panelView <- function(data, # a data frame (long-form)
                 }
 
 
-                if (outcome.type == "c") {
+                if (outcome.type == "continuous") {
                     data3 <- cbind.data.frame("time" = c(rep(time[show], Nrv), ut.time),
                                               "outcome" = c(c(Y[show, rv.pos]),
                                                           c(Y.trt.show[which(!is.na(Y.trt.show))])),
@@ -1154,7 +1201,7 @@ panelView <- function(data, # a data frame (long-form)
                 }
 
                 ## main
-                if (outcome.type == "c") {
+                if (outcome.type == "continuous") {
                     p <- p + geom_line(aes(time, outcome,
                                            colour = type,
                                            size = type,
@@ -1324,14 +1371,18 @@ panelView <- function(data, # a data frame (long-form)
             ylab <- NULL
         }
         if (is.null(main)==TRUE) {
-            main <- "Treatment Status"
+            if (treatment == 1) {
+                main <- "Treatment Status"
+            } else {
+                main <- "Missing Values"
+            }
         } else if (main == "") {
             main <- NULL
         }
 
         m <- obs.missing
         
-        if (!is.null(id)) {
+        if (length(id) < dim(m)[2]) {
             m <- as.matrix(m[show,which(colnames(m)%in%id)])
         } else {
             ## if (!is.null(show.id)) {
@@ -1372,7 +1423,7 @@ panelView <- function(data, # a data frame (long-form)
                 if (treatment == 1) {
                     label <- c(label,"Under Control")
                 } else {
-                    label <- c(label, "observed")
+                    label <- c(label, "Observed")
                 }
             }
         }
@@ -1381,11 +1432,26 @@ panelView <- function(data, # a data frame (long-form)
             breaks <- c(breaks,4)
             label <- c(label,"Missing")
         }
-        if (!is.null(missing.color)) {
-            if (length(col) == length(missing.color)) {
-                col <- missing.color
+        if (!is.null(color)) {
+            if (length(col) == length(color)) {
+                if (treatment == 1) { ## with treatment indicator
+                    if (FEmode == 0) {
+                        if (length(col) == 3) {
+                            cat("Specified color in sequence of \"treated pre\", \"treated post\", \"control\".\n")
+                        } else {
+                            cat("Specified color in sequence of \"treated pre\", \"treated post\", \"control\", \"missing\".\n")
+                        }
+                    } else {
+                        if (length(col) == 2) {
+                            cat("Specified color in sequence of \"treatment\", \"control\".\n")
+                        } else {
+                            cat("Specified color in sequence of \"treatment\", \"control\", \"missing\".\n")
+                        }
+                    }
+                }
+                col <- color
             } else {
-                stop(paste("Length of \"missing.color\" shold be equal to ",length(col),".\n", sep=""))
+                stop(paste("Length of \"color\" shold be equal to ",length(col),".\n", sep=""))
             }
         }
         if (!is.null(legend.labs)) {
@@ -1399,6 +1465,12 @@ panelView <- function(data, # a data frame (long-form)
         N <- dim(m)[2]
         units <- rep(rev(1:N), each = TT)
         period <- rep(1:TT, N)
+        if (3 %in% all && by.treatment == TRUE) {
+            missing.tr <- which(apply(m == 3, 2, sum) > 0)
+            missing.co <- which(apply(m == 3, 2, sum) == 0)
+            m <- m[, c(missing.co, missing.tr)]
+            id <- id[c(missing.co, missing.tr)]
+        }
         res <- c(m)
         data <- cbind.data.frame(units=units, period=period, res=res)
         data[,"res"] <- as.factor(data[,"res"])

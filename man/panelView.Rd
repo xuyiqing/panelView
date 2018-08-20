@@ -3,29 +3,27 @@
 \title{Panel Data Visualizations}
 \description{Visualizes panel data with dichotomous treatments}
 \usage{panelView(data, formula, index, na.rm = TRUE, 
-                 treatment = TRUE, outcome.type = "continuous", 
-                 type = "missing", by.group = FALSE, theme.bw = FALSE,
-                 xlim = NULL, ylim = NULL, 
-                 xlab = NULL, ylab = NULL, legendOff = FALSE, 
-                 legend.labs = NULL, main = NULL, by.treatment = FALSE,
-                 id = NULL, show.id = NULL,
-                 color = NULL,
-                 axis.adjust = FALSE, axis.lab = "both", 
-                 axis.lab.gap = c(0, 0))
+            treatment = TRUE, outcome.type = "continuous", 
+            type = "missing", by.group = FALSE, theme.bw = FALSE,
+            xlim = NULL, ylim = NULL, 
+            xlab = NULL, ylab = NULL, legendOff = FALSE, 
+            legend.labs = NULL, main = NULL, by.treatment = FALSE,
+            id = NULL, show.id = NULL,
+            color = NULL,
+            axis.adjust = FALSE, axis.lab = "both", 
+            axis.lab.gap = c(0, 0))
 }
 \arguments{
   \item{data}{a data frame (must be with a dichotomous treatment);  the panel does not have to be balanced.}
   \item{formula}{an object of class "formula": a symbolic description of
   the model to be fitted. The first variable on the right-hand-side is designated as the treatment indicator if \code{treatment = TRUE}. If there is not any covariates, the formula should be like \code{Y~1}, where \code{Y} is the outcome variable.}
-  \item{index}{a two-element string vector specifying the unit (group)
-    and time indicators. Must be of length 2.}
-  \item{na.rm}{a logical flag indicating whether to list-wise delete missing data. The algorithm will report an error if missing data exist.}
+  \item{index}{a two-element string vector specifying the unit (group) and time indicators. Must be of length 2.}
+  \item{na.rm}{a logical flag indicating whether to list-wise delete missing data. The algorithm will report an error if missing data exist when \code{na.rm = FALSE}.}
   \item{treatment}{a logical flag indicating whether there is a dichotomous treatment variable. Default value is \code{treatment = TRUE}.}
-  \item{outcome.type}{a string that specifies the numerial type of outcome variable. Must be either \code{"continuous"}(default) for continuous response or \code{"discrete"} for discrete response. For continuous response, time series lines for specifed units will be plotted, and for discrete response, jittered points at each period will be plotted.}
+  \item{outcome.type}{a string that specifies the type of outcome variable. Must be either \code{"continuous"}(default) or \code{"discrete"}. For a continuous variable, time series lines for specified units will be plotted, and for discrete response, jitter-ed points at each time period will be plotted.}
   \item{type}{a string that specifies the type of the plot. Must be either \code{"missing"} (default), which plots the treatment/missing-data status of each unit at each time point) or \code{"raw"}, which plots the raw outcome data}
   \item{by.group}{a logic flag indicating whether the data should be plotted in separate groups based on treatment status changes.}
-  \item{theme.bw}{a logical flag specifying whether to use the theme with white 
-  background and without grid lines.}
+  \item{theme.bw}{a logical flag specifying whether to use the theme with white background and without grid lines.}
   \item{xlim}{a two-element numeric vector specifying the range of x-axis. When the class of time variable is string, must specify the range of strings to be shown, e.g. \code{xlim=c(1,30)}.}
   \item{ylim}{a two-element numeric vector specifying the range of y-axis.}
   \item{xlab}{a string indicating the label of the x-axis.}
@@ -44,7 +42,7 @@
 }
 
 \details{
-  panelView visualizes treatment status, missing values, and the raw outcome data of a time-series cross-sectional dataset with a dichotomous treatment indicator.
+  panelView visualizes the treatment status, missing values, and raw outcome data of a time-series cross-sectional dataset with a dichotomous treatment indicator.
 
   For more details, see \url{http://yiqingxu.org/software/panelView/panelView.html}.
 }

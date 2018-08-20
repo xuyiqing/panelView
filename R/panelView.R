@@ -95,7 +95,7 @@ panelView <- function(data, # a data frame (long-form)
     
     unique_label <- unique(paste(data[,index[1]],"_",data[,index[2]],sep=""))
     if (length(unique_label)!=dim(data)[1]) {
-        stop("Some records may be duplicated or wrongly marked in the data set.")
+        stop("Unit and time variables do not uniquely identify all observations. Some may be duplicated or wrongly marked in the dataset.")
     }
 
     ## remove missing values
@@ -194,9 +194,7 @@ panelView <- function(data, # a data frame (long-form)
 
         if (sum(id.old%in%id.series.old) < length(id.old)) {
             id.old.err <- which(!id.old%in%id.series.old)
-            cat("Some specified units are not in the data:", id.old[id.old.err])
-            cat("\n")
-            cat("They will be removed.")
+            cat("Some specified units will be removed due to missingness:", id.old[id.old.err])
             cat("\n\n")  
             id.old <- id.old[-id.old.err]
         }
@@ -357,30 +355,30 @@ panelView <- function(data, # a data frame (long-form)
             if (treatment == 1) {
                 if (FEmode == 1) {
                     if (length(color) != 2) {
-                        stop("Length of \"color\" shold be equal to 2.\n")    
+                        stop("Length of \"color\" should be equal to 2.\n")    
                     } else {
-                        cat("Specified color in sequence of \"under treatment\", \"under control\".\n")
+                        cat("Specified colors are in the order of \"under treatment\", \"under control\".\n")
                         raw.color <- color[c(2,1)]
                     }
                 } else {
                     if (by.group == FALSE & length(color) != 3) {
-                        stop("Length of \"color\" shold be equal to 3.\n")
+                        stop("Length of \"color\" should be equal to 3.\n")
                     }
                     else if (by.group == TRUE & length(color) != 2) {
-                        stop("Length of \"color\" shold be equal to 2.\n")
+                        stop("Length of \"color\" should be equal to 2.\n")
                     }
                     else if (by.group == FALSE & length(color) == 3) {
-                        cat("Specified color in sequence of \"treated pre\", \"treated post\", \"control\".\n")
+                        cat("Specified colors in the order of \"treated (pre)\", \"treated (post)\", \"control\".\n")
                         raw.color <- color[c(3,1,2)]
                     }
                     else {
-                        cat("Specified color in sequence of \"under treatment\", \"under control\".\n")
+                        cat("Specified colors in the order of \"under treatment\", \"under control\".\n")
                         raw.color <- color[c(2,1)]
                     }
                 }
             } else {
                 if (length(color) != 1) {
-                   stop("Length of \"raw.color\" shold be equal to 1.\n") 
+                   stop("Length of \"raw.color\" should be equal to 1.\n") 
                 }
             }
         }
@@ -532,7 +530,7 @@ panelView <- function(data, # a data frame (long-form)
             stop("Some element in \"xlim\" is not numeric.")
         } else {
             if (length(xlim)!=2) {
-                stop("xlim must be of length 2.")
+                stop("\"xlim\" must be of length 2.")
             }
         }
     }
@@ -541,7 +539,7 @@ panelView <- function(data, # a data frame (long-form)
             stop("Some element in \"ylim\" is not numeric.")
         } else {
             if (length(ylim)!=2) {
-                stop("ylim must be of length 2.")
+                stop("\"ylim\" must be of length 2.")
             }
         }
     }
@@ -888,12 +886,12 @@ panelView <- function(data, # a data frame (long-form)
                     if (!is.null(legend.labs)) {
                         if (length(legend.labs) != 2) {
                             warning("Wrong number of labels in the legend. Using default.\n")
-                            set.labels = c("Control", "Treatment")  
+                            set.labels = c("Control", "Treated")  
                         } else {
                             set.labels <- legend.labs
                         }
                     } else {
-                        set.labels <- c("Control", "Treatment") 
+                        set.labels <- c("Control", "Treated") 
                     }
                     labels.ncol <- 2
                 }            
@@ -1437,15 +1435,15 @@ panelView <- function(data, # a data frame (long-form)
                 if (treatment == 1) { ## with treatment indicator
                     if (FEmode == 0) {
                         if (length(col) == 3) {
-                            cat("Specified color in sequence of \"treated pre\", \"treated post\", \"control\".\n")
+                            cat("Specified colors are in order of \"treated (pre)\", \"treated (post)\", \"control\".\n")
                         } else {
-                            cat("Specified color in sequence of \"treated pre\", \"treated post\", \"control\", \"missing\".\n")
+                            cat("Specified colors are in order of \"treated (pre)\", \"treated (post)\", \"control\", \"missing\".\n")
                         }
                     } else {
                         if (length(col) == 2) {
-                            cat("Specified color in sequence of \"treatment\", \"control\".\n")
+                            cat("Specified colors are in order of \"treatment\", \"control\".\n")
                         } else {
-                            cat("Specified color in sequence of \"treatment\", \"control\", \"missing\".\n")
+                            cat("Specified colors are in order of \"treatment\", \"control\", \"missing\".\n")
                         }
                     }
                 }

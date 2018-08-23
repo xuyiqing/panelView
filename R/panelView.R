@@ -1,8 +1,8 @@
 ## A pre-view function for tscs data
-## 2018-6-24
+## 2018-8-22
 
+## missing: plot treatment status and missing data
 ## raw: plot raw data
-## missing: plot treatment status 
 
 ##---------------------------------------------------------------##
 ## preview of data treatment status, missing values and raw data ##
@@ -30,13 +30,10 @@ panelView <- function(data, # a data frame (long-form)
                       color = NULL,
                       axis.adjust = FALSE,
                       axis.lab = "both",
-                      axis.lab.gap = c(0, 0)
+                      axis.lab.gap = c(0, 0),
+                      shade.post = TRUE
                     ) {  
         
-    ## ------------------------------- ##
-    ## part1. parsing data             ##
-    ## ------------------------------- ##
-
     ## ------------------------- ##
     ## parse variable.           ##
     ## ------------------------- ##
@@ -123,11 +120,17 @@ panelView <- function(data, # a data frame (long-form)
     }
 
     ## treatment indicator
-    if (treatment == 1) {
+    if (treatment == TRUE) {
         if (!(1%in%data[, D] & 0%in%data[, D] & length(unique(data[,D])) == 2)) {
             stop(paste("variable \"", D, "\" should contain only 0 and 1.\n"))
         }
     }
+
+    ## shade in the post-treatment period
+    if (!class(shade.post) %in% c("logical","numeric")) {
+        stop("Wrong type for option \"shade.post\"")
+    }
+    
 
     ## plot
     raw.color <- NULL
@@ -461,58 +464,6 @@ panelView <- function(data, # a data frame (long-form)
         obs.missing[which(I==0)] <- 4 ## missing
     }
 
-    ## pie chart
-    ## if (outcome.type == "d") {
-    ##     y.seq <- sort(unique(c(Y)))
-    ##     y.seq.length <- length(y.seq)
-
-    ##     Time.d <- matrix(rep(1:TT,N), TT, N)
-
-    ##     if (FEmode == 0 && by.group == FALSE) { ## obs.missing:1,2,3,4
-    ##         dis.data <- cbind.data.frame(time = rep(rep(1:TT, each = 3), y.seq.length),
-    ##                                      outcome = rep(y.seq, each = 3*TT),
-    ##                                      type = rep(c(1,2,3), y.seq.length*TT))
-    ##         dis.weight <- dis.count <- NULL
-    ##         for (i in 1:dim(dis.data)[1]) {
-    ##             dis.pos1 <- dis.data[i,"time"] == c(Time.d) & dis.data[i,"outcome"] == c(Y)
-    ##             dis.pos2 <- dis.pos1 & dis.data[i,"type"] == c(obs.missing) 
-    ##             dis.count <- c(dis.count, sum(dis.pos2, na.rm = TRUE))
-    ##             dis.weight <- c(dis.weight, sum(dis.pos1, na.rm = TRUE))
-    ##         }
-    ##         dis.data[,"count"] <- dis.count
-    ##         dis.data[,"weight"] <- dis.weight
-
-    ##     } else { ## obs.missing:1,2,4
-    ##         dis.data <- cbind.data.frame(time = rep(rep(1:TT, each = 2), y.seq.length),
-    ##                                      outcome = rep(y.seq, each = 2*TT),
-    ##                                      type = rep(c(1,2), y.seq.length*TT))
-    ##         dis.weight <- dis.count <- NULL
-    ##         for (i in 1:dim(dis.data)[1]) {
-    ##             dis.pos1 <- dis.data[i,"time"] == c(Time.d) & dis.data[i,"outcome"] == c(Y)
-    ##             dis.pos2 <- dis.pos1 & dis.data[i,"type"] == c(obs.missing) 
-    ##             dis.count <- c(dis.count, sum(dis.pos2, na.rm = TRUE))
-    ##             dis.weight <- c(dis.weight, sum(dis.pos1, na.rm = TRUE))
-    ##         }
-    ##         dis.data[,"count"] <- dis.count
-    ##         dis.data[,"weight"] <- dis.weight
-
-    ##     }
-    ## }
-        
-    ## obs.missing[which(obs.missing==1)] <- "control"
-    ## obs.missing[which(obs.missing==2)] <- "pre"
-    ## obs.missing[which(obs.missing==3)] <- "post"
-    ## obs.missing[which(obs.missing==4)] <- "removed"
-    ## obs.missing[which(obs.missing==0)] <- "missing"
-    
-    ## if (p > 0 & 1 %in% x.na ) {
-    ##     for (i in 1:count) {
-    ##     	if (x.na[i] == 1) {
-    ##    		obs.missing[coordin[i, 1], coordin[i, 2]] <- -1 ## missing -1(covar missing)
-    ##    	}
-    ##    }
-    ## }
-
     colnames(obs.missing) <- iname
     rownames(obs.missing) <- tname
 
@@ -656,25 +607,12 @@ panelView <- function(data, # a data frame (long-form)
 
             ## theme
             p <- ggplot(data) + xlab(xlab) +  ylab(ylab)
-
-            if (theme.bw == FALSE) {
+            if (theme.bw == TRUE) {
+                    p <- p + theme_bw()
+                }
                 p <- p + theme(legend.position = legend.pos,
-                               axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
-                               plot.title = element_text(size=20,
-                                                         hjust = 0.5,
-                                                         face="bold",
-                                                         margin = margin(10, 0, 10, 0)))
-            } else {
-                p <- p + theme_bw()
-                p <- p + theme(panel.grid.major = element_blank(),
-                               panel.grid.minor = element_blank(),
-                               legend.position = legend.pos,
-                               axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
-                                plot.title = element_text(size=20,
-                                                          hjust = 0.5,
-                                                          face="bold",
-                                                          margin = margin(10, 0, 10, 0)))
-            }
+                    axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
+                    plot.title = element_text(size=20, hjust = 0.5, face="bold",margin = margin(10, 0, 10, 0)))
 
             if (outcome.type == "continuous") {
                 ## main
@@ -826,31 +764,20 @@ panelView <- function(data, # a data frame (long-form)
         
                 ## theme
                 p <- ggplot(data) + xlab(xlab) +  ylab(ylab)
-
-                if (theme.bw == FALSE) {
-                    p <- p + theme(legend.position = legend.pos,
-                                   axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
-                                   plot.title = element_text(size=20,
-                                                             hjust = 0.5,
-                                                             face="bold",
-                                                             margin = margin(10, 0, 10, 0)))
-                } else {
+                if (theme.bw == TRUE) {
                     p <- p + theme_bw()
-                    p <- p + theme(panel.grid.major = element_blank(),
-                                   panel.grid.minor = element_blank(),
-                                   legend.position = legend.pos,
-                                   axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
-                                   plot.title = element_text(size=20,
-                                                             hjust = 0.5,
-                                                             face="bold",
-                                                             margin = margin(10, 0, 10, 0)))
                 }
+                p <- p + theme(legend.position = legend.pos,
+                    axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
+                    plot.title = element_text(size=20, hjust = 0.5, face="bold",margin = margin(10, 0, 10, 0)))
             
                 if (DID == TRUE && Ntr >= 1) {
                     if (time.bf >= min(show) && time.bf <= max(show)) {
-                        p <- p + geom_vline(xintercept=time.bf,colour="white",size = 2) +
-                            annotate("rect", xmin= time.bf, xmax= Inf,
+                        p <- p + geom_vline(xintercept=time.bf,colour="white",size = 2)
+                        if (shade.post == TRUE) {
+                            p <- p + annotate("rect", xmin= time.bf, xmax= Inf,
                                      ymin=-Inf, ymax=Inf, alpha = .3) 
+                        }                            
                     }
                 }
         
@@ -922,26 +849,12 @@ panelView <- function(data, # a data frame (long-form)
 
                 ## theme
                 p <- ggplot(data) + xlab(xlab) +  ylab(ylab)
-
-                if (theme.bw == FALSE) {
-                    p <- p + theme(legend.position = legend.pos,
-                                   axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
-                                   plot.title = element_text(size=20,
-                                                             hjust = 0.5,
-                                                             face="bold",
-                                                             margin = margin(10, 0, 10, 0)))
-
-                } else { 
+                if (theme.bw == TRUE) {
                     p <- p + theme_bw()
-                    p <- p + theme(panel.grid.major = element_blank(),
-                                   panel.grid.minor = element_blank(),
-                                   legend.position = legend.pos,
-                                   axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
-                                   plot.title = element_text(size=20,
-                                                             hjust = 0.5,
-                                                             face="bold",
-                                                             margin = margin(10, 0, 10, 0)))
                 }
+                p <- p + theme(legend.position = legend.pos,
+                    axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
+                    plot.title = element_text(size=20, hjust = 0.5, face="bold",margin = margin(10, 0, 10, 0)))
                 
                 ## main plot
                 p <- p + geom_jitter(width = 0.15, height = 0.15,
@@ -988,9 +901,7 @@ panelView <- function(data, # a data frame (long-form)
                                             labels = set.labels,
                                             values =set.shapes) + 
                     guides(colour = guide_legend(title=NULL, ncol=labels.ncol),
-                           shape = guide_legend(title=NULL, ncol=labels.ncol))
-                ## p <- p + scale_y_discrete("outcome")
-                ## p <- p + theme_bw()
+                           shape = guide_legend(title=NULL, ncol=labels.ncol))                
             } 
         
             if (!is.numeric(time.label)) {
@@ -1182,21 +1093,11 @@ panelView <- function(data, # a data frame (long-form)
                 set.linetypes = rep("solid", length(limits))
                 set.linewidth = rep(0.5, length(limits))
 
-                if (theme.bw == FALSE) {
-                    p <- p + theme(axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
-                                   plot.title = element_text(size=10,
-                                                             hjust = 0.5,
-                                                             margin = margin(10, 0, 10, 0)))
-                } else {
+                if (theme.bw == TRUE) {
                     p <- p + theme_bw()
-                    p <- p + theme(panel.grid.major = element_blank(),
-                                   panel.grid.minor = element_blank(),
-                                   axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
-                                   plot.title = element_text(size=10,
-                                                             hjust = 0.5,
-                                                             margin = margin(10, 0, 10, 0)))
-
                 }
+                p <- p + theme(axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
+                    plot.title = element_text(size=20, hjust = 0.5, face="bold",margin = margin(10, 0, 10, 0)))
 
                 ## main
                 if (outcome.type == "continuous") {

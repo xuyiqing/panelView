@@ -151,6 +151,7 @@ panelView <- function(data, # a data frame (long-form)
 
     ##store variable names
     ## specified id 
+    id.old2 <- id
     if (is.null(id)) {
         id.old <- NULL
     } else {
@@ -197,6 +198,7 @@ panelView <- function(data, # a data frame (long-form)
 
         if (sum(id.old%in%id.series.old) < length(id.old)) {
             id.old.err <- which(!id.old%in%id.series.old)
+            id.old2 <- setdiff(id.old2, id.old[id.old.err])
             cat("Some specified units will be removed due to missingness:", id.old[id.old.err])
             cat("\n\n")  
             id.old <- id.old[-id.old.err]
@@ -207,6 +209,7 @@ panelView <- function(data, # a data frame (long-form)
             cat("list of removed units from \"id\":", id.old[id.old.rm], sep = " ")
             cat("\n\n")
             id.old <- id.old[-id.old.rm]
+            id.old2 <- setdiff(id.old2, remove.id)
         } 
         ## else {
         ##     id.series <- sort(id.old)
@@ -227,7 +230,13 @@ panelView <- function(data, # a data frame (long-form)
             if (length(unique(show.id)) != length(show.id)) {
                 stop("Repeated values in \"show.id\" option.")
             }
-            id.old <- id.series[sort(show.id)] 
+            id.raw <- data[, index[1]]
+            if (sum(is.na(id.raw)) > 0) {
+                id.raw <- id.raw[-which(is.na(id.raw))]
+            }
+            id.raw <- id.raw[!duplicated(id.raw)]
+            id.old2 <- id.old <- id.raw[show.id]
+            ## id.old <- id.series[sort(show.id)] 
         } else {
             id.old <- id.series
         }
@@ -1365,10 +1374,22 @@ panelView <- function(data, # a data frame (long-form)
         units <- rep(rev(1:N), each = TT)
         period <- rep(1:TT, N)
         if (3 %in% all && by.treatment == TRUE) {
-            missing.tr <- which(apply(m == 3, 2, sum) > 0)
-            missing.co <- which(apply(m == 3, 2, sum) == 0)
-            m <- m[, c(missing.co, missing.tr)]
-            id <- id[c(missing.co, missing.tr)]
+            missing.tr <- which(apply(m == 3, 2, sum) == 0)
+            if (length(missing.tr) > 1) {
+                tr.count <- apply(m == 1, 2, sum)[missing.tr]
+                TR <- cbind(missing.tr, tr.count)
+                TR <- TR[order(TR[, 2]),]
+                missing.tr <- TR[, 1]
+            }
+            missing.co <- which(apply(m == 3, 2, sum) > 0)
+            m <- m[, c(missing.tr, missing.co)]
+            id <- id[c(missing.tr, missing.co)]
+        } else {
+            if (!is.null(id.old2)) {
+                id.pos.all <- sapply(1:length(id.old2),function(i){which(id.old2[i] == id)})
+                m <- m[, id.pos.all]
+                id <- id.old2
+            }
         }
         res <- c(m)
         data <- cbind.data.frame(units=units, period=period, res=res)

@@ -38,7 +38,7 @@
   \item{color}{a string vector specifying color setting for the plot.}
   \item{axis.adjust}{a logic flag indicating whether to adjust labels on the x-axis.  Useful when the class of time variable is string and there are many time periods.}
   \item{axis.lab}{a string indicating whether labels on the x- and y-axis will be shown. There are four options: \code{"both"} (default): labels on both axes will be shown; \code{"unit"}: only labels on y-axis will be shown; \code{"time"}: only labels on the x-axis will be shown; "none": no labels will be shown.}
-  \item{axis.lab.gap}{a numeric vector setting the gaps between labels on the x- or y-axis for \code{"missing"} plot. Default is \code{axis.lab.gap = c(0, 0)}, which means that all labels will be shown. Useful for datasets with large N or T.}
+  \item{axis.lab.gap}{a numeric vector setting the gaps between labels on the x- or y-axis for the plot. Default is \code{axis.lab.gap = c(0, 0)}, which means that all labels will be shown. Useful for datasets with large N or T.}
   \item{shade.post}{a logical flag controlling whether to shade the post-treatment periods. Ignored if \code{type = "missing"} or no treatment variable is supplied.}
 }
 

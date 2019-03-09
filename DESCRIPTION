@@ -1,7 +1,7 @@
 Package: panelView
 Type: Package
 Title: Visualizing Panel Data with (Dichotomous) Treatments
-Version: 1.1.0
+Version: 1.1.1
 Date: 2019-03-09
 Author: Licheng Liu, Yiqing Xu
 Maintainer: Yiqing Xu <yiqingxu@ucsd.edu>

@@ -29,7 +29,7 @@ panelView <- function(data, # a data frame (long-form)
                       legendOff = FALSE,
                       legend.labs = NULL,
                       main = NULL,
-                      pre.post = FALSE, # only used for treat plot 
+                      pre.post = TRUE, # only used for treat plot 
                       id = NULL,
                       show.id = NULL,
                       color = NULL,
@@ -362,8 +362,12 @@ panelView <- function(data, # a data frame (long-form)
 
             D.tr <- as.matrix(D[,which(tr==1)])
             I.tr <- as.matrix(I[,which(tr==1)])
-            Y.tr <- as.matrix(Y[,which(tr==1)])
-            Y.co <- as.matrix(Y[,which(tr==0)])
+            Y.tr <- Y.co <- NULL
+            if (type == "outcome") {
+                Y.tr <- as.matrix(Y[,which(tr==1)])
+                Y.co <- as.matrix(Y[,which(tr==0)])
+            }
+            
 
             Ntr <- sum(tr)
             Nco <- N - Ntr

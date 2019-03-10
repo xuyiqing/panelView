@@ -5,12 +5,13 @@
 \usage{panelView(data, formula = NULL, Y = NULL, D = NULL,
             X = NULL, index, na.rm = TRUE, 
             treatment = TRUE, outcome.type = "continuous", 
-            type = "treat", by.group = FALSE, theme.bw = FALSE,
+            type = "treat", by.group = FALSE, 
+            by.timing = FALSE, theme.bw = FALSE,
             xlim = NULL, ylim = NULL, 
             xlab = NULL, ylab = NULL, 
             gridOff = FALSE, legendOff = FALSE, 
             legend.labs = NULL, main = NULL,
-            no.pre.post = FALSE, id = NULL, show.id = NULL,
+            pre.post = TRUE, id = NULL, show.id = NULL,
             color = NULL,
             axis.adjust = FALSE, axis.lab = "both", 
             axis.lab.gap = c(0, 0), shade.post = TRUE)
@@ -28,7 +29,8 @@
   \item{treatment}{a logical flag indicating whether there is a dichotomous treatment variable. Default value is \code{treatment = TRUE}.}
   \item{outcome.type}{a string that specifies the type of outcome variable. Must be either \code{"continuous"}(default) or \code{"discrete"}. For a continuous variable, time series lines for specified units will be plotted, and for discrete response, jitter-ed points at each time period will be plotted.}
   \item{type}{a string that specifies the type of the plot. Must be either \code{"treat"} (default), which plots the treatment/missing-data status of each unit at each time point) or \code{"outcome"}, which plots the raw outcome data}
-  \item{by.group}{a logic flag. For the outcome plot, it indicates whether the data should be plotted in separate groups based on treatment status changes. And for the treat plot, it indicates whether the units should be displayed based on the timing of receiving the treatment.}
+  \item{by.group}{a logic flag indicating whether the data should be plotted in separate groups based on treatment status changes for the outcome plot. }
+  \item{by.timing}{a logic flag indicating whether the units should be displayed based on the timing of receiving the treatment for the treat plot.}
   \item{theme.bw}{a logical flag specifying whether to use a black-and-white theme.}
   \item{xlim}{a two-element numeric vector specifying the range of x-axis. When the class of time variable is string, must specify the range of strings to be shown, e.g. \code{xlim=c(1,30)}.}
   \item{ylim}{a two-element numeric vector specifying the range of y-axis.}
@@ -38,8 +40,7 @@
   \item{legendOff}{a logical flag controlling whether to show the legend.}
   \item{legend.labs}{a vector specifying the legend labels. Ignored when \code{legendOff=TRUE}.}
   \item{main}{a string that controls the title of the plot.}
-  \item{no.pre.post}{a logical flag indicating whether to show status for treated units 
-   in missing plot.}
+  \item{pre.post}{a logical flag indicating whether to distinguish control status of treated units from that of control units. Only used for DID-type data in the treat plot.}
   \item{id}{a vector specifying units to be shown in the plot. Useful when the number of units is very large.}
   \item{show.id}{a numeric vector or sequence specifying the sorted order of units to be shown in the \code{"treat"} plot. Useful when the number of units is very large. Ignored if \code{!is.null("id")}.}
   \item{color}{a string vector specifying color setting for the plot.}

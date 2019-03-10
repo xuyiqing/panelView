@@ -15,7 +15,7 @@ panelView <- function(data, # a data frame (long-form)
                       X = NULL,
                       index, # c(unit, time) indicators
                       na.rm = TRUE, # remove missing values
-                      treatment = TRUE,
+                      ignore.treat = FALSE,
                       outcome.type = "continuous", # continuous or discrete
                       type = "treat", ## treat or outcome
                       by.group = FALSE, # (color pre-treatment treated differently)
@@ -57,9 +57,9 @@ panelView <- function(data, # a data frame (long-form)
         ## treatment indicator and covariates
         if (length(varnames) == 1) { ## only y
             D <- X <- NULL
-            treatment <- 0
+            ignore.treat <- 1
         } else if (length(varnames) == 2) {
-            if (treatment == 1) {
+            if (ignore.treat == 0) {
                 D <- varnames[2]
                 X <- NULL
             } else {
@@ -67,7 +67,7 @@ panelView <- function(data, # a data frame (long-form)
                 X <- varnames[2]
             }   
         } else {
-            if (treatment == 1) {
+            if (ignore.treat == 0) {
                 D <- varnames[2]
                 X <- varnames[3:length(varnames)]
             } else {
@@ -127,9 +127,9 @@ panelView <- function(data, # a data frame (long-form)
 
     ## check plot 
     if (is.null(D)) {
-        if (treatment == 1) {
+        if (ignore.treat == 0) {
             warning("No treatment indicator.\n")
-            treatment <- 0
+            ignore.treat <- 1
         }
     }
 
@@ -159,7 +159,7 @@ panelView <- function(data, # a data frame (long-form)
     ## check treatment indicator
     d.level <- NULL
     d.bi <- FALSE
-    if (treatment == TRUE) {
+    if (ignore.treat == 0) {
 
         if (!(class(data[, D]) %in% c("numeric", "integer"))) {
             ## data[, Dname] <- as.numeric(as.character(data[, Dname]))
@@ -171,7 +171,7 @@ panelView <- function(data, # a data frame (long-form)
 
         if (length(d.level) == 1) {
             warning("Only one treatment level...\n")
-            treatment <- FALSE
+            ignore.treat <- 1
         } else {
             if (d.bi == FALSE) {
                 cat("Multiple treatment levels.\n")
@@ -268,14 +268,14 @@ panelView <- function(data, # a data frame (long-form)
             Y <- matrix(NA, TT, N)
         }
         I <- matrix(0, TT, N)
-        if (treatment == 1) {
+        if (ignore.treat == 0) {
             D <- matrix(0, TT, N)
         }
         for (i in 1:dim(data)[1]) {
             if (!is.null(Yname)) {
                 Y[data[i,index.time],data[i,index.id]] <- data[i,Yname]
             }
-            if (treatment == 1) {
+            if (ignore.treat == 0) {
                 D[data[i,index.time],data[i,index.id]] <- data[i,Dname]
             }
             I[data[i,index.time],data[i,index.id]] <- 1
@@ -286,13 +286,13 @@ panelView <- function(data, # a data frame (long-form)
         if (!is.null(Yname)) {
             Y <- matrix(data[,Yname], TT, N)
         }
-        if (treatment == 1) {
+        if (ignore.treat == 0) {
             D <- matrix(data[,Dname], TT, N)
         }
     }
 
     ## binary treatment indicator 
-    if (treatment == 1 && d.bi == 1) {
+    if (ignore.treat == 0 && d.bi == 1) {
 
         D.old <- D ## store the original indicators
         if (length(unique(c(D.old))) > 2) {
@@ -348,7 +348,7 @@ panelView <- function(data, # a data frame (long-form)
     
     obs.missing <- NULL
     
-    if (treatment == 1 && d.bi == 1) {
+    if (ignore.treat == 0 && d.bi == 1) {
         
         con1 <- type == "treat" && pre.post == TRUE
         con2 <- type == "outcome" && by.group == FALSE
@@ -424,7 +424,7 @@ panelView <- function(data, # a data frame (long-form)
 
             obs.missing <- matrix(-1, TT, N) ## observed 
             obs.missing[which(I==0)] <- -2 ## missing
-            treatment <- 0
+            ignore.treat <- 1
 
         }
 
@@ -577,20 +577,20 @@ panelView <- function(data, # a data frame (long-form)
         ## color setting
         if (is.null(color)==TRUE) {
             if (theme.bw == FALSE) {
-                if (treatment == 1) {
+                if (ignore.treat == 0) {
                     raw.color <- c("#99999950", "#FC8D6280", "red")
                 } else {
                     raw.color <- "#99999950"
                 }
             } else {
                 if (outcome.type == "continuous") {
-                    if (treatment == 1) {
+                    if (ignore.treat == 0) {
                         raw.color <- c("#5e5e5e50", "#4671D565", "#06266F")
                     } else {
                         raw.color <- "#5e5e5e50"
                     }
                 } else {
-                    if (treatment == 1) {
+                    if (ignore.treat == 0) {
                         raw.color <- c("#5e5e5e60", "#4671D5", "#06266F")
                     } else {
                         raw.color <- "#5e5e5e60"
@@ -598,7 +598,7 @@ panelView <- function(data, # a data frame (long-form)
                 }
             }
         } else {        
-            if (treatment == 1) {
+            if (ignore.treat == 0) {
                 if (FEmode == 1) {
                     if (length(color) != 2) {
                         stop("Length of \"color\" should be equal to 2.\n")    
@@ -629,7 +629,7 @@ panelView <- function(data, # a data frame (long-form)
             }
         }
 
-        if (treatment == 0) {
+        if (ignore.treat == 1) {
 
             data <- cbind.data.frame("time" = rep(time[show], N),
                                      "outcome" = c(Y[show,]),
@@ -742,7 +742,7 @@ panelView <- function(data, # a data frame (long-form)
             suppressWarnings(print(p))
 
         }
-        else if (treatment == 1 && by.group == FALSE) { ## Mixed units
+        else if (ignore.treat == 0 && by.group == FALSE) { ## Mixed units
             
             ## time-line
             if (outcome.type == "continuous") { ## continuous outcome
@@ -1267,7 +1267,7 @@ panelView <- function(data, # a data frame (long-form)
         }
 
         if (is.null(main)==TRUE) {
-            if (treatment == 1) {
+            if (ignore.treat == 0) {
                 main <- "Treatment Status"
             } else {
                 main <- "Missing Values"
@@ -1288,7 +1288,7 @@ panelView <- function(data, # a data frame (long-form)
 
         ## set breaks, colors and labels
         
-        if (d.bi == FALSE && treatment == 1) { ## multiple treatment level
+        if (d.bi == FALSE && ignore.treat == 0) { ## multiple treatment level
 
             tr.col <- c("#FAFAD2", "#ADFF2F", "#87CEFA", "#1874CD", "#00008B")
             if (length(d.level) <= 5) {
@@ -1350,7 +1350,7 @@ panelView <- function(data, # a data frame (long-form)
                 if (-1 %in% all) {
                     col <- c(col,"#B0C4DE")
                     breaks <- c(breaks, -1)
-                    if (treatment == TRUE) {
+                    if (ignore.treat == 0) {
                         ## if (pre.post == TRUE) {
                             label <- c(label,"Under Control")
                         ## } else {
@@ -1399,7 +1399,7 @@ panelView <- function(data, # a data frame (long-form)
             ## }
 
             ## sort units 
-            if (length(id) > 1 && treatment == TRUE && d.bi == TRUE) {
+            if (length(id) > 1 && ignore.treat == 0 && d.bi == TRUE) {
 
                 if (by.timing == TRUE) {
                     co.seq <- which(unit.type == 1)
@@ -1478,7 +1478,7 @@ panelView <- function(data, # a data frame (long-form)
         }
 
         ## backgroud color
-        if (treatment == FALSE || d.bi == TRUE) {
+        if (ignore.treat == 1 || d.bi == TRUE) {
             ## discrete level
             grid.color <- border.color <- background.color <- legend.color <- "grey90"
         } else {

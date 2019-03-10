@@ -29,14 +29,20 @@ panelView <- function(data, # a data frame (long-form)
                       legendOff = FALSE,
                       legend.labs = NULL,
                       main = NULL,
-                      pre.post = TRUE, # only used for treat plot 
+                      pre.post = FALSE, # only used for treat plot 
                       id = NULL,
                       show.id = NULL,
                       color = NULL,
                       axis.adjust = FALSE,
                       axis.lab = "both",
                       axis.lab.gap = c(0, 0),
-                      shade.post = TRUE
+                      shade.post = TRUE,
+                      cex.main = 15,
+                      cex.main.sub = 12,
+                      cex.axis = 8,
+                      cex.lab = 12, 
+                      cex.legend = 12,
+                      background = NULL # background color
                     ) {  
         
     ## ------------------------- ##
@@ -46,6 +52,8 @@ panelView <- function(data, # a data frame (long-form)
         data <- as.data.frame(data)
         warning("Not a data frame.")
     }
+
+
 
     if (!is.null(formula)) {
         
@@ -79,10 +87,10 @@ panelView <- function(data, # a data frame (long-form)
         varnames <- c(Y, D, X)
     }
 
-    ## check wrong variable names
+    ## check Incorrect variable names
     for (i in 1:length(varnames)) {
         if(!varnames[i] %in% colnames(data)) {
-            stop(paste("variable \"", varnames[i],"\" is not in the data set.", sep = ""))
+            stop(paste("Variable \"", varnames[i],"\" is not in the dataset.", sep = ""))
         }
     }
 
@@ -108,7 +116,7 @@ panelView <- function(data, # a data frame (long-form)
     ## check duplicated observations
     unique_label <- unique(paste(data[,index[1]],"_",data[,index[2]],sep=""))
     if (length(unique_label)!= dim(data)[1]) {
-        stop("Unit and time variables do not uniquely identify all observations. Some may be duplicated or wrongly marked in the dataset.")
+        stop("Unit and time variables do not uniquely identify all observations. Some may be duplicated or Incorrectly marked in the dataset.")
     }
  
     ##-------------------------------##
@@ -124,6 +132,12 @@ panelView <- function(data, # a data frame (long-form)
     if (type == "raw") {
         type <- "outcome"
     }
+
+    if (by.group == TRUE || type == "outcome") {
+        cex.main.top <- cex.main
+        cex.main <- cex.main.sub
+    }
+
 
     ## check plot 
     if (is.null(D)) {
@@ -163,7 +177,7 @@ panelView <- function(data, # a data frame (long-form)
 
         if (!(class(data[, D]) %in% c("numeric", "integer"))) {
             ## data[, Dname] <- as.numeric(as.character(data[, Dname]))
-            stop("Treatment indicator should be a numberic value.")
+            stop("Treatment indicator should be a numeric value.")
         }
 
         d.level <- sort(unique(data[, D]))
@@ -174,7 +188,7 @@ panelView <- function(data, # a data frame (long-form)
             ignore.treat <- 1
         } else {
             if (d.bi == FALSE) {
-                cat("Multiple treatment levels.\n")
+                cat("More than 2 treatment levels.\n")
             }
         }
 
@@ -185,7 +199,7 @@ panelView <- function(data, # a data frame (long-form)
 
     ## shade in the post-treatment period
     if (!class(shade.post) %in% c("logical","numeric")) {
-        stop("Wrong type for option \"shade.post\"")
+        stop("Incorrect type for option \"shade.post\"")
     }
 
     ## ------------------------ ##
@@ -211,7 +225,7 @@ panelView <- function(data, # a data frame (long-form)
         ## check id 
         remove.id <- setdiff(id, raw.id)
         if (length(remove.id) != 0) {
-            cat("list of removed units from dataset:", remove.id)
+            cat("List of units removed from dataset:", remove.id)
             cat("\n\n")
             input.id <- intersect(sort(id), raw.id)
         } else {
@@ -415,7 +429,7 @@ panelView <- function(data, # a data frame (long-form)
 
     } else {
 
-        if (length(d.level) > 0 && type == "treat") { ## multiple treatment levels
+        if (length(d.level) > 0 && type == "treat") { ## >2 treatment levels
             
             obs.missing <- D
             obs.missing[which(I == 0)] <- NA
@@ -649,7 +663,7 @@ panelView <- function(data, # a data frame (long-form)
             }
             p <- p + theme(legend.position = legend.pos,
              axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
-             plot.title = element_text(size=15, hjust = 0.5, face="bold",margin = margin(8, 0, 8, 0)))
+             plot.title = element_text(size=cex.main, hjust = 0.5, face="bold",margin = margin(8, 0, 8, 0)))
 
             if (outcome.type == "continuous") {
                 ## main
@@ -666,7 +680,7 @@ panelView <- function(data, # a data frame (long-form)
                 set.linewidth = 0.5
                 if (!is.null(legend.labs)) {
                     if (length(legend.labs) != 1) {
-                        warning("Wrong number of labels in the legend. Using default.\n")
+                        warning("Incorrect number of labels in the legend. Using default.\n")
                         set.labels = "Observed"  
                     } else {
                         set.labels <- legend.labs
@@ -702,7 +716,7 @@ panelView <- function(data, # a data frame (long-form)
                 set.shapes = 1
                 if (!is.null(legend.labs)) {
                     if (length(legend.labs) != 1) {
-                        warning("Wrong number of labels in the legend. Using default.\n")
+                        warning("Incorrect number of labels in the legend. Using default.\n")
                         set.labels = "Observed"
                     } else {
                         set.labels <- legend.labs
@@ -778,7 +792,7 @@ panelView <- function(data, # a data frame (long-form)
                     set.linewidth = c(0.5, 0.5, 0.5)
                     if (!is.null(legend.labs)) {
                         if (length(legend.labs) != 3) {
-                            warning("Wrong number of labels in the legend. Using default.\n")
+                            warning("Incorrect number of labels in the legend. Using default.\n")
                             set.labels <- c("Controls","Treated (Pre)","Treated (Post)")  
                         } else {
                             set.labels <- legend.labs
@@ -820,7 +834,7 @@ panelView <- function(data, # a data frame (long-form)
                     set.linewidth = c(0.5, 0.5)
                     if (!is.null(legend.labs)) {
                         if (length(legend.labs) != 2) {
-                            warning("Wrong number of labels in the legend. Using default.\n")
+                            warning("Incorrect number of labels in the legend. Using default.\n")
                             set.labels = c("Control", "Treated")  
                         } else {
                             set.labels <- legend.labs
@@ -839,7 +853,7 @@ panelView <- function(data, # a data frame (long-form)
                 }
                 p <- p + theme(legend.position = legend.pos,
                     axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
-                    plot.title = element_text(size=15, hjust = 0.5, face="bold",margin = margin(8, 0, 8, 0)))
+                    plot.title = element_text(size=cex.main, hjust = 0.5, face="bold",margin = margin(8, 0, 8, 0)))
             
                 if (DID == TRUE && Ntr >= 1) {
                     if (time.bf >= min(show) && time.bf <= max(show)) {
@@ -888,7 +902,7 @@ panelView <- function(data, # a data frame (long-form)
                 }
                 p <- p + theme(legend.position = legend.pos,
                     axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
-                    plot.title = element_text(size=15, hjust = 0.5, face="bold",margin = margin(8, 0, 8, 0)))
+                    plot.title = element_text(size=cex.main, hjust = 0.5, face="bold",margin = margin(8, 0, 8, 0)))
                 
                 ## main plot
                 p <- p + geom_jitter(width = 0.15, height = 0.15,
@@ -903,7 +917,7 @@ panelView <- function(data, # a data frame (long-form)
                     set.shapes = c(1, 1, 16)
                     if (!is.null(legend.labs)) {
                         if (length(legend.labs) != 3) {
-                            warning("Wrong number of labels in the legend. Using default.\n")
+                            warning("Incorrect number of labels in the legend. Using default.\n")
                             set.labels = c("Controls","Treated (Pre)","Treated (Post)")  
                         } else {
                             set.labels <- legend.labs
@@ -920,7 +934,7 @@ panelView <- function(data, # a data frame (long-form)
                     set.shapes = c(1, 1)
                     if (!is.null(legend.labs)) {
                         if (length(legend.labs) != 2) {
-                            warning("Wrong number of labels in the legend. Using default.\n")
+                            warning("Incorrect number of labels in the legend. Using default.\n")
                             set.labels = c("Control", "Treatment")  
                         } else {
                             set.labels <- legend.labs
@@ -969,7 +983,7 @@ panelView <- function(data, # a data frame (long-form)
 
             if (!is.null(legend.labs)) {
                if (length(legend.labs) != 2) {
-                   warning("Wrong number of labels in the legend. Using default.\n")
+                   warning("Incorrect number of labels in the legend. Using default.\n")
                    set.labels = c("Control", "Treatment") 
                } else {
                    set.labels <- legend.labs
@@ -1079,11 +1093,11 @@ panelView <- function(data, # a data frame (long-form)
                              theme(panel.grid.major = element_blank(),
                                    panel.grid.minor = element_blank(),
                                    axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
-                                   plot.title = element_text(size=15, hjust = 0.5, face="bold",margin = margin(8, 0, 8, 0)))
+                                   plot.title = element_text(size=cex.main, hjust = 0.5, face="bold",margin = margin(8, 0, 8, 0)))
                 }
                 else {
                     p <- p + theme(axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
-                                   plot.title = element_text(size=15, hjust = 0.5, face="bold",margin = margin(8, 0, 8, 0)))
+                                   plot.title = element_text(size=cex.main, hjust = 0.5, face="bold",margin = margin(8, 0, 8, 0)))
                 }
                 
 
@@ -1148,10 +1162,10 @@ panelView <- function(data, # a data frame (long-form)
                         legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
                         suppressWarnings(grid.arrange(arrangeGrob(p1 + theme(legend.position="none"),
                                          legend, nrow = 2, heights = c (1, 1/5)),
-                                         top = textGrob(main, gp = gpar(fontsize=15,font=2))))
+                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
                     } else {
                         suppressWarnings(grid.arrange(p1 + theme(legend.position="none"),
-                                         top = textGrob(main, gp = gpar(fontsize=15,font=2))))
+                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
                     }   
                 }
                 else if (2%in%unit.type) {
@@ -1161,10 +1175,10 @@ panelView <- function(data, # a data frame (long-form)
                         legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
                         suppressWarnings(grid.arrange(arrangeGrob(p2 + theme(legend.position="none"),
                                          legend, nrow = 2, heights = c (1, 1/5)),
-                                         top = textGrob(main, gp = gpar(fontsize=15,font=2)))) 
+                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2)))) 
                     } else {
                         suppressWarnings(grid.arrange(p2 + theme(legend.position="none"),
-                                         top = textGrob(main, gp = gpar(fontsize=15,font=2))))
+                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
                     }   
                 }
                 else if (3%in%unit.type) {
@@ -1174,10 +1188,10 @@ panelView <- function(data, # a data frame (long-form)
                         legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
                         suppressWarnings(grid.arrange(arrangeGrob(p3 + theme(legend.position="none"),
                                          legend, nrow = 2, heights = c (1, 1/5)),
-                                         top = textGrob(main, gp = gpar(fontsize=15,font=2)))) 
+                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2)))) 
                     } else {
                         suppressWarnings(grid.arrange(p3 + theme(legend.position="none"),
-                                         top = textGrob(main, gp = gpar(fontsize=15,font=2))))
+                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
                     }  
                 }
 
@@ -1192,11 +1206,11 @@ panelView <- function(data, # a data frame (long-form)
                         legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
                         suppressWarnings(grid.arrange(arrangeGrob(p2 + theme(legend.position="none"), p3 + theme(legend.position="none"),
                                          legend, nrow = 3, heights = c (1, 1, 1/5)),
-                                         top = textGrob(main, gp = gpar(fontsize=15,font=2))))  
+                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))  
                     } else {
                         suppressWarnings(grid.arrange(p2 + theme(legend.position="none"),
                                          p3 + theme(legend.position="none"),
-                                         top = textGrob(main, gp = gpar(fontsize=15,font=2))))
+                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
                     }  
                 }
                 else if (!2%in%unit.type) {
@@ -1207,11 +1221,11 @@ panelView <- function(data, # a data frame (long-form)
                         legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
                         suppressWarnings(grid.arrange(arrangeGrob(p1 + theme(legend.position="none"), p3 + theme(legend.position="none"),
                                          legend, nrow = 3, heights = c (1, 1, 1/5)),
-                                         top = textGrob(main, gp = gpar(fontsize=15,font=2))))  
+                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))  
                     } else {
                         suppressWarnings(grid.arrange(p1 + theme(legend.position="none"),
                                          p3 + theme(legend.position="none"),
-                                         top = textGrob(main, gp = gpar(fontsize=15,font=2))))
+                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
                     }  
                 }
                 else if (!3%in%unit.type) {
@@ -1222,11 +1236,11 @@ panelView <- function(data, # a data frame (long-form)
                         legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
                         suppressWarnings(grid.arrange(arrangeGrob(p1 + theme(legend.position="none"), p2 + theme(legend.position="none"),
                                          legend, nrow = 3, heights = c (1, 1, 1/5)),
-                                         top = textGrob(main, gp = gpar(fontsize=15,font=2))))  
+                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))  
                     } else {
                         suppressWarnings(grid.arrange(p1 + theme(legend.position="none"),
                                          p2 + theme(legend.position="none"),
-                                         top = textGrob(main, gp = gpar(fontsize=15,font=2))))
+                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
                     }   
                 }
 
@@ -1241,12 +1255,12 @@ panelView <- function(data, # a data frame (long-form)
                     legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
                     suppressWarnings(grid.arrange(arrangeGrob(p1 + theme(legend.position="none"), p2 + theme(legend.position="none"),
                                      p3 + theme(legend.position="none"), legend, nrow = 4, heights = c (1, 1, 1, 1/5)),
-                                     top = textGrob(main, gp = gpar(fontsize=15,font=2))))
+                                     top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
                 } else {
                     suppressWarnings(grid.arrange(p1 + theme(legend.position="none"),
                                          p2 + theme(legend.position="none"),
                                          p3 + theme(legend.position="none"),
-                                         top = textGrob(main, gp = gpar(fontsize=15,font=2))))
+                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
                 }
 
             }
@@ -1288,7 +1302,7 @@ panelView <- function(data, # a data frame (long-form)
 
         ## set breaks, colors and labels
         
-        if (d.bi == FALSE && ignore.treat == 0) { ## multiple treatment level
+        if (d.bi == FALSE && ignore.treat == 0) { ## >2 treatment level
 
             tr.col <- c("#FAFAD2", "#ADFF2F", "#87CEFA", "#1874CD", "#00008B")
             if (length(d.level) <= 5) {
@@ -1310,7 +1324,7 @@ panelView <- function(data, # a data frame (long-form)
                 }
 
             } else {
-                cat("Regarded as continous treatment levels.\n")
+                cat("Continuous treatment.\n")
                 col <- c("#87CEEB", "#00008B")
                 label <- "Treatment Levels"
             }
@@ -1423,7 +1437,7 @@ panelView <- function(data, # a data frame (long-form)
         if (!is.null(color)) {
             if (length(d.level) <= 5) { ## discrete treatment indicator
                 if (length(col) == length(color)) {
-                    cat(paste("Specified colors in the order of: ", paste(label, collapse = ", "), sep = ""))
+                    cat(paste("Specified colors in the order of: ", paste(label, collapse = ", "), ".\n", sep = ""))
                     col <- color
                 } else {
                     stop(paste("Length of \"color\" shold be equal to ",length(col),".\n", sep=""))
@@ -1441,9 +1455,9 @@ panelView <- function(data, # a data frame (long-form)
         if (!is.null(legend.labs)) {
             if (length(d.level) <= 5) { ## discrete treatment indicator
                 if (length(legend.labs) != length(label)) {
-                    warning("Wrong number of labels in the legends. Using default.\n")
+                    warning("Incorrect number of labels in the legends. Using default.\n")
                 } else {
-                    cat(paste("Specified labels in the order of: ", paste(label, collapse = ", "), sep = ""))
+                    cat(paste("Specified labels in the order of: ", paste(label, collapse = ", "), ".\n", sep = ""))
                     label <- legend.labs
                 }
             } else {
@@ -1477,18 +1491,16 @@ panelView <- function(data, # a data frame (long-form)
             }
         }
 
-        ## backgroud color
-        if (ignore.treat == 1 || d.bi == TRUE) {
-            ## discrete level
-            grid.color <- border.color <- background.color <- legend.color <- "grey90"
+        ## background color
+        if (is.null(background)==FALSE) {
+            grid.color <- border.color <- background.color <- legend.color <- background
         } else {
-            ## continuous level
-            grid.color <- border.color <- background.color <- legend.color <- "#FFFFFF"
+            grid.color <- border.color <- background.color <- legend.color <- "grey90"       
         }
+
 
         
         id <- rev(id)
-        
         p <- ggplot(data, aes(x = period, y = units,
                               fill = res), position = "identity") 
         
@@ -1513,18 +1525,18 @@ panelView <- function(data, # a data frame (long-form)
               panel.border = element_rect(fill=NA,color=border.color, size=0.5, linetype="solid"),
               axis.line = element_blank(),
               axis.ticks = element_blank(),
-              axis.text = element_text(color="black", size=14),
-              axis.title=element_text(size=12),
+              axis.title=element_text(size=cex.lab),
               axis.title.x = element_text(margin = margin(t = 8, r = 0, b = 0, l = 0)),
               axis.title.y = element_text(margin = margin(t = 0, r = 8, b = 0, l = 0)),
-              axis.text.x = element_text(size = 8, angle = angle, hjust=x.h, vjust=x.v),
-              axis.text.y = element_text(size = 8),
+              axis.text = element_text(color="black", size=cex.axis),
+              axis.text.x = element_text(size = cex.axis, angle = angle, hjust=x.h, vjust=x.v),
+              axis.text.y = element_text(size = cex.axis),
               plot.background = element_rect(fill = background.color),
               legend.background = element_rect(fill = legend.color),
               legend.position = legend.pos,
               legend.margin = margin(c(0, 5, 5, 0)),
-              legend.text = element_text(margin = margin(r = 10, unit = "pt")),
-              plot.title = element_text(size=15, hjust = 0.5,face="bold",margin = margin(8, 0, 8, 0)))
+              legend.text = element_text(margin = margin(r = 10, unit = "pt"), size = cex.legend),
+              plot.title = element_text(size=cex.main, hjust = 0.5,face="bold",margin = margin(8, 0, 8, 0)))
                       
 
         if (length(d.level) <= 5) {

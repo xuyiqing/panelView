@@ -19,7 +19,7 @@
 }
 \arguments{
   \item{data}{a data frame. The panel does not have to be balanced.}
-  \item{formula}{an object of class "formula": a symbolic description of the model to be fitted. The first variable on the right-hand-side is designated as the treatment indicator if \code{treatment = TRUE}. If there is not any covariates, the formula should be like \code{Y~1}, where \code{Y} is the outcome variable.}
+  \item{formula}{an object of class "formula": a symbolic description of the model to be fitted. The first variable on the right-hand-side is designated as the treatment indicator if \code{ignore.treat = FALSE}. If there is not any covariates, the formula should be like \code{Y~1}, where \code{Y} is the outcome variable.}
   \item{Y}{variable name of the outcome. Ignored if \code{formula} is provided.}
   \item{D}{variable name of the treatment. Ignored if \code{formula} is provided.}
   \item{X}{variable name of the time-varying covariates. Ignored if \code{formula} is provided.}

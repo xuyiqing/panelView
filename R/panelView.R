@@ -315,43 +315,37 @@ panelView <- function(data, # a data frame (long-form)
 
         ## once treated, always treated
         D <- apply(D, 2, function(vec){cumsum(vec)})
+        co.total.all <- TT - apply(D, 2, sum)
         D <- ifelse(D > 0, 1, 0)
 
+
         ## timing
-        tr.pos <- which(D[TT,] == 1)
-        ## no.pre.post
-        ## if (pre.post == FALSE) {            
-        ##     D.old.tr <- as.matrix(D.old[,tr.pos])
-        ##     I.tr <- as.matrix(I[,tr.pos])
-        ##     D.old.tr[which(D.old.tr == 0 & I.tr == 1)] <- 1
-        ##     D.old[,tr.pos] <- D.old.tr
-        ##     FEmode <- 1
-        ##     DID <- 0
-        ## } else {
+        tr.pos <- which(D[TT,] == 1) ## which units are treated
         T0 <- apply(D == 0, 2, sum)[tr.pos] ## first time expose to treatment
+        co.total <- co.total.all[tr.pos] ## total number of periods not exposed to treatment 
         DID <- length(unique(T0)) == 1 ## DID type 
 
-        T1 <- t1 <- NULL ## sort by timing
-        if (by.timing == TRUE) {
-            
-            T1 <- rep(NA, length(tr.pos))
-            
-            for (i in 1:length(tr.pos)) {
-                i.tr <- I[,tr.pos[i]]
-                d.tr <- D.old[,tr.pos[i]]
-                t1 <- which(d.tr == 0 & i.tr == 1)
-                if (length(t1) > 0) {
-                    if (max(t1) <= T0[i]) {
-                        T1[i] <- 0
-                    } else {
-                        T1[i] <- TT - min(t1[which(t1 > T0[i])])
-                    }
-                } else {
-                    T1[i] <- 0
-                }
-            }
 
-        }
+        ## number of periods after first get treated
+        # T1 <- t1 <- NULL ## sort by timing
+        # if (by.timing == TRUE) {
+            
+        #     T1 <- rep(NA, length(tr.pos))            
+        #     for (i in 1:length(tr.pos)) {
+        #         i.tr <- I[,tr.pos[i]]
+        #         d.tr <- D.old[,tr.pos[i]]
+        #         t1 <- which(d.tr == 0 & i.tr == 1)
+        #         if (length(t1) > 0) {
+        #             if (max(t1) <= T0[i]) {
+        #                 T1[i] <- 0
+        #             } else {
+        #                 T1[i] <- TT - min(t1[which(t1 > T0[i])])
+        #             }
+        #         } else {
+        #             T1[i] <- 0
+        #         }
+        #     }
+        # }
 
         ## check DID mode
         if (sum(abs(D.old[which(I==1)] - D[which(I==1)])) == 0) {
@@ -1440,9 +1434,9 @@ panelView <- function(data, # a data frame (long-form)
                 if (by.timing == TRUE) {
                     co.seq <- which(unit.type == 1)
                     tr.seq <- setdiff(1:N, co.seq)
-                    dataT0 <- cbind.data.frame(tr.seq, T0, T1)
-                    names(dataT0) <- c("id", "T0", "T1")
-                    dataT0 <- dataT0[order(dataT0[, "T0"], dataT0[, "T1"]),]
+                    dataT0 <- cbind.data.frame(tr.seq, T0, co.total)
+                    names(dataT0) <- c("id", "T0", "co.total")
+                    dataT0 <- dataT0[order(dataT0[, "T0"], dataT0[, "co.total"]),]
                     tr.seq <- dataT0[,"id"]
                     missing.seq <- c(tr.seq, co.seq)
 

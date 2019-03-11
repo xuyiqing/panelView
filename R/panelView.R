@@ -331,6 +331,28 @@ panelView <- function(data, # a data frame (long-form)
         T0 <- apply(D == 0, 2, sum)[tr.pos] ## first time expose to treatment
         DID <- length(unique(T0)) == 1 ## DID type 
 
+        T1 <- t1 <- NULL ## sort by timing
+        if (by.timing == TRUE) {
+            
+            T1 <- rep(NA, length(tr.pos))
+            
+            for (i in 1:length(tr.pos)) {
+                i.tr <- I[,tr.pos[i]]
+                d.tr <- D.old[,tr.pos[i]]
+                t1 <- which(d.tr == 0 & i.tr == 1)
+                if (length(t1) > 0) {
+                    if (max(t1) <= T0[i]) {
+                        T1[i] <- 0
+                    } else {
+                        T1[i] <- TT - min(t1[which(t1 > T0[i])])
+                    }
+                } else {
+                    T1[i] <- 0
+                }
+            }
+
+        }
+
         ## check DID mode
         if (sum(abs(D.old[which(I==1)] - D[which(I==1)])) == 0) {
             by.group <- by.group
@@ -1418,9 +1440,9 @@ panelView <- function(data, # a data frame (long-form)
                 if (by.timing == TRUE) {
                     co.seq <- which(unit.type == 1)
                     tr.seq <- setdiff(1:N, co.seq)
-                    dataT0 <- cbind.data.frame(tr.seq, T0)
-                    names(dataT0) <- c("id", "T0")
-                    dataT0 <- dataT0[order(dataT0[,"T0"]),]
+                    dataT0 <- cbind.data.frame(tr.seq, T0, T1)
+                    names(dataT0) <- c("id", "T0", "T1")
+                    dataT0 <- dataT0[order(dataT0[, "T0"], dataT0[, "T1"]),]
                     tr.seq <- dataT0[,"id"]
                     missing.seq <- c(tr.seq, co.seq)
 

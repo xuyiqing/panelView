@@ -4,8 +4,9 @@
 \description{Visualizes panel data}
 \usage{panelView(data, formula = NULL, Y = NULL, D = NULL,
             X = NULL, index, na.rm = TRUE, 
-            ignore.treat = FALSE, outcome.type = "continuous", 
-            type = "treat", by.group = FALSE, 
+            ignore.treat = FALSE, type = "treat", 
+            outcome.type = "continuous", 
+            discrete.type = NULL, by.group = FALSE, 
             by.timing = FALSE, theme.bw = FALSE,
             xlim = NULL, ylim = NULL, 
             xlab = NULL, ylab = NULL, 
@@ -26,8 +27,9 @@
   \item{index}{a two-element string vector specifying the unit (group) and time indicators. Must be of length 2.}
   \item{na.rm}{a logical flag indicating whether to list-wise delete missing data. The algorithm will report an error if missing data exist when \code{na.rm = FALSE}.}
   \item{ignore.treat}{a logical flag indicating whether there is a treatment variable. Default value is \code{ignore.treat = FALSE}.}
-  \item{outcome.type}{a string that specifies the type of outcome variable. Must be either \code{"continuous"}(default) or \code{"discrete"}. For a continuous variable, time series lines for specified units will be plotted, and for discrete response, jitter-ed points at each time period will be plotted.}
   \item{type}{a string that specifies the type of the plot. Must be either \code{"treat"} (default), which plots the treatment/missing-data status of each unit at each time point) or \code{"outcome"}, which plots the raw outcome data}
+  \item{outcome.type}{a string that specifies the type of outcome variable. Must be either \code{"continuous"}(default) or \code{"discrete"}. For a continuous variable, time series lines for specified units will be plotted, and for discrete response, jitter-ed points at each time period will be plotted.}
+  \item{treat.type}{a string that specifies the type of treatment variable. Must be either \code{"continuous"} or \code{"discrete"}. The default is NULL, which means the option will be decided based on the number of unique treatment values: if the number if bigger than 10, it will be set as "continuous"; otherwise, it will be set as "discrete".}
   \item{by.group}{a logic flag indicating whether the data should be plotted in separate groups based on treatment status changes for the outcome plot. }
   \item{by.timing}{a logic flag indicating whether the units should be sorted based on the timing of receiving the treatment for the treat plot.}
   \item{theme.bw}{a logical flag specifying whether to use a black-and-white theme.}

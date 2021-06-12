@@ -51,7 +51,9 @@
   \item{shade.post}{a logical flag controlling whether to shade the post-treatment periods. Ignored if \code{type = "treat"} or no treatment variable is supplied.}
   \item{cex.main}{a numeric value (pt) specifying the fontsize of the main title.}
   \item{cex.main.sub}{a numeric value (pt) specifying the fontsize of the subtitles. Ignored if \code{type = "treat"} or \code{by.group = FALSE.}}
-  \item{cex.axis}{a numeric value (pt) specifying the fontsize of the texts on the axes.}
+  \item{cex.axis}{a numeric value (pt) specifying the fontsize of the texts on the axes; overwritten by \code{cex.axis.x} or \code{cex.axis.y}.}
+  \item{cex.axis.x}{a numeric value (pt) specifying the fontsize of the texts on the x-axis.}
+  \item{cex.axis.y}{a numeric value (pt) specifying the fontsize of the texts on the y-axis.}
   \item{cex.lab}{a numeric value (pt) specifying the fontsize of the axis titles.}
   \item{cex.legend}{a numeric value (pt) specifying the fontsize of the legend.}
   \item{background}{a character specifying the background color.}
@@ -60,7 +62,7 @@
 \details{
   panelView visualizes the treatment status, missing values, and raw outcome data of a time-series cross-sectional dataset.
 
-  For more details, see \url{http://yiqingxu.org/software/panelView/panelView.html}.
+  For more details, see \url{https://yiqingxu.org/packages/panelView/panelView.html}.
 }
 
 \author{

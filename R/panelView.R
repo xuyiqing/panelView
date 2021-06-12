@@ -41,6 +41,8 @@ panelView <- function(data, # a data frame (long-form)
                       cex.main = 15,
                       cex.main.sub = 12,
                       cex.axis = 8,
+                      cex.axis.x = NULL,
+                      cex.axis.y = NULL,
                       cex.lab = 12, 
                       cex.legend = 12,
                       background = NULL # background color
@@ -136,6 +138,14 @@ panelView <- function(data, # a data frame (long-form)
     if (by.group == TRUE || type == "outcome") {
         cex.main.top <- cex.main
         cex.main <- cex.main.sub
+    }
+
+    if (is.null(cex.axis.x)==TRUE) {
+        cex.axis.x <- cex.axis
+    }
+
+    if (is.null(cex.axis.y)==TRUE) {
+        cex.axis.y <- cex.axis
     }
 
 
@@ -1562,8 +1572,8 @@ panelView <- function(data, # a data frame (long-form)
               axis.title.x = element_text(margin = margin(t = 8, r = 0, b = 0, l = 0)),
               axis.title.y = element_text(margin = margin(t = 0, r = 8, b = 0, l = 0)),
               axis.text = element_text(color="black", size=cex.axis),
-              axis.text.x = element_text(size = cex.axis, angle = angle, hjust=x.h, vjust=x.v),
-              axis.text.y = element_text(size = cex.axis),
+              axis.text.x = element_text(size = cex.axis.x, angle = angle, hjust=x.h, vjust=x.v),
+              axis.text.y = element_text(size = cex.axis.y),
               plot.background = element_rect(fill = background.color),
               legend.background = element_rect(fill = legend.color),
               legend.position = legend.pos,

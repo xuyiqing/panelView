@@ -7,7 +7,7 @@
 
 We develop this package in the belief that it is always a good idea to better understand your data before conducting statistical analyses.
 
-**Authors:** Licheng Liu [<liulch.16@sem.tsinghua.edu.cn>]; Yiqing Xu [<yiqingxu@ucsd.edu>] 
+**Authors:** Licheng Liu [<liulch@mit.edu>]; Yiqing Xu [<yiqingxu@stanford.edu>] 
 
-**How to Use:** [Examples](http://yiqingxu.org/software/panelView/panelView.html)
+**How to Use:** [Examples](https://yiqingxu.org/packages/panelView/panelView.html)
 

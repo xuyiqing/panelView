@@ -6,7 +6,7 @@
             X = NULL, index, na.rm = TRUE, 
             ignore.treat = FALSE, type = "treat", 
             outcome.type = "continuous", 
-            discrete.type = NULL, by.group = FALSE, 
+            treat.type = NULL, by.group = FALSE, 
             by.timing = FALSE, theme.bw = FALSE,
             xlim = NULL, ylim = NULL, 
             xlab = NULL, ylab = NULL, 
@@ -15,7 +15,8 @@
             pre.post = FALSE, id = NULL, show.id = NULL,
             color = NULL, axis.adjust = FALSE, axis.lab = "both", 
             axis.lab.gap = c(0, 0), shade.post = TRUE,
-            cex.main = 15, cex.main.sub = 12, cex.axis = 8,
+            cex.main = 15, cex.main.sub = 12, 
+            cex.axis = 8, cex.axis.x = NULL, cex.axis.y = NULL, 
             cex.lab = 12, cex.legend = 12, background = NULL)
 }
 \arguments{

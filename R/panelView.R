@@ -183,6 +183,8 @@ panelView <- function(data, # a data frame (long-form)
     ## check treatment indicator
     d.levels <- NULL
     d.bi <- FALSE
+
+    # without ignore.treat:
     if (ignore.treat == 0) {
 
         if (!(class(data[, D]) %in% c("numeric", "integer"))) {
@@ -192,7 +194,7 @@ panelView <- function(data, # a data frame (long-form)
 
         d.levels <- sort(unique(data[, D]))
         n.levels <- length(d.levels)
-        d.bi <- d.levels[1] == 0 & d.levels[2] == 1 & n.levels == 2
+        d.bi <- d.levels[1] == 0 & d.levels[2] == 1 & n.levels == 2 # d.bi: binary treatment
 
         if (n.levels == 1) {
             warning("Only one treatment level...\n")
@@ -225,6 +227,10 @@ panelView <- function(data, # a data frame (long-form)
         ## if (!(1%in%data[, D] & 0%in%data[, D] & length(unique(data[,D])) == 2)) {
         ##     stop(paste("variable \"", D, "\" should contain only 0 and 1.\n"))
         ## }
+    }
+    else{
+        n.levels <- 0
+        treat.type <- "discrete"
     }
 
     ## shade in the post-treatment period
@@ -408,7 +414,7 @@ panelView <- function(data, # a data frame (long-form)
     
     obs.missing <- NULL
     
-    if (ignore.treat == 0 && d.bi == 1) {
+    if (ignore.treat == 0 && d.bi == 1) { #  binary, and without ignore.treat 
         
         con1 <- type == "treat" && pre.post == TRUE
         con2 <- type == "outcome" && by.group == FALSE
@@ -473,19 +479,17 @@ panelView <- function(data, # a data frame (long-form)
             obs.missing[which(obs.missing > 1)] <- 1
         }
 
-    } else { # either not binary, or ignore.treat == 1
+    } else { # either not binary (>2 treatment levels) or ignore.treat == 1
 
         if (n.levels > 0 && type == "treat") { ## >2 treatment levels
-            
             obs.missing <- D
             obs.missing[which(I == 0)] <- NA
 
-        } else {
+        } else { ## ignore.treat == 1
 
             obs.missing <- matrix(-1, TT, N) ## observed 
             obs.missing[which(I==0)] <- -200 ## missing
             ignore.treat <- 1
-
         }
 
     }
@@ -1352,6 +1356,7 @@ panelView <- function(data, # a data frame (long-form)
 
             tr.col <- c("#66C2A5","#FC8D62","#8DA0CB","#E78AC3","#A6D854","#FFD92F","#E5C494",
                 "#FAFAD2", "#ADFF2F", "#87CEFA", "#1874CD", "#00008B")
+
             if (treat.type == "discrete") {
                 for (i in 1:n.levels) {
                     breaks <- c(breaks, d.levels[i])
@@ -1511,7 +1516,7 @@ panelView <- function(data, # a data frame (long-form)
                 }
             }
         } 
-         
+
         ## start plot 
         res <- c(m)
         data <- cbind.data.frame(units=units, period=period, res=res)
@@ -1519,8 +1524,8 @@ panelView <- function(data, # a data frame (long-form)
         ##     data[,"res"] <- as.factor(data[,"res"])
         ## } else {
             data <- na.omit(data)
-        ## }
-        if (treat.type == "discrete") {
+        # }
+        if (treat.type == "discrete") { 
             data[,"res"] <- as.factor(data[,"res"])
         }
         

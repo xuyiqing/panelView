@@ -1,15 +1,13 @@
 Package: panelView
 Type: Package
 Title: Visualizing Panel Data
-Version: 1.1.5
-Date: 2021-7-20
+Version: 1.1.6
+Date: 2021-8-21
 Author: Licheng Liu, Yiqing Xu
-Maintainer: Yiqing Xu <yiqingxu@stanford.edu>
+Maintainer: Yiqing Xu <yiqingxu@ucsd.edu>
 Description: Visualizes panel data. It has two main functionalities: (1) it visualizes the treatment and missing-value statuses of each observation in a panel/time-series-cross-sectional (TSCS) dataset; and (2) it plots the outcome variable (either continuous or discrete) in a time-series fashion.
 URL: https://yiqingxu.org/packages/panelView/panelView.html
 License: MIT + file LICENSE
 Imports: ggplot2 (>= 2.1.0), gridExtra, grid
 Depends: R (>= 2.10)
 RoxygenNote: 6.0.1
-NeedsCompilation: no
-Packaged: 2021-07-21 06:17:15 UTC; PC

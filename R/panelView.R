@@ -1,5 +1,5 @@
 ## A pre-view function for tscs data
-## 2021-08-23
+## 2022-01-03
 
 ## missing: plot treatment status and missing data
 ## outcome: plot raw outcome data
@@ -8,7 +8,7 @@
 ## preview of data treatment status, missing values and raw data ##
 ##---------------------------------------------------------------##
 
-panelView <- function(data, # a data frame (long-form)
+panelview <- function(data, # a data frame (long-form)
                       formula = NULL,
                       Y = NULL,
                       D = NULL,
@@ -364,8 +364,12 @@ panelView <- function(data, # a data frame (long-form)
 
         ## timing
         tr.pos <- which(D[TT,] == 1) ## which units are treated
-        T0 <- apply(D == 0, 2, sum)[tr.pos] ## first time expose to treatment
+        T0 <- apply(D == 0, 2, sum)[tr.pos]+1 ## first time expose to treatment
+        T1 <- apply(D == 1, 2, sum)[tr.pos] ## number of periods expose to treatment
+        T1[which(T1 > 1)] <- 0 ## indicate the last dot of treatment status change        
+
         co.total <- co.total.all[tr.pos] ## total number of periods not exposed to treatment 
+
         DID <- length(unique(T0)) == 1 ## DID type: all treated units are treated at the same time
 
         ## number of periods after first get treated
@@ -651,6 +655,7 @@ panelView <- function(data, # a data frame (long-form)
             if (theme.bw == FALSE) {
                 if (ignore.treat == 0) {
                     raw.color <- c("#99999950", "#FC8D6280", "red")
+                    
                 } else {
                     raw.color <- "#99999950"
                 }
@@ -826,7 +831,7 @@ panelView <- function(data, # a data frame (long-form)
                     pst <- D.tr
 
                     for (i in 1:Ntr) {
-                        pst[T0[i], i] <- 1 ## paint the period right before treatment
+                        pst[T0[i], i] <- 1
                     }
 
                     time.pst <- c(pst[show,] * time[show])
@@ -834,6 +839,10 @@ panelView <- function(data, # a data frame (long-form)
                     Y.tr.pst <- c(Y.tr[show,])[which(pst[show,]==1)]
                     id.tr.pst <- matrix(rep(1:Ntr,each=TT),TT,Ntr,byrow=FALSE)[show,]
                     id.tr.pst <- c(id.tr.pst)[which(pst[show,]==1)]
+                    T1_0 <- c(T1)[which(T1==0)]
+                    T1_1 <- c(T1)[which(T1==1)]
+                    N_T1_1 <- sum(T1_1)
+                    N_T1_0 <- Nco*nT + Ntr*nT + length(Y.tr.pst) - N_T1_1 
 
                     data <- cbind.data.frame("time" = c(rep(time[show], N), time.pst),
                                              "outcome" = c(c(Y.tr[show,]),
@@ -842,7 +851,17 @@ panelView <- function(data, # a data frame (long-form)
                                              "type" = c(rep("tr",(Ntr*nT)),
                                                         rep("co",(Nco*nT)),
                                                         rep("tr.pst",length(Y.tr.pst))),
+                                            "last_dot" = c(rep("0",N_T1_0),
+                                                           rep("1",N_T1_1)),
                                              "id" = c(rep(1:N,each = nT), id.tr.pst*(-1)))
+
+                    idtimes <- sapply(1:length(data$id),function(x)sum(data$id[1:x]==data$id[x]))
+                    data <- cbind(data, idtimes)
+                    data$idtimes <- ave(data$idtimes, data$id, FUN=max)
+                    data$last_dot <- 0
+                    data$last_dot[data$idtimes == 1] <- 1
+                    #print(data)
+
 
                     ## legend 
                     set.limits = c("co", "tr", "tr.pst")
@@ -860,8 +879,8 @@ panelView <- function(data, # a data frame (long-form)
                         set.labels <- c("Controls","Treated (Pre)","Treated (Post)") 
                     }
                     labels.ncol <- 3
-
-                } else { ## FE mode data
+                } 
+                else { ## FE mode data
                 
                     D.plot <- D.old
                     D.plot[which(D.plot == 0)] <- NA
@@ -877,13 +896,18 @@ panelView <- function(data, # a data frame (long-form)
                             ut.time <- c(ut.time, time.trt.show[which(!is.na(Y.trt.show[,i]))])
                         }
                     }
-
+                    T1_0 <- c(T1)[which(T1==0)]
+                    T1_1 <- c(T1)[which(T1==1)]
+                    N_T1_1 <- sum(T1_1)
+                    N_T1_0 <- Nco*nT + Ntr*nT + length(Y.tr.pst) - N_T1_1
 
                     data <- cbind.data.frame("time" = c(rep(time[show], N), ut.time),
                                              "outcome" = c(c(Y[show,]),
                                                          c(Y.trt.show[which(!is.na(Y.trt.show))])),
                                              "type" = c(rep("co",(N*nT)),
                                                         rep("tr",length(ut.id))),
+                                            "last_dot" = c(rep("0",N_T1_0),
+                                                           rep("1",N_T1_1)),
                                              "id" = c(rep(1:N,each = nT), ut.id))
 
                     ## legend
@@ -930,6 +954,12 @@ panelView <- function(data, # a data frame (long-form)
                                        size = type,
                                        linetype = type,
                                        group = id))
+
+                data1 <- subset(data, data$last_dot==1)                       
+                p <- p + geom_point(data = data1,
+                                    aes(time, outcome),
+                                    colour = raw.color[3],
+                                    size = 0.5)
           
             
                 p <- p + scale_colour_manual(limits = set.limits,
@@ -1034,7 +1064,7 @@ panelView <- function(data, # a data frame (long-form)
             suppressWarnings(print(p))
             ## end of raw plot
         
-        } else { ## separate plot
+        } else { ## separate plot (by.group==T)
             
             if (is.null(main) == TRUE) {
                 main <- "Raw Data"
@@ -1106,12 +1136,36 @@ panelView <- function(data, # a data frame (long-form)
                         }
                     }
 
+                    T1_0 <- c(T1)[which(T1==0)]
+                    T1_1 <- c(T1)[which(T1==1)]
+                    N_T1_1 <- sum(T1_1)
+                    N_T1_0 <- Nrv*nT + length(ut.id) - N_T1_1
+
                     data3 <- cbind.data.frame("time" = c(rep(time[show], Nrv), ut.time),
                                               "outcome" = c(c(Y[show, rv.pos]),
                                                           c(Y.trt.show[which(!is.na(Y.trt.show))])),
                                               "type" = c(rep("co",(Nrv*nT)),
                                                        rep("tr",length(ut.id))),
+                                              "last_dot" = c(rep("0",N_T1_0),
+                                                             rep("1",N_T1_1)),
                                               "id" = c(rep(1:Nrv,each = nT), ut.id))
+
+                    data3_tr <- subset(data3, data3$type=="tr")  
+                    data3_co <- subset(data3, data3$type=="co") 
+
+                    idtimes <- sapply(1:length(data3_tr$id),function(x)sum(data3_tr$id[1:x]==data3_tr$id[x]))
+                    data3_tr <- cbind(data3_tr, idtimes)
+                    data3_tr$idtimes <- ave(data3_tr$idtimes, data3_tr$id, FUN=max)
+                    data3_tr$last_dot <- 0
+                    data3_tr$last_dot[data3_tr$idtimes == 1] <- 1
+
+                    idtimes <- sapply(1:length(data3_co$id),function(x)sum(data3_co$id[1:x]==data3_co$id[x]))
+                    data3_co <- cbind(data3_co, idtimes)
+                    data3_co$idtimes <- ave(data3_co$idtimes, data3_co$id, FUN=max)
+
+                    data3 <- rbind(data3_co,data3_tr)
+                    #print(data3)
+
 
                 } else { ## categorical data
 
@@ -1167,6 +1221,12 @@ panelView <- function(data, # a data frame (long-form)
                                            size = type,
                                            linetype = type,
                                            group = id))
+
+                data1 <- subset(data, data$last_dot==1)                       
+                p <- p + geom_point(data = data1,
+                                    aes(time, outcome),
+                                    colour = raw.color[2],
+                                    size = 0.5)
 
                     p <- p + scale_colour_manual(limits = set.limits,
                                                  labels = set.labels,

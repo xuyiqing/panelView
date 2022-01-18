@@ -1,4 +1,4 @@
-##useDynLib(panelView)
+##useDynLib(panelview)
 ##exportPattern("^[[:alpha:]]+")
 importFrom("stats", "na.omit", "sd", "var")
 importFrom("ggplot2", "geom_boxplot", "geom_density", "geom_tile",
@@ -15,4 +15,4 @@ importFrom("ggplot2", "geom_boxplot", "geom_density", "geom_tile",
 importFrom("gridExtra", "grid.arrange", "arrangeGrob")
 importFrom("grid", "textGrob", "gpar")
 
-export(panelView)
+export(panelview)

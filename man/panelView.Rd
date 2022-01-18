@@ -1,8 +1,8 @@
-\name{panelView}
-\alias{panelView}
+\name{panelview}
+\alias{panelview}
 \title{Panel Data Visualizations}
 \description{Visualizes panel data}
-\usage{panelView(data, formula = NULL, Y = NULL, D = NULL,
+\usage{panelview(data, formula = NULL, Y = NULL, D = NULL,
             X = NULL, index, na.rm = TRUE, 
             ignore.treat = FALSE, type = "treat", 
             outcome.type = "continuous", 
@@ -64,22 +64,24 @@
 }
 
 \details{
-  panelView visualizes the treatment status, missing values, and raw outcome data of a time-series cross-sectional dataset.
+  panelview visualizes the treatment status, missing values, and raw outcome data of a time-series cross-sectional dataset.
 
-  For more details, see \url{https://yiqingxu.org/packages/panelView/panelView.html}.
+  For more details, see \url{https://yiqingxu.org/packages/panelview/panelview.html}.
 }
 
 \author{
+  Hongyu Mou <hongyumou5@gmail.com>
+  
   Licheng Liu <liulch.16@sem.tsinghua.edu.cn>
 
-  Yiqing Xu <yiqingxu@ucsd.edu>
+  Yiqing Xu <yiqingxu@stanford.edu>
 }
 
 
 \examples{
-library(panelView)
-data(panelView)
-panelView(turnout ~ policy_edr + policy_mail_in + policy_motor, 
+library(panelview)
+data(panelview)
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, 
           data = turnout, index = c("abb","year"))
 }
 

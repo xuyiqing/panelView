@@ -13,7 +13,7 @@
 
 (3) it visualizes the relationships between the outcome and treatment variable individually or in an aggregate fashion.
 
-  For more details, see \url{https://yiqingxu.org/packages/panelView/panelView.html}.
+  For more details, see \url{https://yiqingxu.org/packages/panelview/panelview.html}.
 }
 
 \author{

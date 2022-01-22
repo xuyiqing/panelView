@@ -15,5 +15,5 @@ We develop this package in the belief that it is always a good idea to better un
 
 **Authors:** Hongyu Mou [hongyumou5@gmail.com]; Licheng Liu [<liulch@mit.edu>]; Yiqing Xu [<yiqingxu@stanford.edu>]
 
-**How to Use:** [Examples](https://yiqingxu.org/packages/panelView/panelView.html)
+**How to Use:** [Examples](https://yiqingxu.org/packages/panelview/panelview.html)
 

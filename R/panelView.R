@@ -843,6 +843,7 @@ panelview <- function(data, # a data frame (long-form)
                     T1_1 <- c(T1)[which(T1==1)]
                     N_T1_1 <- sum(T1_1)
                     N_T1_0 <- Nco*nT + Ntr*nT + length(Y.tr.pst) - N_T1_1 
+                    
 
                     data <- cbind.data.frame("time" = c(rep(time[show], N), time.pst),
                                              "outcome" = c(c(Y.tr[show,]),
@@ -899,7 +900,7 @@ panelview <- function(data, # a data frame (long-form)
                     T1_0 <- c(T1)[which(T1==0)]
                     T1_1 <- c(T1)[which(T1==1)]
                     N_T1_1 <- sum(T1_1)
-                    N_T1_0 <- Nco*nT + Ntr*nT + length(Y.tr.pst) - N_T1_1
+                    N_T1_0 <- N*nT + length(ut.id) - N_T1_1
 
                     data <- cbind.data.frame("time" = c(rep(time[show], N), ut.time),
                                              "outcome" = c(c(Y[show,]),
@@ -909,6 +910,12 @@ panelview <- function(data, # a data frame (long-form)
                                             "last_dot" = c(rep("0",N_T1_0),
                                                            rep("1",N_T1_1)),
                                              "id" = c(rep(1:N,each = nT), ut.id))
+
+                    idtimes <- sapply(1:length(data$id),function(x)sum(data$id[1:x]==data$id[x]))
+                    data <- cbind(data, idtimes)
+                    data$idtimes <- ave(data$idtimes, data$id, FUN=max)
+                    data$last_dot <- 0
+                    data$last_dot[data$idtimes == 1] <- 1
 
                     ## legend
                     set.limits = c("co","tr")

@@ -515,6 +515,7 @@ panelview <- function(data, # a data frame (long-form)
     ## ------------------------------------- ##
     
     outcome <- NULL ## global variable
+    treatment <- NULL
     labels1 <- labels2 <- labels3 <- NULL
     
     if (is.null(xlim)==FALSE) {
@@ -1819,8 +1820,8 @@ panelview <- function(data, # a data frame (long-form)
                 ylim <- c(min(data.means$outcome,na.rm=TRUE),max(data.means$outcome,na.rm=TRUE))
 
                 coeff <- as.numeric(solve(
-                a=matrix(c(1,max(data.means$treatment, na.rm= TRUE),1,min(data.means$treatment, na.rm= TRUE)),nr=2,nc=2,byrow=TRUE),
-                b=matrix(c(max(data.means$outcome, na.rm= TRUE),min(data.means$outcome, na.rm= TRUE)),nc=1)))
+                a=matrix(c(1,max(data.means$treatment, na.rm= TRUE),1,min(data.means$treatment, na.rm= TRUE)),nrow=2,ncol=2,byrow=TRUE),
+                b=matrix(c(max(data.means$outcome, na.rm= TRUE),min(data.means$outcome, na.rm= TRUE)),ncol=1)))
             }
             else {
                 ylim.prim <- ylim[[1]]
@@ -1828,8 +1829,8 @@ panelview <- function(data, # a data frame (long-form)
 
                 coeff <- as.numeric(solve(
                 a=matrix(c(1,max(ylim.sec[2]),1,min(ylim.sec[1])),
-                        nr=2,nc=2,byrow=TRUE),
-                b=matrix(c(max(ylim.prim[2]),min(ylim.prim[1])),nc=1)))
+                        nrow=2,ncol=2,byrow=TRUE),
+                b=matrix(c(max(ylim.prim[2]),min(ylim.prim[1])),ncol=1)))
 
                 ylim <- ylim.prim  
             }
@@ -1942,8 +1943,8 @@ panelview <- function(data, # a data frame (long-form)
 
                 coeff <- as.numeric(solve(
                 a=matrix(c(1,max(data$treatment, na.rm= TRUE),1,min(data$treatment, na.rm= TRUE)),
-                        nr=2,nc=2,byrow=TRUE),
-                b=matrix(c(max(ylim[2]),min(ylim[1])),nc=1)))
+                        nrow=2,ncol=2,byrow=TRUE),
+                b=matrix(c(max(ylim[2]),min(ylim[1])),ncol=1)))
             }
             else {
                 ylim.prim <- ylim[[1]]
@@ -1951,8 +1952,8 @@ panelview <- function(data, # a data frame (long-form)
 
                 coeff <- as.numeric(solve(
                 a=matrix(c(1,max(ylim.sec[2]),1,min(ylim.sec[1])),
-                        nr=2,nc=2,byrow=TRUE),
-                b=matrix(c(max(ylim.prim[2]),min(ylim.prim[1])),nc=1)))
+                        nrow=2,ncol=2,byrow=TRUE),
+                b=matrix(c(max(ylim.prim[2]),min(ylim.prim[1])),ncol=1)))
 
                 ylim <- ylim.prim  
             }

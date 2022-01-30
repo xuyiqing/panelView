@@ -1,11 +1,8 @@
-## A pre-view function for tscs data
-## 2022-01-03
-
-## missing: plot treatment status and missing data
-## outcome: plot raw outcome data
+## A pre-view function for TSCS data
+## 2022-01-28
 
 ##---------------------------------------------------------------##
-## preview of data treatment status, missing values and raw data ##
+## preview of data treatment status, missing values and outcome ##
 ##---------------------------------------------------------------##
 
 panelview <- function(data, # a data frame (long-form)
@@ -14,9 +11,8 @@ panelview <- function(data, # a data frame (long-form)
                       D = NULL,
                       X = NULL,
                       index, # c(unit, time) indicators
-                      na.rm = TRUE, # remove missing values
                       ignore.treat = FALSE,
-                      type = "treat", ## treat, outcome, or bivar(iate)
+                      type = "treat", ## treat, miss(ing), outcome, or bivar(iate)
                       outcome.type = "continuous", # continuous or discrete
                       treat.type = NULL, # discrete or continuous
                       by.group = FALSE, # (color pre-treatment treated differently)
@@ -30,7 +26,7 @@ panelview <- function(data, # a data frame (long-form)
                       legendOff = FALSE,
                       legend.labs = NULL,
                       main = NULL,
-                      pre.post = FALSE, # only used for treat plot 
+                      pre.post = FALSE, # only used for treat plot, different with Stata
                       id = NULL,
                       show.id = NULL,
                       color = NULL,
@@ -48,29 +44,48 @@ panelview <- function(data, # a data frame (long-form)
                       background = NULL, # background color
                       style = NULL, ## bar, connected line, or line
                       by.unit = FALSE,
-                      lwd = 0.2
+                      lwd = 0.2,
+                      leave.gap = FALSE
                     ) {  
         
     ## ------------------------- ##
     ## parse variable.           ##
     ## ------------------------- ##
+
     if (is.data.frame(data) == FALSE || length(class(data)) > 1) {
         data <- as.data.frame(data)        
     }
 
+    if (type == "missing" | type == "miss") {
+        if (ignore.treat == 1) {
+            stop("option type = missing should not be combined with ignoretreat = TRUE")
+        }
+    }
 
+    
 
-    if (!is.null(formula)) {
-        
+    if (!is.null(formula)) { # with formula
+
+        if (formula[[1]] != "~") { # no "Y/D/X = var" or "var1 ~ var2"
+            stop("need to specify Y/D/X or formula")
+        }
+
         varnames <- all.vars(formula)
+    
+        Y <- formula[[2]] # left hand side of the formula
 
+        if (is.numeric(Y) == FALSE) { # Y is a variable
         ## outcome
         Y <- varnames[1]
-
         ## treatment indicator and covariates
         if (length(varnames) == 1) { ## only y
             D <- X <- NULL
             ignore.treat <- 1
+
+            if (type == "treat") { # Y ~ 1, type(treat)
+                warning("type = treat not allowed. Plot type = missing instead.\n")
+                type <- "missing"
+            }
         } else if (length(varnames) == 2) {
             if (ignore.treat == 0) {
                 D <- varnames[2]
@@ -79,7 +94,7 @@ panelview <- function(data, # a data frame (long-form)
                 D <- NULL
                 X <- varnames[2]
             }   
-        } else {
+        } else { # length(varnames) > 2
             if (ignore.treat == 0) {
                 D <- varnames[2]
                 X <- varnames[3:length(varnames)]
@@ -88,9 +103,48 @@ panelview <- function(data, # a data frame (long-form)
                 X <- varnames[2:length(varnames)]
             }
         }
-    } else {
+        }
+        else if (is.numeric(Y) == TRUE) { # Y is a number
+         ## outcome
+        Y <- NULL
+        ## treatment indicator and covariates
+        if (length(varnames) == 1) { # 1 ~ D/X
+            if (ignore.treat == 0) { # 1 ~ D
+                D <- varnames[1]
+                X <- NULL
+            } else { # 1 ~ X
+                stop("formula form not allowed")
+            }
+            # 1 ~ variable, type(miss): not allowed
+            if (type == "missing" | type == "miss") {
+                stop("formula form not allowed")
+            }
+        } else if (length(varnames) == 2) { ## 1 ~ D + X
+            if (ignore.treat == 0) { # 1 ~ D + X
+                D <- varnames[1]
+                X <- varnames[2]
+            } else { # 1 ~ X
+                stop("formula form not allowed")
+            }   
+        } else { # length(varnames) > 2
+            if (ignore.treat == 0) {
+                D <- varnames[1]
+                X <- varnames[2:length(varnames)]
+            } else {
+                stop("formula form not allowed")
+            }
+        }
+        }
+    } else { # no formula
         varnames <- c(Y, D, X)
+        if (is.null(D)==TRUE & is.null(X)==TRUE) { # Y="Y", set type = "miss" as default
+            if (type == "treat") {
+                warning("type = treat not allowed. Plot type = missing instead.\n")
+                type <- "missing"
+            }
+        }
     }
+    
 
     ## check Incorrect variable names
     for (i in 1:length(varnames)) {
@@ -104,19 +158,92 @@ panelview <- function(data, # a data frame (long-form)
         stop("\"index\" option misspecified. Try, for example, index = c(\"unit.id\", \"time\").")
     }
         
+    ## index names
+    index.id <- index[1]
+    index.time <- index[2]
+
     ## exclude other covariates 
     data <- data[,c(index, Y, D, X)] 
 
+    # if there is a unit that has variable missing across all periods, then we drop this unit
+    data$rowmiss <- rowSums(is.na(data))
+    aggregate <- aggregate(data$rowmiss, list(data[,1]), FUN=sum)
+    colnames(aggregate) <- c(colnames(data[1]), "maxbyunitmissvar")
+    data_aggregate <- merge(data, aggregate, all.x = TRUE)   
+    data_aggregate$counttime <- ave(data_aggregate[,2], data_aggregate[,1], FUN=length)    
+    ## drop if maxbyunitmissvar >= counttime
+    data_aggregate <- data_aggregate[!(data_aggregate$maxbyunitmissvar >= data_aggregate$counttime),]
+    data_aggregate <- data_aggregate[1:(ncol(data_aggregate)-3)]
+    data <- data_aggregate
+
     ## remove missing values
-    if (is.logical(na.rm) == FALSE & !na.rm%in%c(0, 1)) {
-        stop("na.rm is not a logical flag.")
+    if (is.logical(leave.gap) == FALSE & !leave.gap%in%c(0, 1)) {
+        stop("leave.gap is not a logical flag.")
     } 
-    if (na.rm == FALSE & sum(is.na(data)) > 0) {
-        stop("Missing values in dataset. Try set na.rm = TRUE.\n")
-    } 
-    if (na.rm == TRUE) {
+
+    #if (na.rm == FALSE & sum(is.na(data)) > 0) {
+    #    stop("Missing values in dataset. Try set na.rm = TRUE.\n")
+    #}     
+
+    ## sort data
+    data <- data[order(data[,index.id], data[,index.time]), ]
+
+    if (leave.gap == 0) {
         data <- na.omit(data)
     }
+
+    minmintime <- as.numeric(min(data[, 2], na.rm = TRUE))
+    maxmaxtime <- as.numeric(max(data[, 2], na.rm = TRUE))
+    timegap <- (maxmaxtime - minmintime)/(length(unique(data[,index.time]))-1)
+    inttimegap <- as.integer(timegap)    
+    
+    data_1 <- transform(data, differencetime = ave(as.numeric(data[, 2]), data[, 1], FUN = function(x) c(NA, diff(x))))
+    mintimegap <- min(data_1$differencetime, na.rm = TRUE)
+    maxtimegap <- max(data_1$differencetime, na.rm = TRUE)
+
+    if (leave.gap == 0) {
+        if (timegap != mintimegap | timegap != inttimegap) {
+            warning("Time is not evenly distributed (possibly due to missing data).\n")
+    }
+    }
+
+
+    if (leave.gap == 1) {
+       # expand panel data
+
+        data <- transform(data, differencetime = ave(as.numeric(data[, 2]), data[, 1], FUN = function(x) c(NA, diff(x))))
+
+        mintimegap <- min(data$differencetime, na.rm = TRUE)
+        maxtimegap <- max(data$differencetime, na.rm = TRUE)
+        divide_differencetime <- maxtimegap / mintimegap
+
+        if (timegap != mintimegap | inttimegap != timegap) {
+            #common difference: mintimegap:
+            if (mintimegap != maxtimegap & mintimegap != 1 & divide_differencetime == as.integer(divide_differencetime)) {
+                #1. Create all combinations of `id` and `year`
+                g <- with(data, expand.grid(g.id = unique(data[,index[1]]), 
+                        g.time = seq(from = minmintime, to = maxmaxtime, by = mintimegap))) 
+                colnames(g)[1] <- colnames(data[1])
+                colnames(g)[2] <- colnames(data[2])
+                #2. Merge `g` with `data`
+                data2 <- merge(g, data, all.x = TRUE)
+                data <- data2
+                }
+        else { #commmon difference = 1 
+                #1. Create all combinations of `id` and `year`
+                g <- with(data, expand.grid(g.id = unique(data[,index[1]]), 
+                        g.time = seq(from = minmintime, to = maxmaxtime))) 
+                colnames(g)[1] <- colnames(data[1])
+                colnames(g)[2] <- colnames(data[2])
+                #2. Merge `g` with `data`
+                data2 <- merge(g, data, all.x = TRUE)
+                data <- data2
+        }
+        }
+        data <- data[1:(length(data)-1)] #drop the differencetime column
+    }
+    
+
 
     ## check duplicated observations
     unique_label <- unique(paste(data[,index[1]],"_",data[,index[2]],sep=""))
@@ -128,12 +255,15 @@ panelview <- function(data, # a data frame (long-form)
     ## Checking Other Parameters
     ##-------------------------------## 
 
-    if (!type %in% c("missing", "raw", "treat", "outcome","bivar","bivariate")) {
+    if (!type %in% c("miss", "missing", "raw", "treat", "outcome","bivar","bivariate")) {
         stop("\"type\" option misspecified.")
     }
-    if (type == "missing") {
+
+    if (type == "missing" | type == "miss") {
         type <- "treat"
+        ignore.treat <- 1
     }
+
     if (type == "raw") {
         type <- "outcome"
     }
@@ -190,9 +320,11 @@ panelview <- function(data, # a data frame (long-form)
     # without ignore.treat:
     if (ignore.treat == 0) {
 
-        if (!(class(data[, D]) %in% c("numeric", "integer"))) {
-            ## data[, Dname] <- as.numeric(as.character(data[, Dname]))
-            stop("Treatment indicator should be a numeric value.")
+        if (leave.gap == 0) {
+            if (!(class(data[, D]) %in% c("numeric", "integer"))) {
+                    ## data[, Dname] <- as.numeric(as.character(data[, Dname]))
+                    stop("Treatment indicator should be a numeric value.")
+                }
         }
 
         d.levels <- sort(unique(data[, D]))
@@ -235,7 +367,7 @@ panelview <- function(data, # a data frame (long-form)
         ##     stop(paste("variable \"", D, "\" should contain only 0 and 1.\n"))
         ## }
     }
-    else{
+    else { #ignore.treat == 1
         n.levels <- 0
         treat.type <- "discrete"
     }
@@ -249,14 +381,10 @@ panelview <- function(data, # a data frame (long-form)
     ## parsing data.            ##
     ## ------------------------ ##
 
-    ## index names
-    index.id <- index[1]
-    index.time <- index[2]
-
     ## raw id and time
     raw.id <- sort(unique(data[,index[1]]))
     raw.time <- sort(unique(data[,index[2]]))
-    N <- length(raw.id)
+    N <- length(raw.id) 
     TT <- length(raw.time)
 
     ## id to be plotted 
@@ -301,7 +429,10 @@ panelview <- function(data, # a data frame (long-form)
     ## data.old <- data
     Yname <- Y
     Dname <- D
-    Xname <- X
+
+    # if any of D/Y/X in data missing, then obs.missing = -200
+    data$rowmiss <- rowSums(is.na(data))
+    rowmissname <- colnames(data[ncol(data)])
 
     ## plot a subset of all data
     if (length(input.id) != length(raw.id)) {
@@ -309,22 +440,22 @@ panelview <- function(data, # a data frame (long-form)
         N <- length(input.id)
     }
 
-    ## sort data
-    data <- data[order(data[,index.id], data[,index.time]), ]
-
     id.all <- time.all <- count <- coordin <- data.x <- x.na <- NULL
     
-    ## check balanced panel and fill unbalanced panel
-    Y <- I <- D <- NULL
-    if (dim(data)[1] != TT*N) {
+    
+    M <- Y <- I <- D <- X <- NULL
 
+
+    if (leave.gap == 0) {
+    ## check balanced panel and fill unbalanced panel
+    if (dim(data)[1] != TT*N) { # unbalanced panel
         data[,index.id] <- as.numeric(as.factor(data[,index.id]))
         data[,index.time] <- as.numeric(as.factor(data[,index.time]))
 
         if (!is.null(Yname)) {
             Y <- matrix(NA, TT, N)
         }
-        I <- matrix(0, TT, N)
+        I <- matrix(0, TT, N) #I: observed(1) and missing(0)
         if (ignore.treat == 0) {
             D <- matrix(0, TT, N)
         }
@@ -335,10 +466,10 @@ panelview <- function(data, # a data frame (long-form)
             if (ignore.treat == 0) {
                 D[data[i,index.time],data[i,index.id]] <- data[i,Dname] 
             }
-            I[data[i,index.time],data[i,index.id]] <- 1 #I: observed(1) and missing(0)
+            I[data[i,index.time], data[i,index.id]] <- 1 #I: observed(1) and missing(0)
         }
 
-    } else {
+    } else { # balanced panel
         I <- matrix(1, TT, N) 
         if (!is.null(Yname)) {
             Y <- matrix(data[,Yname], TT, N)
@@ -347,6 +478,36 @@ panelview <- function(data, # a data frame (long-form)
             D <- matrix(data[,Dname], TT, N)
         }
     }
+    }
+    else { # leave.gap == 1: balanced panel
+        data[,index.id] <- as.numeric(as.factor(data[,index.id]))
+        data[,index.time] <- as.numeric(as.factor(data[,index.time]))
+
+        M <- matrix(0, TT, N)
+        for (i in 1:dim(data)[1]) {
+            M[data[i,index.time], data[i,index.id]] <- data[i,rowmissname] 
+        }
+
+        if (!is.null(Yname)) {
+            Y <- matrix(NA, TT, N)
+        }
+        I <- matrix(0, TT, N) #I: observed(1) and missing(0)
+        if (ignore.treat == 0) {
+            D <- matrix(0, TT, N)
+        } 
+
+        for (i in 1:dim(data)[1]) {
+            if (!is.null(Yname)) {
+                Y[data[i,index.time],data[i,index.id]] <- data[i,Yname] 
+            }
+            if (ignore.treat == 0) {
+                
+                D[data[i,index.time],data[i,index.id]] <- data[i,Dname] 
+            }
+            I[data[i,index.time], data[i,index.id]] <- 1 #I: observed(1) and missing(0)
+        }
+    }
+
 
     ## binary treatment indicator 
     if (ignore.treat == 0 && d.bi == 1) {
@@ -394,7 +555,7 @@ panelview <- function(data, # a data frame (long-form)
         # }
 
         ## check DID mode
-        if (sum(abs(D.old[which(I==1)] - D[which(I==1)])) == 0) {
+        if (sum(abs(D.old[which(I==1)] - D[which(I==1)]), na.rm = TRUE) == 0) {
             by.group <- by.group
             FEmode <- 0
         } else { ## FE mode
@@ -422,9 +583,9 @@ panelview <- function(data, # a data frame (long-form)
     ########################################
     
     obs.missing <- NULL
-    
+
+if (leave.gap == 0) {
     if (ignore.treat == 0 && d.bi == 1) { #  binary, and without ignore.treat 
-        
         con1 <- type == "treat" && pre.post == TRUE
         con2 <- type == "outcome" && by.group == FALSE
 
@@ -452,13 +613,12 @@ panelview <- function(data, # a data frame (long-form)
             ## 2. add treated units
             obs.missing[, id.tr] <- D[, id.tr]
             ## 3. set missing values
-            obs.missing[which(I==0)] <- -200 ## missing -200
+            obs.missing[which(I==0)] <- -200 ## missing -200; I==0: missings in unbalanced panel
 
             unit.type <- rep(1, N) ## 1 for control; 2 for treated; 3 for reversal
             unit.type[id.tr] <- 2
 
         } else {
-            
             unit.type <- rep(NA, N) ## 1 for control; 2 for treated; 3 for reversal
             
             for (i in 1:N) {
@@ -492,17 +652,99 @@ panelview <- function(data, # a data frame (long-form)
 
         if (n.levels > 0 && type == "treat") { ## >2 treatment levels
             obs.missing <- D
-            obs.missing[which(I == 0)] <- NA
+            # NA: leave.gap == 0
+            obs.missing[which(I == 0)] <- NA             
+        } else {
+                    obs.missing <- matrix(-1, TT, N) 
+                    obs.missing[which(I==0)] <- -200 ## missing
+                    ignore.treat <- 1   
+        }
+    }
+} 
 
-        } else { ## ignore.treat == 1
+else if (leave.gap == 1) {
+        if (ignore.treat == 0 && d.bi == 1) { #  binary, and without ignore.treat 
+        con1 <- type == "treat" && pre.post == TRUE
+        con2 <- type == "outcome" && by.group == FALSE
 
-            obs.missing <- matrix(-1, TT, N) 
+        if (FEmode == 0 && (con1 || con2)) {  ## DID type data
+            
+            tr <- D[TT,] == 1     # cross-sectional: treated unit
+
+            id.tr <- which(tr==1)
+            id.co <- which(tr==0)
+
+            D.tr <- as.matrix(D[,which(tr==1)])
+            I.tr <- as.matrix(I[,which(tr==1)])
+            Y.tr <- Y.co <- NULL
+            if (type == "outcome") {
+                Y.tr <- as.matrix(Y[,which(tr==1)])
+                Y.co <- as.matrix(Y[,which(tr==0)])
+            }
+            
+
+            Ntr <- sum(tr)
+            Nco <- N - Ntr
+
+            ## 1. control group: -1
+            obs.missing <- matrix(-1, TT, N)
+            ## 2. add treated units
+            obs.missing[, id.tr] <- D[, id.tr]
+            ## 3. set missing values
+            obs.missing[which(I==0)] <- -200 ## missing -200
+            obs.missing[which(M!=0)] <- -200
+
+            unit.type <- rep(1, N) ## 1 for control; 2 for treated; 3 for reversal
+            unit.type[id.tr] <- 2
+
+        } else {
+            unit.type <- rep(NA, N) ## 1 for control; 2 for treated; 3 for reversal
+            
+            for (i in 1:N) {
+                di <- D.old[, i]
+                ii <- I[, i]
+                if (length(unique(di[which(ii==1)])) == 1) { ## treated or control
+                    if (0 %in% unique(di[which(ii==1)])) {
+                        unit.type[i] <- 1 ## control
+                    } else {
+                        unit.type[i] <- 2 ## treated
+                    }
+                } else {
+                    unit.type[i] <- 3 ## reversal
+                }
+            }
+        
+            ## 1. using D.old  
+            obs.missing <- D.old 
+            ## 2. set controls
+            obs.missing[which(D.old == 0)] <- -1 ## under control
+            ## 3. set missing 
             obs.missing[which(I==0)] <- -200 ## missing
-            ignore.treat <- 1
+            obs.missing[which(M!=0)] <- -200
+        }
+        
+        obs.missing.treat <- obs.missing
+        if (length(unique(c(D.old))) > 2) {
+            obs.missing[which(obs.missing > 1)] <- 1
         }
 
+    } else { # either not binary (>2 treatment levels) or ignore.treat == 1
+        if (n.levels > 0 && type == "treat") { ## >2 treatment levels (note that if ignore.treat = 1, n.levels = 0)
+            obs.missing <- D
+            # -200: leave.gap == 1
+            obs.missing[which(I == 0)] <- -200
+            obs.missing[which(M != 0)] <- -200          
+        } 
+        else {
+            obs.missing <- matrix(-1, TT, N)
+            obs.missing[which(I==0)] <- -200
+            obs.missing[which(M != 0)] <- -200
+            ignore.treat <- 1 
+        }
     }
+}
 
+    
     colnames(obs.missing) <- input.id
     rownames(obs.missing) <- raw.time
     
@@ -862,7 +1104,6 @@ panelview <- function(data, # a data frame (long-form)
                     data$idtimes <- ave(data$idtimes, data$id, FUN=max)
                     data$last_dot <- 0
                     data$last_dot[data$idtimes == 1] <- 1
-                    #print(data)
 
 
                     ## legend 
@@ -1172,7 +1413,6 @@ panelview <- function(data, # a data frame (long-form)
                     data3_co$idtimes <- ave(data3_co$idtimes, data3_co$id, FUN=max)
 
                     data3 <- rbind(data3_co,data3_tr)
-                    #print(data3)
 
 
                 } else { ## categorical data
@@ -1416,8 +1656,7 @@ panelview <- function(data, # a data frame (long-form)
         } else if (main == "") {
             main <- NULL
         }
-        
-        ## N <- dim(m)[2]
+
         units <- rep(rev(1:N), each = TT)
         period <- rep(1:TT, N)
 
@@ -1425,6 +1664,7 @@ panelview <- function(data, # a data frame (long-form)
         ## replicate data
         m <- as.matrix(obs.missing[show,])
         all <- unique(na.omit(c(m)))
+
         col <- breaks <- label <- NULL 
 
         ## set breaks, colors and labels
@@ -1446,12 +1686,13 @@ panelview <- function(data, # a data frame (long-form)
                 col <- c("#87CEEB", "#00008B")
                 label <- "Treatment Levels"
             }
-            # # missing values
-            # if (-200 %in% all) {
-            #     col <- c(col,"#FFFFFF")
-            #     breaks <- c(breaks, -200)
-            #     label <- c(label,"Missing")
-            # }
+
+             # missing values
+            if (-200 %in% all) {
+                col <- c(col,"#FFFFFF")
+                breaks <- c(breaks, -200)
+                label <- c(label,"Missing")
+            }
 
         } else { ## binary treatment indicator
 
@@ -1594,14 +1835,29 @@ panelview <- function(data, # a data frame (long-form)
         } 
 
         ## start plot 
+        if (treat.type == "continuous" && ignore.treat == 0 && leave.gap == 1) {
+        m2 <- NULL
+        m2 <- m
+        m2 <- replace(m2, m2 == -200, NA) # if NA in the first and last period, then this period will disappear
+        res <- c(m2)
+        }
+        else{        
         res <- c(m)
+        }
+        
         data <- cbind.data.frame(units=units, period=period, res=res)
 
         ## if (treat.type == "discrete") {
         ##     data[,"res"] <- as.factor(data[,"res"])
         ## } else {
+            # data <- na.omit(data) 
+
+        # }       
+
+        if (leave.gap == 0) {
             data <- na.omit(data)
-        # }
+        }
+
         if (treat.type == "discrete") { 
             data[,"res"] <- as.factor(data[,"res"])
         }
@@ -1641,7 +1897,7 @@ panelview <- function(data, # a data frame (long-form)
         if (treat.type == "discrete") {
             p <- p + scale_fill_manual(NA, breaks = breaks, values = col, labels=label)
         } else {
-            p <- p + scale_fill_gradient(low = col[1], high = col[2]) + guides(fill=guide_legend(title= label))
+            p <- p + scale_fill_gradient(low = col[1], high = col[2], na.value="white") + guides(fill=guide_legend(title= label))
         }
 
         p <- p +
@@ -1802,6 +2058,7 @@ panelview <- function(data, # a data frame (long-form)
             }
 
             data.means <- aggregate(data[, 2:3], list(data$time), mean, na.rm = TRUE)
+
             colnames(data.means) <- c("time","outcome","treatment")
 
             p <- ggplot(na.omit(data.means), aes(x=time))
@@ -1817,11 +2074,11 @@ panelview <- function(data, # a data frame (long-form)
 
                         
             if (is.null(ylim) == TRUE) {
-                ylim <- c(min(data.means$outcome,na.rm=TRUE),max(data.means$outcome,na.rm=TRUE))
+                ylim <- c(min(data.means$outcome, na.rm = TRUE),max(data.means$outcome, na.rm = TRUE))
 
                 coeff <- as.numeric(solve(
-                a=matrix(c(1,max(data.means$treatment, na.rm= TRUE),1,min(data.means$treatment, na.rm= TRUE)),nrow=2,ncol=2,byrow=TRUE),
-                b=matrix(c(max(data.means$outcome, na.rm= TRUE),min(data.means$outcome, na.rm= TRUE)),ncol=1)))
+                a=matrix(c(1,max(data.means$treatment, na.rm = TRUE),1,min(data.means$treatment, na.rm = TRUE)),nrow=2,ncol=2,byrow=TRUE),
+                b=matrix(c(max(data.means$outcome, na.rm = TRUE),min(data.means$outcome, na.rm = TRUE)),ncol=1)))
             }
             else {
                 ylim.prim <- ylim[[1]]
@@ -1939,10 +2196,10 @@ panelview <- function(data, # a data frame (long-form)
                     plot.title = element_text(size=cex.main, hjust = 0.5, face="bold",margin = margin(8, 0, 8, 0)))
 
             if (is.null(ylim) == TRUE) {
-                ylim <- c(min(data$outcome,na.rm=TRUE),max(data$outcome,na.rm=TRUE))
+                ylim <- c(min(data$outcome, na.rm = TRUE),max(data$outcome, na.rm = TRUE))
 
                 coeff <- as.numeric(solve(
-                a=matrix(c(1,max(data$treatment, na.rm= TRUE),1,min(data$treatment, na.rm= TRUE)),
+                a=matrix(c(1,max(data$treatment, na.rm = TRUE),1,min(data$treatment, na.rm = TRUE)),
                         nrow=2,ncol=2,byrow=TRUE),
                 b=matrix(c(max(ylim[2]),min(ylim[1])),ncol=1)))
             }
@@ -1958,7 +2215,7 @@ panelview <- function(data, # a data frame (long-form)
                 ylim <- ylim.prim  
             }
 
-            width <- (max(time,na.rm=TRUE)-min(time,na.rm=TRUE))/(length(time)-1)
+            width <- (max(time, na.rm = TRUE)-min(time, na.rm = TRUE))/(length(time)-1)
 
 
             if (Dstyle == "bar" | Dstyle == "b") {

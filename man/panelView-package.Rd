@@ -2,7 +2,7 @@
 \alias{panelview-package}
 \docType{package}
 \title{Panel Data Visualizations}
-\description{Visualizes panel data with (dichotomous) treatments}
+\description{Visualizes panel data}
 
 \details{
   panelview has three main functionalities:
@@ -19,7 +19,7 @@
 \author{
   Hongyu Mou <hongyumou5@gmail.com>, Peking Univeristy
   
-  Licheng Liu <liulch.16@sem.tsinghua.edu.cn>, Tsinghua University  
+  Licheng Liu <liulch@mit.edu>, Massachusetts Institute of Technology
 
   Yiqing Xu <yiqingxu@stanford.edu>, Stanford University
 }

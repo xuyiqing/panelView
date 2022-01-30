@@ -3,10 +3,10 @@
 \title{Panel Data Visualizations}
 \description{Visualizes panel data}
 \usage{panelview(data, formula = NULL, Y = NULL, D = NULL,
-            X = NULL, index, na.rm = TRUE, 
+            X = NULL, index, 
             ignore.treat = FALSE, type = "treat", 
             outcome.type = "continuous", 
-            discrete.type = NULL, by.group = FALSE, 
+            treat.type = NULL, by.group = FALSE, 
             by.timing = FALSE, theme.bw = TRUE,
             xlim = NULL, ylim = NULL, 
             xlab = NULL, ylab = NULL, 
@@ -16,8 +16,9 @@
             color = NULL, axis.adjust = FALSE, axis.lab = "both", 
             axis.lab.gap = c(0, 0), shade.post = TRUE,
             cex.main = 15, cex.main.sub = 12, cex.axis = 8,
+            cex.axis.x = NULL, cex.axis.y = NULL,
             cex.lab = 12, cex.legend = 12, background = NULL,
-            style = NULL, by.unit = FALSE, lwd = 0.2)
+            style = NULL, by.unit = FALSE, lwd = 0.2, leave.gap = FALSE)
 }
 \arguments{
   \item{data}{a data frame. The panel does not have to be balanced.}
@@ -26,9 +27,8 @@
   \item{D}{variable name of the treatment. Ignored if \code{formula} is provided.}
   \item{X}{variable name of the time-varying covariates. Ignored if \code{formula} is provided.}
   \item{index}{a two-element string vector specifying the unit (group) and time indicators. Must be of length 2.}
-  \item{na.rm}{a logical flag indicating whether to list-wise delete missing data. The algorithm will report an error if missing data exist when \code{na.rm = FALSE}.}
   \item{ignore.treat}{a logical flag indicating whether there is a treatment variable. Default value is \code{ignore.treat = FALSE}.}
-  \item{type}{a string that specifies the type of the plot. Must be either \code{"treat"} (default), which plots the treatment/missing-data status of each unit at each time point), \code{"outcome"}, which plots the raw outcome data, or \code{"bivar"}, which plots time series of outcome and treatment in one graph.}
+  \item{type}{a string that specifies the type of the plot. Must be either \code{"treat"} (default), which plots the treatment status of each unit at each time point, \code{"missing"}, which plots the missing-data, \code{"outcome"}, which plots the raw outcome data, or \code{"bivariate"}, which plots time series of outcome and treatment in one graph.}
   \item{outcome.type}{a string that specifies the type of outcome variable. Must be either \code{"continuous"}(default) or \code{"discrete"}. For a continuous variable, time series lines for specified units will be plotted, and for discrete response, jitter-ed points at each time period will be plotted.}
   \item{treat.type}{a string that specifies the type of treatment variable. Must be either \code{"continuous"} or \code{"discrete"}. The default is NULL, which means the option will be decided based on the number of unique treatment values: if the number if bigger than 10, it will be set as "continuous"; otherwise, it will be set as "discrete".}
   \item{by.group}{a logic flag indicating whether the data should be plotted in separate groups based on treatment status changes for the outcome plot. }
@@ -61,6 +61,7 @@
   \item{by.unit}{a logic flag indicating whether to plot by each specified units or to plot mean D and Y against time in the same graph.}
   \item{style}{a string vector to set line/connected line/bar styles for the outcome and treatment variables.}
   \item{lwd}{a numeric value (pt) specifying the line width when plotting time series of treatment and outcome variables.}
+  \item{leave.gap}{a logical flag indicating whether to keep the time gap as an white bar if time is not evenly distributed (possibly due to missing data). Default value is \code{leave.gap = FALSE}.}
 }
 
 \details{
@@ -72,7 +73,7 @@
 \author{
   Hongyu Mou <hongyumou5@gmail.com>
   
-  Licheng Liu <liulch.16@sem.tsinghua.edu.cn>
+  Licheng Liu <liulch@mit.edu>
 
   Yiqing Xu <yiqingxu@stanford.edu>
 }

@@ -13,7 +13,7 @@
 
 We develop this package in the belief that it is always a good idea to better understand your data before conducting statistical analyses.
 
-**Authors:** Hongyu Mou [hongyumou5@gmail.com]; Licheng Liu [<liulch@mit.edu>]; Yiqing Xu [<yiqingxu@stanford.edu>]
+**Authors:** Hongyu Mou [<hongyumou5@gmail.com>]; Licheng Liu [<liulch@mit.edu>]; Yiqing Xu [<yiqingxu@stanford.edu>]
 
 **How to Use:** [Examples](https://yiqingxu.org/packages/panelview/panelview.html)
 

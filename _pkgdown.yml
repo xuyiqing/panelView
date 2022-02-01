@@ -1,0 +1,18 @@
+url: https://yiqingxu.org/packages/panelview/
+template:
+  bootstrap: 5
+
+navbar:
+  structure:
+    left:  [intro, reference, news]
+    right: []
+
+reference:
+- title: Main function
+- contents:
+  - panelview
+- title: Test datasets
+- contents:
+  - simdata
+  - turnout
+  - capacity

@@ -3,11 +3,16 @@ Type: Package
 Title: Visualizing Panel Data
 Version: 1.1.8
 Date: 2022-1-28
-Author: Hongyu Mou, Licheng Liu, Yiqing Xu
+Authors@R: 
+  c(person("Hongyu", "Mou", , "hongyumou5@gmail.com", role = c("aut")), 
+  person("Licheng", "Liu", ,"liulch@mit.edu", role = c("aut")), 
+  person("Yiqing", "Xu", ,"yiqingxu@stanford.edu", role = c("aut", "cre"), 
+  comment = c(ORCID = "0000-0003-2041-6671")))
 Maintainer: Yiqing Xu <yiqingxu@stanford.edu>
 Description: Visualizes panel data. It has three main functionalities: (1) it visualizes the treatment and missing-value statuses of each observation in a panel dataset; (2) it plots the outcome variable (either continuous or discrete) in a time-series fashion; (3) it visualizes the relationships between the outcome and treatment variable individually or in an aggregate fashion.
-URL: https://yiqingxu.org/packages/panelview/panelview.html
+URL: https://yiqingxu.org/packages/panelview/index.html
 License: MIT + file LICENSE
 Imports: ggplot2 (>= 2.1.0), gridExtra, grid
 Depends: R (>= 2.10)
 RoxygenNote: 6.0.1
+

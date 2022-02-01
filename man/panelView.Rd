@@ -1,6 +1,6 @@
 \name{panelview}
 \alias{panelview}
-\title{Panel Data Visualizations}
+\title{Visualizing panel data}
 \description{Visualizes panel data}
 \usage{panelview(data, formula = NULL, Y = NULL, D = NULL,
             X = NULL, index, 
@@ -66,8 +66,6 @@
 
 \details{
   panelview visualizes the treatment status, missing values, and raw outcome data of a time-series cross-sectional dataset.
-
-  For more details, see \url{https://yiqingxu.org/packages/panelview/panelview.html}.
 }
 
 \author{

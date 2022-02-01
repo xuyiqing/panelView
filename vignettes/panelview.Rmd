@@ -1,0 +1,517 @@
+---
+title: 'panelview tutorial'
+output:
+  rmarkdown::html_vignette:
+    toc: false
+    toc_depth: 4
+    number_sections: false
+vignette: >
+  %\VignetteIndexEntry{panelview tutorial}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}  
+---
+<!-- 
+  Code to Justify Text
+    <style>
+    body {
+    text-align: justify}
+    </style>
+-->   
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```  
+
+## Syntax overview
+
+```{r echo = FALSE, results = 'asis', message = FALSE}
+#import xlxs as data.frame
+library(httr)
+url <- "https://yiqingxu.org/packages/panelview/syntax.xlsx"
+a <- GET(url, write_disk(tf <- tempfile(fileext = ".xlsx")))
+exceldata_R <- readxl::read_excel(tf)
+dfdata_R = data.frame(exceldata_R)
+knitr::kable(dfdata_R, "simple")
+```
+
+Note that *Y*, *D*, and *X* in the above table are merely labels; they can be any variables in a panel dataset.
+
+
+***
+## Plot treatment & missingness
+
+First, we show how to visualize the treatment conditions and missing values in a panel dataset. The treatment indicator may be dichotomous or have more than 2 levels. We first load the **panelview** package, which ships three datasets.
+
+```{r}
+library(panelview)
+data(panelview)
+ls()
+```
+
+Using the `turnout` dataset (a balanced panel), we show the treatment status of Election Day Registration (EDR) in each state in a given year ([Xu 2017](http://dx.doi.org/10.1017/pan.2016.2)). The first variable on the right-hand-side of the regression formula is designated as the treatment indicator. Including covariates may change the plot because of missing values in these covariates. The `index` option specifies the unit (group) and time indicators. We can change the labels (titles) of x- and y-axes through `xlab` and `ylab`, respectively.
+
+```{r treat1-1, cache = TRUE}
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, 
+          data = turnout, index = c("abb","year"), 
+          xlab = "Year", ylab = "State")
+```
+
+We can use the `by.timing` option to sort units by the timing of receiving the treatment (then by the total number of periods exposed to the treatment). Users can also specify the background color using the `background` option and use various `cex` options to adjust fontsizes for texts appearing in the main title (`cex.main`), axes (`cex.axis`), axis labels (`cex.lab`), and legend (`cex.legend`). 
+
+```{r treat1-2, cache = TRUE, fig.height = 10}
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, 
+          data = turnout, index = c("abb","year"), 
+          xlab = "Year", ylab = "State", by.timing = TRUE, 
+          legend.labs = c("No EDR", "EDR"), background = "white", 
+          cex.main = 20, cex.axis= 8, cex.lab = 12, cex.legend = 12)
+```
+
+We can use the `main` option to change the title of the plot, use the `axis.lab.gap` option to change the gaps between labels on the x- and y-axes, and use the `legend.labs` option to change the labels shown in the legend. 
+For DID-type TSCS data with a dichotomous treatment indicator, we can distinguish the pre- and post-treatment periods for treated units by specifying `pre.post = TURE` (which is set as default prior to v.1.1.0): 
+
+```{r treat1-3, cache = TRUE, fig.height = 10}
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, 
+          data = turnout, index = c("abb","year"), 
+          xlab = "Year", ylab = "State", pre.post = TRUE)
+```
+
+Again, we can change the labels in the legend. Make sure the length of `legend.labs` is the same as the number of treatment statuses (in this case, 3).
+```{r treat1-4, cache = TRUE, fig.height = 8}
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, 
+          data = turnout, index = c("abb","year"), 
+          xlab = "Year", ylab = "State", by.timing = TRUE, 
+          pre.post = TRUE, 
+          legend.labs = c("Control States", "Treated States (before EDR)", 
+                          "Treated States (after EDR)"))
+
+```
+
+We can remove the labels on the y-axis (or x-axis) by specifying `axis.lab = "time"` (or `"unit"`). Setting `axis.lab = "off"` will remove labels on both axes. The default is `axis.lab = "both"`.
+
+```{r treat1-5, cache = TRUE, fig.height = 8}
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, 
+          data = turnout, index = c("abb","year"), 
+          main = "EDR Reform", axis.lab = "time")
+```
+
+Instead of specifying a formula, we can also directly give the variable name of the treatment indicator:
+```{r treat1-6, eval = FALSE}
+panelview(D = "policy_edr", data = turnout, index = c("abb","year"), 
+          xlab = "Year", ylab = "State", pre.post = TRUE,
+          main = "EDR Reform", axis.lab = "time")
+```
+
+We can change the colors of the bricks for the controls and treated using the `color` option. Colors should be specified in the order of "treated-pre", "treated-post" and "control"---plus "missing" if the dataset contains missing values---if `pre.post = TRUE` and in the order of "control", "treated" if `pre.post = FALSE`: 
+
+```{r treat1-7, cache = TRUE, fig.height = 8}
+library(dplyr)
+turnout %>% panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, 
+                      color = c("#B0C4DE","white"), by.timing = TRUE, 
+                      index = c("abb","year"), xlab = "Year", ylab = "State")
+```
+
+If the time variable is not evenly distributed, we can use `leave.gap = TRUE` to show the gaps in time using white bars. Otherwise, *panelview* will skip the time gaps and leave an warning "Time is not evenly distributed (possibly due to missing data)." 
+
+```{r treat1-8, cache=TRUE, fig.height = 8}
+turnout2 <- turnout[!(turnout$year=="1924" | turnout$year=="1928" | turnout$year == "1940"),]
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, 
+          data = turnout2, index = c("abb","year"), 
+          type = "treat", leave.gap = TRUE)
+```
+
+***
+
+For a panel dataset in which the treatment may switch on and off, we do not differentiate between pre- and post-treatment statuses. To demonstrate how `panelview` can be used in a more general setting, the following plot uses the `capacity` dataset, which is used to investigate the effect of democracy, the treatment, on state capacity, the outcome ([Wang and Xu 2018](http://journals.sagepub.com/doi/full/10.1177/2053168018772398)).  From the figure below, we see quite a few cases of democratic reversals and that there are many missing values. 
+
+```{r treat2-1, fig.height = 10}
+panelview(Capacity ~ demo + lnpop + lngdp, 
+          data = capacity, index = c("ccode", "year"), 
+          main = "Democracy and State Capacity",
+          axis.lab.gap = c(2,10))
+```
+
+Sorting units based on the first period a unit receives the treatment gives a more appealing visual:
+
+```{r treat2-2, fig.height = 10}
+panelview(Capacity ~ demo + lnpop + lngdp, 
+          data = capacity, index = c("ccode", "year"), 
+          main = "Democracy and State Capacity: Treatment Status", 
+          axis.lab.gap = 2, by.timing = TRUE, axis.lab = "time")
+```
+
+
+***
+### Plot a subset of units
+
+Sometimes a dataset has many units and we only want to take a peak of a subset of the units. **panelview** allows users to specify the units to be be shown by specifying the `show.id` (units in their alphabetical order) or `id` (original unit ids recoded in the "unit" variable) options. In the following figure, we plot the treatment statuses of the first 25 units. 
+
+```{r treat3-1, fig.height = 5}
+panelview(Capacity ~ demo + lnpop + lngdp, data = capacity, 
+          index = c("ccode", "year"), axis.lab.gap = c(2,0), 
+          main = "Democracy and State Capacity", show.id = c(1:25))
+```
+
+If the formula is not provided, we can use the argument `D` to specify the treatment indicator. For example:
+
+```{r treat3-2, fig.height = 5, eval = FALSE}
+panelview(D = "demo", data = capacity, index = c("ccode", "year"), 
+          axis.lab.gap = c(2,0), main = "Democracy and State Capacity", 
+          show.id = c(1:25), type = "treat")
+```
+
+Below we plot the treatment statuses of the next 25 units by calling their names, i.e., their `ccode`. Note that several countries are removed from the plot due to missing values in the specified variables. 
+
+```{r treat3-3, fig.height = 5}
+panelview(Capacity ~ demo + lnpop + lngdp, 
+          data = capacity, index = c("ccode", "year"), 
+          axis.lab.gap = c(2,0), 
+          main = "Democracy and State Capacity", 
+          id = unique(capacity$ccode)[26:50], by.timing = TRUE)
+```
+
+
+***
+### Plot missingness only
+
+Starting from v.1.1.8, we allow users to plot missingness in by setting `type(missing)` or `type(miss)`.
+
+```{r treat3-4, cache = TRUE, fig.height = 10}
+capacity %>% panelview(Capacity ~ 1, 
+                       index = c("ccode","year"), 
+                       axis.lab="off", type = "miss")
+```
+
+We can also directly supply a variable name without specifying a formula:
+
+```{r treat3-6, cache = TRUE, fig.height = 10, eval = FALSE}
+capacity %>% panelview(Y = "Capacity", 
+                       index = c("ccode", "year"), 
+                       axis.lab.gap = c(2,10), 
+                       type = "miss")
+```
+
+When `leave.gap = TRUE`, time gaps are shown in the plot when the time variable is not evenly distributed (the default is `FALSE`): 
+
+```{r treat3-7, cache = TRUE, fig.height = 10}
+capacity$demo[capacity$year == "1960" | capacity$year == "1980"] <- NA
+capacity$lngdp[capacity$year == "1990"] <- NA
+panelview(1 ~ demo + lngdp, data = capacity, index = c("ccode","year"), 
+          type = "missing", leave.gap = TRUE, axis.lab.gap = c(2,10))
+```
+
+
+***
+### >2 treatment conditions
+
+Starting from v.1.1.0, **panelview** supports TSCS data with more than 2 treatment levels. 
+For example, we create a measure of regime type with three treatment levels. 
+
+```{r treat4-1, cache = TRUE, fig.height = 10}
+demo2 <- rep(0, dim(capacity)[1])
+demo2[which(capacity$polity2 < -0.5)] <- -1
+demo2[which(capacity$polity2 > 0.5)] <- 1
+capacity$demo2 <- demo2
+
+panelview(Capacity ~ demo2 + lngdp, 
+          data = capacity, index = c("ccode", "year"), 
+          axis.lab.gap = c(2,10), 
+          main = "Regime Type")
+```
+
+```{r treat4-2, cache = TRUE, fig.height = 10}
+library(RColorBrewer) 
+mycol<-brewer.pal(3,"Set1")[c(1,3,2)]
+panelview(Capacity ~ demo2, data = capacity, 
+          index = c("ccode", "year"), axis.lab.gap = c(2), 
+          main = "Regime Type", axis.lab = c("time"), 
+          color = mycol, legend.labs = c("Autocracy", "Hybrid", "Democracy"))
+```
+
+This is equivalent to:
+```{r treat4-3, eval=FALSE}
+panelview(D = "demo2", data = capacity, index = c("ccode", "year"), 
+          axis.lab.gap = c(2), main = "Regime Type", 
+          axis.lab = c("time"), color = mycol, 
+          legend.labs = c("Autocracy", "Hybrid", "Democracy"))
+```
+
+If the number of treatment levels is greater than 5, then the treatment indicator 
+will be regarded as a continuous variable. We can remove the grid lines by 
+specifying `gridOff = TRUE`:
+
+```{r treat4-4, cache = TRUE, fig.height = 10}
+panelview(Capacity ~ polity2 + lngdp, 
+          data = capacity, index = c("ccode", "year"), 
+          axis.lab.gap = c(2,10), main = "Regime Type", 
+          gridOff = TRUE)
+```
+
+We can also change the (start and end) colors using the option `color`:
+
+```{r treat4-5, cache = TRUE, fig.height = 10}
+panelview(Capacity ~ polity2 + lngdp, 
+          data = capacity, index = c("ccode", "year"), 
+          axis.lab.gap = c(2,10), main = "Regime Type", 
+          color = c("yellow", "red"), background = "white")
+
+```
+
+***
+
+## Plot an outcome (or any variable)
+
+The second main function of **panelview** is to plot the raw outcome variable of a panel dataset in a time-series fashion. The syntax is very similar except that we need to specify `type = "outcome"`. We can control the ranges of the data to be shown by supplying `xlim` and `ylim`. Different colors represent different treatment conditions.
+
+```{r outcome1-1, cache = TRUE, fig.height = 5}
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, 
+          data = turnout, index = c("abb","year"), 
+          type = "outcome", main = "EDR Reform and Turnout", 
+          ylim = c(0,100),xlab = "Year", ylab = "Turnout")
+```
+
+Similarly, we can specify the labels shown in the legend using `legend.labs`. Note that we can also turn off legends by specifying `legendOff = TRUE`.
+
+```{r outcome1-2, cache = TRUE, fig.height = 6}
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, 
+          data = turnout, index = c("abb","year"), 
+          type = "outcome", main = "EDR Reform and Turnout", 
+          legend.labs = c("Control States","Treated States (before EDR)", 
+                          "Treated States (after EDR)"))
+```
+
+We do not use the black and white theme by specifying `theme.bw = FALSE`.
+
+```{r outcome1-3, cache = TRUE, fig.height = 6}
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, 
+          data = turnout, index = c("abb","year"), type = "outcome",
+          main = "EDR Reform and Turnout", theme.bw = FALSE)
+```
+
+And we can change the colors for observations under different treatment statuses using the option `color`.
+
+```{r outcome1-4, cache = TRUE, fig.height = 6}
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, 
+          data = turnout, index = c("abb","year"), 
+          type = "outcome", main = "EDR Reform and Turnout", 
+          color = c("#FC8D6280", "red", "#99999950"), 
+          legend.labs = c("Control States","Treated States (before EDR)", 
+                          "Treated States (after EDR)"), theme.bw = FALSE)
+```
+
+Again, we can specify which unit(s) we want to take a look at: 
+
+```{r outcome1-5, cache = TRUE, fig.height = 6}
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, 
+          data = turnout, index = c("abb","year"), 
+          type = "outcome", main = "EDR Reform and Turnout (AL, AR, CT)", 
+          id = c("AL", "AR", "CT"))
+```
+
+To better understand the data, sometimes we want to plot the outcome based on whether the treatment status has changed during the observed time period. We can simply add an option `by.group = TRUE`. The algorithm will analyze the data and automatically put each unit into different groups, e.g. (1) always treated, (2) always in control, (3) treatment status changed. Users can adjust the fontsizes of the title and subtitles using the `cex.main` and `cex.main.sub` options, respectively.
+
+```{r outcome1-6, cache = TRUE, fig.height = 6}
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, 
+          data = turnout, index = c("abb","year"), 
+          type = "outcome", main = "EDR Reform and Turnout",
+          by.group = TRUE, cex.main = 20, cex.main.sub = 15)
+```
+
+***
+### Ignore treatment status
+
+Starting from v 1.0.3, we allow users to omit the treatment indicator. Therefore, **panelview** can in fact be used to visualize *any* variable in a panel dataset. 
+
+```{r outcome2-1, cache = TRUE, fig.height = 6}
+panelview(turnout ~ 1, data = turnout, index = c("abb","year"), 
+          type = "outcome", main = "Turnout", 
+          ylim = c(0,100), xlab = "Year", ylab = "Turnout")
+```
+
+Alternatively, by setting `ignore.treat = TRUE`. The right-hand-side variables may change the plot by introducing missing values. 
+
+```{r outcome2-2, eval = FALSE}
+panelview(Y = "turnout", data = turnout,
+          index = c("abb","year"), type = "outcome",
+          main = "Turnout", ylim = c(0,100), 
+          xlab = "Year", ylab = "Turnout")
+```
+
+
+***
+### Discrete outcomes
+
+We can accommodate discrete variables by setting `outcome.type = "discrete"`. Below is an example using the `simdata` dataset, in which the outcome variable takes three values: 0, 1, and 2. 
+
+```{r outcome3-1, cache = TRUE, fig.height = 5}
+panelview(Y ~ D, data = simdata, index = c("id", "time"), 
+          by.group = FALSE, outcome.type = "discrete", 
+          type = "outcome", xlim = c(8, 15))
+```
+
+We split the sample based on changes in treatment status and use the black and white theme:
+
+```{r outcome3-2, cache = TRUE,  fig.height = 5}
+panelview(Y ~ D, data = simdata, index = c("id", "time"),
+          by.group = TRUE, outcome.type = "discrete",
+          type = "outcome",  xlim = c(8, 15))
+```
+
+If the treatment indicator has more than 2 treatment levels or a continuous variable (e.g. `polity2`), then treatment status will not be shown on the `"outcome"` plot:
+
+```{r outcome3-3, cache = TRUE,  fig.height = 5}
+panelview(Capacity ~ polity2 + lngdp, 
+          data = capacity, index = c("ccode", "year"), 
+          main = "Measuring State Capacity", 
+          type = "outcome", legendOff = TRUE)
+```
+
+
+***
+
+## Plot bivariate relationships
+
+Visualize time series of the outcome and treatment in one figure by specifying `type = "bivar"` or  `type = "bivariate"`. For continuous variable, we use line plot as default; for discrete variable, we use bar plot. To plot connected lines ( `"connected"`  or  `"c"` ), lines ( `"line"`  or  `"l"` ), or bars ( `"bar"`  or  `"b"` ) rather than the default, please add `style = c("","")`, where the first element defines the outcome style, and the second defines the treatment style.
+
+### In aggregate
+
+When `type = "bivariate"`, *panelview* plots the averages of D and Y against time with the default option `by.unit = FALSE`.
+
+Below are two examples with a continuous outcome and a discrete treatment. In the first example, `style = c("c","b")` represents a connected line plot for the outcome and a bar plot for the treatment---the default is `style = c("l","b")`, in which "l" represents a line plot. In the second example, we adjust the y-axes ranges using  `ylim = list(c( , ), c( , ))`, in which the first vector specifies the range for the average outcome and the second vector specifies the range for the average treatment.
+
+```{r bivar1-1, cache = TRUE,  fig.height = 5}
+# 1. Continuous Y, discrete D:
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, data = turnout, 
+          index = c("abb","year"), 
+          type = "bivariate",
+          style = c("c","b"),
+          main = "EDR Reform and Turnout", ylab = "Turnout")
+```
+
+```{r bivar1-2, cache = TRUE,  fig.height = 4}
+panelview(lnpop ~ demo, data = capacity, index = c("country", "year"), 
+          ylim = list(c(8, 9.4), c(0.25, 0.6)), type = "bivar")
+```
+
+With discrete outcome and treatment variables, the default is `style = c("b","b")`:
+```{r bivar1-3, cache = TRUE,  fig.height = 5}
+# 2. Discrete Y, discrete D:
+panelview(Y ~ D, data = simdata, index = c("id", "time"),
+          type = "bivar", theme.bw = FALSE, outcome.type = "discrete")
+```
+
+When both variables are continuous, the default is `style = c("l","l")`:
+```{r bivar1-4, cache = TRUE,  fig.height = 4}
+# 3. Continuous Y, continuous D:
+panelview(lnpop ~ polity2, data = capacity, index = c("country", "year"), 
+          ylim = list(c(8.75,9.4), c(-0.2, 0.35)), type = "bivar")
+```
+
+When both variables are discrete, the default is `style = c("l","b")`:
+```{r bivar1-5, cache = TRUE,  fig.height = 4}
+# 4. Discrete Y, continuous D
+simdata$x <- seq(0.001,0.9,0.001)
+panelview(Y ~ x, data = simdata, index = c("id", "time"),
+          type = "bivar", outcome.type = "discrete")
+```
+
+Another example. Option `lwd` controls the line width (default is 0.2):
+
+```{r bivar1-6, cache = TRUE,  fig.height = 5}
+## Line the discete treatment
+# 1. Y: continuous; D: discrete 
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, data = turnout, 
+          index = c("abb","year"), xlab = "EDR", ylab = "Turnout", type = "bivar",
+          style = c("line","connected"), col = c(2, 3), lwd = 0.4)
+```
+
+***
+
+### By each unit
+
+We plot Y and D against time for each unit using `by.unit = TRUE`. Below are two examples with continuous outcome and discrete treatment. We arrange four subgraphs in one row:
+
+```{r bivar2-1, cache = TRUE,  fig.height = 5}
+# 1. Continuous Y, discrete D:
+panelview(turnout ~ policy_edr, data = turnout, 
+          index = c("abb","year"), ylab = "Turnout", type = "bivar",
+          by.unit = TRUE,  show.id = c(1:12))
+```
+
+Another example:
+```{r bivar2-2, cache = TRUE,  fig.height = 5}
+panelview(lnpop ~ demo, data = capacity,
+          index = c("country","year"), type = "bivar",
+          by.unit = TRUE, ylim = list(c(8,10), c(-2, 2)),
+          show.id = c(1:16))
+```
+
+If the outcome is discrete, we can plot outcome and treatment against time in the same figure, indicating `outcome.type = "discrete"`:
+
+```{r bivar2-3, cache = TRUE,  fig.height = 5}
+# 2. Discrete Y, discrete D:
+panelview(Y ~ D, data = simdata,
+          index = c("id", "time"),
+          type = "bivariate",
+          by.unit = TRUE,
+          theme.bw = FALSE,
+          outcome.type = "discrete",
+          id = unique(simdata$id)[1:12])
+```
+
+When both variables are continuous: 
+```{r bivar2-4, cache = TRUE,  fig.height = 4}
+# 3. Continuous Y, continuous D:
+panelview(lnpop ~ polity2, data = capacity,
+          index = c("country","year"),
+          type = "bivar",
+          by.unit = TRUE,
+          theme.bw = FALSE,
+          color = c("blue","red"),
+          show.id = c(1:12))
+```
+
+With discrete outcome and continuous treatment: 
+```{r bivar2-5, cache = TRUE,  fig.height = 4}
+# 4. Discrete Y, continuous D
+simdata$x <- seq(0.001,0.9,0.001)
+panelview(Y ~ x, data = simdata,
+          index = c("id", "time"),
+          type = "bivar",
+          by.unit = TRUE,
+          outcome.type = "discrete",
+          lwd = 0.4,
+          id = unique(simdata$id)[1:12])
+```
+
+Adding `style = "line"` to plot both variables in lines: 
+```{r bivar2-6, cache = TRUE,  fig.height = 5}
+## Line the discete treatment
+# 1. Y: continuous; D: discrete 
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, data = turnout, 
+          index = c("abb","year"),
+          type = "bivar",
+          by.unit = TRUE,
+          style = "line",
+          theme.bw = FALSE,
+          lwd = 0.5,
+          show.id = c(1:12),
+          ylab = "Turnout") 
+```
+
+```{r bivar2-7, cache = TRUE,  fig.height = 8}
+# 2. Y: Discrete; D: discrete
+panelview(Y ~ D, data = simdata,
+          index = c("id", "time"),
+          type = "bivar",
+          by.unit = TRUE,
+          outcome.type = "discrete",
+          style = "line",
+          theme.bw = FALSE,
+          lwd = 0.4,
+          id = unique(simdata$id)[1:20]) 
+```
+
+
+

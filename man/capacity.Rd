@@ -1,7 +1,7 @@
 \name{capacity}
 \docType{data}
 \alias{capacity}
-\title{capacity}
+\title{State capacity dataset}
 \description{Cross-national panel data on democracy and state capacity.}
 \format{dataframe}
 \keyword{datasets}

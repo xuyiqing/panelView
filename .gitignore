@@ -1,9 +1,10 @@
 # History files
 .Rhistory
 .Rapp.history
+.Ruserdata
 
 # Session Data files
-.RData
+.Data
 
 # Example code in package build process
 *-Ex.R
@@ -32,3 +33,6 @@ vignettes/*.pdf
 *.utf8.md
 *.knit.md
 .DS_Store
+
+docs
+vignettes/panelview_cache

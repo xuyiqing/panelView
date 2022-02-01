@@ -16,3 +16,7 @@ reference:
   - simdata
   - turnout
   - capacity
+
+home:
+  title: panelview--an R package for visualizing panel data
+  description: panelview visualizes missing values, treatment status, outcome variables, and bivariate relationships in a panel dataset.

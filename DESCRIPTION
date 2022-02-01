@@ -9,7 +9,7 @@ Authors@R:
   person("Yiqing", "Xu", ,"yiqingxu@stanford.edu", role = c("aut", "cre"), 
   comment = c(ORCID = "0000-0003-2041-6671")))
 Maintainer: Yiqing Xu <yiqingxu@stanford.edu>
-Description: Visualizes panel data. It has three main functionalities: (1) it visualizes the treatment and missing-value statuses of each observation in a panel dataset; (2) it plots the outcome variable (either continuous or discrete) in a time-series fashion; (3) it visualizes the relationships between the outcome and treatment variable individually or in an aggregate fashion.
+Description: Visualizes panel data. It has three main functionalities: (1) it visualizes treatment status and missing values in a panel dataset; (2) it plots an outcome variable (or any variable) in a time-series fashion; (3) it visualizes bivariate relationships of two variables by unit or in aggregate.
 URL: https://yiqingxu.org/packages/panelview/index.html
 License: MIT + file LICENSE
 Imports: ggplot2 (>= 2.1.0), gridExtra, grid

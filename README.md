@@ -27,13 +27,13 @@ Xu](https://yiqingxu.org/) (Stanford)
 
 ## Description
 
-**panelview** visualizes panel data. It has three main functions:
+**panelview** visualizes panel data. It has three main functionalities:
 
-1.  it plots treatment status and missing data in a panel dataset;
-2.  it plots an outcome variable (either continuous or discrete) in a
-    time-series fashion;
-3.  it visualizes the bivariate relationships between an outcome
-    variable and a treatment variable by unit or in aggregate.
+1.  it plots treatment status and missing values in a panel dataset;
+2.  it plots an outcome variable (or any variable) in a time-series
+    fashion;
+3.  it visualizes bivariate relationships of two variables by unit or in
+    aggregate.
 
 ## Installation
 
@@ -54,9 +54,11 @@ You can also install the **panelview** package from CRAN:
 install.packages('panelView') 
 ```
 
-## Example
+## Tutorial
 
-Plot treatment status in a panel dataset:
+See [panelview
+tutorial](https://yiqingxu.org/packages/panelview/articles/panelview.html).
+For example, plot treatment status in a panel dataset:
 
 ``` r
 library(panelview)

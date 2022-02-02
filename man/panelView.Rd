@@ -1,19 +1,19 @@
 \name{panelview}
 \alias{panelview}
-\title{Visualizing panel data}
-\description{Visualizes panel data}
+\title{Panel data visualization}
+\description{Visualizes missing values, treatment and outcome variables, and their relationships in panel data}
 \usage{panelview(data, formula = NULL, Y = NULL, D = NULL,
-            X = NULL, index, 
-            ignore.treat = FALSE, type = "treat", 
-            outcome.type = "continuous", 
-            treat.type = NULL, by.group = FALSE, 
+            X = NULL, index,
+            ignore.treat = FALSE, type = "treat",
+            outcome.type = "continuous",
+            treat.type = NULL, by.group = FALSE,
             by.timing = FALSE, theme.bw = TRUE,
-            xlim = NULL, ylim = NULL, 
-            xlab = NULL, ylab = NULL, 
-            gridOff = FALSE, legendOff = FALSE, 
+            xlim = NULL, ylim = NULL,
+            xlab = NULL, ylab = NULL,
+            gridOff = FALSE, legendOff = FALSE,
             legend.labs = NULL, main = NULL,
             pre.post = FALSE, id = NULL, show.id = NULL,
-            color = NULL, axis.adjust = FALSE, axis.lab = "both", 
+            color = NULL, axis.adjust = FALSE, axis.lab = "both",
             axis.lab.gap = c(0, 0), shade.post = TRUE,
             cex.main = 15, cex.main.sub = 12, cex.axis = 8,
             cex.axis.x = NULL, cex.axis.y = NULL,
@@ -70,7 +70,7 @@
 
 \author{
   Hongyu Mou <hongyumou5@gmail.com>
-  
+
   Licheng Liu <liulch@mit.edu>
 
   Yiqing Xu <yiqingxu@stanford.edu>
@@ -80,7 +80,7 @@
 \examples{
 library(panelview)
 data(panelview)
-panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, 
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
           data = turnout, index = c("abb","year"))
 }
 

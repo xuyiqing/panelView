@@ -54,10 +54,8 @@ You can also install the **panelview** package from CRAN:
 install.packages('panelView') 
 ```
 
-## Tutorial
+## Example
 
-See [panelview
-tutorial](https://yiqingxu.org/packages/panelview/articles/panelview.html).
 For example, plot treatment status in a panel dataset:
 
 ``` r
@@ -67,7 +65,11 @@ panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
           xlab = "Year", ylab = "State")
 ```
 
-## Issues
+See
+[tutorial](https://yiqingxu.org/packages/panelview/articles/tutorial.html)
+for more details.
+
+## Report bugs
 
 Please report bugs to **yiqingxu \[at\] stanford.edu** with your sample
 code and data file. Much appreciated!

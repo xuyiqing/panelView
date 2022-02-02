@@ -1,12 +1,12 @@
 ---
-title: 'panelview tutorial'
+title: 'Tutorial'
 output:
   rmarkdown::html_vignette:
     toc: false
     toc_depth: 4
     number_sections: false
 vignette: >
-  %\VignetteIndexEntry{panelview tutorial}
+  %\VignetteIndexEntry{Tutorial}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}  
 ---

@@ -14,7 +14,7 @@ MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.or
 **Authors:** Hongyu Mou (PKU); Licheng Liu (MIT); [Yiqing
 Xu](https://yiqingxu.org/) (Stanford)
 
-**Date:** Jan 28, 2022
+**Date:** Feb 1, 2022
 
 **Repos:** [Github](https://github.com/xuyiqing/panelview) (1.1.8)
 [CRAN](https://cran.r-project.org/web/packages/panelView/index.html)

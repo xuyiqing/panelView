@@ -8,7 +8,7 @@ navbar:
       href: articles/tutorial.html
     - text: "Contents"
       href: reference/index.html
-    - text: "Changlog"
+    - text: "Changelog"
       href: news/index.html
   right:
    - icon: fa-github

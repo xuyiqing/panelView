@@ -42,11 +42,11 @@ Note that *Y*, *D*, and *X* in the above table are merely labels; they can be an
 ***
 ## Plot treatment & missingness
 
-First, we show how to visualize the treatment conditions and missing values in a panel dataset. The treatment indicator may be dichotomous or have more than 2 levels. We first load the **panelview** package, which ships three datasets.
+First, we show how to visualize the treatment conditions and missing values in a panel dataset. The treatment indicator may be dichotomous or have more than 2 levels. We first load the **panelView** package, which ships three datasets.
 
 ```{r}
-library(panelview)
-data(panelview)
+library(panelView)
+data(panelView)
 ls()
 ```
 

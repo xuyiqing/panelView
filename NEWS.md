@@ -1,4 +1,4 @@
-# panelview 1.1.8
+# panelView 1.1.8
 
 1. Add a new option `leave.gap` to keep gaps in time using white bars when the time variable is not evenly distributed (possibly due to missing data).
 
@@ -6,9 +6,10 @@
 
 3. The old version (v.1.1.6) can be found [here](https://yiqingxu.org/packages/panelView/panelView_1.1.6.tar.gz); its user's guide [here](https://yiqingxu.org/packages/panelView/panelView_1.1.6.html). 
 
-# panelview 1.1.7
+# panelView 1.1.7
 
 1. We replace the function name *panelView* with *panelview* to be consistent with the Stata version. 
+
 2. In the outcome plot, we use a dot to represent the last-period observation of a unit that gets treated in the last period.
 
 # panelView 1.1.6

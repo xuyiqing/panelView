@@ -1,11 +1,11 @@
-\name{panelview-package}
-\alias{panelview-package}
+\name{panelView-package}
+\alias{panelView-package}
 \docType{package}
 \title{Panel Data Visualizations}
 \description{Visualizes panel data}
 
 \details{
-  panelview has three main functionalities:
+  panelView has three main functionalities:
 
 (1) it plots treatment status and missing data in a panel dataset;
 
@@ -16,7 +16,7 @@
 
 \author{
   Hongyu Mou <hongyumou5@gmail.com>, Peking Univeristy
-  
+
   Licheng Liu <liulch@mit.edu>, Massachusetts Institute of Technology
 
   Yiqing Xu <yiqingxu@stanford.edu>, Stanford University

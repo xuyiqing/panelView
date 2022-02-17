@@ -61,7 +61,7 @@
   \item{by.unit}{a logic flag indicating whether to plot by each specified units or to plot mean D and Y against time in the same graph.}
   \item{style}{a string vector to set line/connected line/bar styles for the outcome and treatment variables.}
   \item{lwd}{a numeric value (pt) specifying the line width when plotting time series of treatment and outcome variables.}
-  \item{leave.gap}{a logical flag indicating whether to keep the time gap as an white bar if time is not evenly distributed (possibly due to missing data). Default value is \code{leave.gap = FALSE}.}
+  \item{leave.gap}{a logical flag indicating whether to keep time gaps as  white bars if time is not evenly distributed (possibly due to missing data). Default value is \code{leave.gap = FALSE}.}
 }
 
 \details{

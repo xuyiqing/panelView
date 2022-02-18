@@ -4,7 +4,7 @@
 
 2. Add `type(missing)` to plot the missingness in data.
 
-3. The old version (v.1.1.6) can be found [here](https://yiqingxu.org/packages/panelView/panelView_1.1.6.tar.gz); its user's guide [here](https://yiqingxu.org/packages/panelView/panelView_1.1.6.html). 
+3. The old version (v.1.1.6) can be found [here](https://yiqingxu.org/packages/panelview/panelView_1.1.6.tar.gz); its user's guide [here](https://yiqingxu.org/packages/panelview/panelView_1.1.6.html). 
 
 # panelView 1.1.7
 

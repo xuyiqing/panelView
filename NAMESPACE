@@ -1,4 +1,4 @@
-##useDynLib(panelview)
+##useDynLib(panelView)
 ##exportPattern("^[[:alpha:]]+")
 importFrom("stats", "na.omit", "sd", "var", "ave", "aggregate")
 importFrom("ggplot2", "geom_boxplot", "geom_density", "geom_tile",

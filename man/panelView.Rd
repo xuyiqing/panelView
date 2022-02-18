@@ -78,8 +78,8 @@
 
 
 \examples{
-library(panelview)
-data(panelview)
+library(panelView)
+data(panelView)
 panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
           data = turnout, index = c("abb","year"))
 }

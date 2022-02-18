@@ -17,7 +17,7 @@ Xu](https://yiqingxu.org/) (Stanford)
 **Date:** Feb 16, 2022
 
 **Repos:** [Github](https://github.com/xuyiqing/panelView) (1.1.9)
-[CRAN](https://cran.r-project.org/web/packages/panelview/index.html)
+[CRAN](https://cran.r-project.org/web/packages/panelView/index.html)
 (1.1.9)
 
 **Examples:** R code used in the tutorial can be downloaded from
@@ -43,14 +43,13 @@ You can install the up-to-date development version from GitHub:
 # if not already installed
 install.packages('devtools', repos = 'http://cran.us.r-project.org') 
 
-# currently, v.1.1.8 ("V" is capitalized)
+# note: "V" is capitalized
 devtools::install_github('xuyiqing/panelView') 
 ```
 
 You can also install the **panelView** package from CRAN:
 
 ``` r
-# currently, v.1.1.8 ("V" is capitalized)
 install.packages('panelView') 
 ```
 
@@ -67,7 +66,7 @@ panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
 
 Note that “V” in the package name is capitalized while “v” in the
 function name is not—to be consistent with the Stata version. See
-[tutorial](https://yiqingxu.org/packages/panelView/articles/tutorial.html)
+[tutorial](https://yiqingxu.org/packages/panelview/articles/tutorial.html)
 for more details.
 
 ## Report bugs

@@ -1,3 +1,13 @@
+home:
+  title: panelView--an R package for visualizing panel data
+  description: panelview visualizes missing values, treatment status, outcome variables, and bivariate relationships in a panel dataset.
+  links:
+  - text: Yiqing's homepage
+    href: https://yiqingxu.org/
+  - text: Stata version
+    href: https://yiqingxu.org/packages/panelview_stata/Stata_tutorial.pdf
+
+
 url: https://yiqingxu.org/packages/panelview/
 template:
   bootstrap: 5
@@ -10,6 +20,8 @@ navbar:
       href: reference/index.html
     - text: "Changelog"
       href: news/index.html
+    - text: "Stata"
+      href: "https://yiqingxu.org/packages/panelview_stata/Stata_tutorial.pdf"
   right:
    - icon: fa-github
      href: https://github.com/xuyiqing/panelview
@@ -28,6 +40,8 @@ reference:
     - turnout
     - capacity
 
-home:
-  title: panelview--an R package for visualizing panel data
-  description: panelview visualizes missing values, treatment status, outcome variables, and bivariate relationships in a panel dataset.
+
+footer:
+  structure:
+    left: developed_by
+    right: package

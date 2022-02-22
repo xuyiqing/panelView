@@ -53,6 +53,15 @@ You can also install the **panelView** package from CRAN:
 install.packages('panelView') 
 ```
 
+If you encounter an installation/execution error, please remove the old
+package and reinstall **panelView**.
+
+``` r
+remove.packages('panelView') 
+# or
+remove.packages('panelview') # package name "panelview" no longer in use
+```
+
 ## Example
 
 For example, plot treatment status in a panel dataset:

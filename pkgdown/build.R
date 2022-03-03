@@ -1,5 +1,5 @@
 
-setwd("~/github/panelview")
+setwd("~/github/panelView")
 
 # initializing
 library(usethis)
@@ -10,4 +10,6 @@ usethis::use_pkgdown()
 usethis::use_news_md() # update logs
 
 # remember to knitr README.Rmd
-pkgdown::build_site(install = FALSE)
+library(pkgdown)
+build_site(install = FALSE)
+build_articles()

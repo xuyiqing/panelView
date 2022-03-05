@@ -18,9 +18,9 @@ panelview <- function(data, # a data frame (long-form)
                       by.group = FALSE, # (color pre-treatment treated differently)
                       by.timing = FALSE,
                       theme.bw = TRUE,
-                      xlim = NULL,
+                      xlim = NULL, 
                       ylim = NULL,
-                      xlab = NULL,
+                      xlab = NULL, 
                       ylab = NULL,
                       gridOff = FALSE,
                       legendOff = FALSE,
@@ -39,21 +39,21 @@ panelview <- function(data, # a data frame (long-form)
                       cex.axis = 8,
                       cex.axis.x = NULL,
                       cex.axis.y = NULL,
-                      cex.lab = 12,
+                      cex.lab = 12, 
                       cex.legend = 12,
                       background = NULL, # background color
                       style = NULL, ## bar, connected line, or line
                       by.unit = FALSE,
                       lwd = 0.2,
                       leave.gap = FALSE
-                    ) {
-
+                    ) {  
+        
     ## ------------------------- ##
     ## parse variable.           ##
     ## ------------------------- ##
 
     if (is.data.frame(data) == FALSE || length(class(data)) > 1) {
-        data <- as.data.frame(data)
+        data <- as.data.frame(data)        
     }
 
     if (type == "missing" | type == "miss") {
@@ -62,7 +62,7 @@ panelview <- function(data, # a data frame (long-form)
         }
     }
 
-
+    
 
     if (!is.null(formula)) { # with formula
 
@@ -71,7 +71,7 @@ panelview <- function(data, # a data frame (long-form)
         }
 
         varnames <- all.vars(formula)
-
+    
         Y <- formula[[2]] # left hand side of the formula
 
         if (is.numeric(Y) == FALSE) { # Y is a variable
@@ -93,7 +93,7 @@ panelview <- function(data, # a data frame (long-form)
             } else {
                 D <- NULL
                 X <- varnames[2]
-            }
+            }   
         } else { # length(varnames) > 2
             if (ignore.treat == 0) {
                 D <- varnames[2]
@@ -125,7 +125,7 @@ panelview <- function(data, # a data frame (long-form)
                 X <- varnames[2]
             } else { # 1 ~ X
                 stop("formula form not allowed")
-            }
+            }   
         } else { # length(varnames) > 2
             if (ignore.treat == 0) {
                 D <- varnames[1]
@@ -144,7 +144,7 @@ panelview <- function(data, # a data frame (long-form)
             }
         }
     }
-
+    
 
     ## check Incorrect variable names
     for (i in 1:length(varnames)) {
@@ -153,50 +153,63 @@ panelview <- function(data, # a data frame (long-form)
         }
     }
 
-    ## index
+    ## index 
     if (length(index) != 2 | sum(index %in% colnames(data)) != 2) {
         stop("\"index\" option misspecified. Try, for example, index = c(\"unit.id\", \"time\").")
     }
-
+        
     ## index names
     index.id <- index[1]
     index.time <- index[2]
 
-    ## exclude other covariates
-    data <- data[,c(index, Y, D, X)]
-
-    # if there is a unit that has variable missing across all periods, then we drop this unit
-    data$rowmiss <- rowSums(is.na(data))
-    aggregate <- aggregate(data$rowmiss, list(data[,1]), FUN=sum)
-    colnames(aggregate) <- c(colnames(data[1]), "maxbyunitmissvar")
-    data_aggregate <- merge(data, aggregate, all.x = TRUE)
-    data_aggregate$counttime <- ave(data_aggregate[,2], data_aggregate[,1], FUN=length)
-    ## drop if maxbyunitmissvar >= counttime
-    data_aggregate <- data_aggregate[!(data_aggregate$maxbyunitmissvar >= data_aggregate$counttime),]
-    data_aggregate <- data_aggregate[1:(ncol(data_aggregate)-3)]
-    data <- data_aggregate
-
-    ## remove missing values
-    if (is.logical(leave.gap) == FALSE & !leave.gap%in%c(0, 1)) {
-        stop("leave.gap is not a logical flag.")
-    }
-
-    #if (na.rm == FALSE & sum(is.na(data)) > 0) {
-    #    stop("Missing values in dataset. Try set na.rm = TRUE.\n")
-    #}
-
-    ## sort data
-    data <- data[order(data[,index.id], data[,index.time]), ]
+    ## exclude other covariates 
+    data <- data[,c(index, Y, D, X)] 
 
     if (leave.gap == 0) {
         data <- na.omit(data)
     }
+    else {
+    # if there is a unit that has variable missing across all periods, then we drop this unit
+        data <- data[order(data[,index.id], data[,index.time]), ]
+    data$rowmiss <- rowSums(is.na(data)) #if minrowmiss != 0, drop this unit！
+        data$minrowmiss <- ave(data$rowmiss, list(data[,1]), FUN=min)
+        data$rowmisscsum <- ave(data$rowmiss, list(data[,1]), FUN=cumsum)
+        data$minrowmisscsum <- ave(data$rowmisscsum, list(data[,1]), FUN=min)
+        data$maxrowmisscsum <- ave(data$rowmisscsum, list(data[,1]), FUN=max)
+        data$maxbyunitmissvar <- with(data, ave(rowmiss, list(data[,1]), FUN = sum))
+        data$counttime <- ave(data[,2], data[,1], FUN=length)
+
+        data$firstmiss <- ifelse(data$rowmisscsum > 0 & data$rowmisscsum == data$minrowmisscsum, data$year, NA)
+        data$lastmiss <- ifelse(data$rowmisscsum > 0 & data$rowmisscsum == data$maxrowmisscsum, data$year, NA)
+        data$firstperiod <- ave(data[,2], list(data[,1]), FUN=min)
+        data$lastperiod <- ave(data[,2], list(data[,1]), FUN=max)
+        data$firstmissall <- ave(data$firstmiss, list(data[,1]), FUN=function(x) mean(x, na.rm=T))
+        data$lastmissall <- ave(data$lastmiss, list(data[,1]), FUN=function(x) mean(x, na.rm=T))
+
+    ## drop if maxbyunitmissvar >= counttime & firstmissall = first period & lastmissall = last period & minrowmiss != 0
+    data <- data[!(data$maxbyunitmissvar >= data$counttime & data$firstmissall == data$firstperiod 
+                & data$lastmissall == data$lastperiod & data$minrowmiss != 0),]
+    data <- data[1:(ncol(data)-13)]
+    }
+
+    ## remove missing values
+    if (is.logical(leave.gap) == FALSE & !leave.gap%in%c(0, 1)) {
+        stop("leave.gap is not a logical flag.")
+    } 
+
+    #if (na.rm == FALSE & sum(is.na(data)) > 0) {
+    #    stop("Missing values in dataset. Try set na.rm = TRUE.\n")
+    #}     
+
+    ## sort data
+    data <- data[order(data[,index.id], data[,index.time]), ]
+
 
     minmintime <- as.numeric(min(data[, 2], na.rm = TRUE))
     maxmaxtime <- as.numeric(max(data[, 2], na.rm = TRUE))
     timegap <- (maxmaxtime - minmintime)/(length(unique(data[,index.time]))-1)
-    inttimegap <- as.integer(timegap)
-
+    inttimegap <- as.integer(timegap)    
+    
     data_1 <- transform(data, differencetime = ave(as.numeric(data[, 2]), data[, 1], FUN = function(x) c(NA, diff(x))))
     mintimegap <- min(data_1$differencetime, na.rm = TRUE)
     maxtimegap <- max(data_1$differencetime, na.rm = TRUE)
@@ -221,18 +234,18 @@ panelview <- function(data, # a data frame (long-form)
             #common difference: mintimegap:
             if (mintimegap != maxtimegap & mintimegap != 1 & divide_differencetime == as.integer(divide_differencetime)) {
                 #1. Create all combinations of `id` and `year`
-                g <- with(data, expand.grid(g.id = unique(data[,index[1]]),
-                        g.time = seq(from = minmintime, to = maxmaxtime, by = mintimegap)))
+                g <- with(data, expand.grid(g.id = unique(data[,index[1]]), 
+                        g.time = seq(from = minmintime, to = maxmaxtime, by = mintimegap))) 
                 colnames(g)[1] <- colnames(data[1])
                 colnames(g)[2] <- colnames(data[2])
                 #2. Merge `g` with `data`
                 data2 <- merge(g, data, all.x = TRUE)
                 data <- data2
                 }
-        else { #commmon difference = 1
+        else { #commmon difference = 1 
                 #1. Create all combinations of `id` and `year`
-                g <- with(data, expand.grid(g.id = unique(data[,index[1]]),
-                        g.time = seq(from = minmintime, to = maxmaxtime)))
+                g <- with(data, expand.grid(g.id = unique(data[,index[1]]), 
+                        g.time = seq(from = minmintime, to = maxmaxtime))) 
                 colnames(g)[1] <- colnames(data[1])
                 colnames(g)[2] <- colnames(data[2])
                 #2. Merge `g` with `data`
@@ -242,7 +255,7 @@ panelview <- function(data, # a data frame (long-form)
         }
         data <- data[1:(length(data)-1)] #drop the differencetime column
     }
-
+    
 
 
     ## check duplicated observations
@@ -253,7 +266,7 @@ panelview <- function(data, # a data frame (long-form)
 
     ##-------------------------------##
     ## Checking Other Parameters
-    ##-------------------------------##
+    ##-------------------------------## 
 
     if (!type %in% c("miss", "missing", "raw", "treat", "outcome","bivar","bivariate")) {
         stop("\"type\" option misspecified.")
@@ -282,7 +295,7 @@ panelview <- function(data, # a data frame (long-form)
     }
 
 
-    ## check plot
+    ## check plot 
     if (is.null(D)) {
         if (ignore.treat == 0) {
             warning("No treatment indicator.\n")
@@ -296,7 +309,7 @@ panelview <- function(data, # a data frame (long-form)
 
     ## axis.lab
     if (!axis.lab %in% c("both", "unit", "time", "off")) {
-        stop("\"axis.lab\" option misspecified. Try, for example, axis.lab = c(\"both\", \"unit\", \"time\", \"off\").")
+        stop("\"axis.lab\" option misspecified. Try, for example, axis.lab = c(\"both\", \"unit\", \"time\", \"off\").") 
     }
     ## time labels gap
     if (sum(axis.lab.gap < 0) > 0) {
@@ -353,7 +366,7 @@ panelview <- function(data, # a data frame (long-form)
                 treat.type <- "continuous"
             }
             if (treat.type == "continuous" & n.levels<=4) {
-                cat("Too few treatment levels; consider setting treat.type = \"discrete\".")
+                cat("Too few treatment levels; consider setting treat.type = \"discrete\".")                
             }
         } else {
             if (n.levels>5) {
@@ -384,16 +397,16 @@ panelview <- function(data, # a data frame (long-form)
     ## raw id and time
     raw.id <- sort(unique(data[,index[1]]))
     raw.time <- sort(unique(data[,index[2]]))
-    N <- length(raw.id)
+    N <- length(raw.id) 
     TT <- length(raw.time)
 
-    ## id to be plotted
+    ## id to be plotted 
     input.id <- NULL
     if (!is.null(id)) {
         if (!is.null(show.id)) {
             warning("Using specified id.\n")
         }
-        ## check id
+        ## check id 
         remove.id <- setdiff(id, raw.id)
         if (length(remove.id) != 0) {
             cat("List of units removed from dataset:", remove.id)
@@ -441,8 +454,8 @@ panelview <- function(data, # a data frame (long-form)
     }
 
     id.all <- time.all <- count <- coordin <- data.x <- x.na <- NULL
-
-
+    
+    
     M <- Y <- I <- D <- X <- NULL
 
 
@@ -461,16 +474,16 @@ panelview <- function(data, # a data frame (long-form)
         }
         for (i in 1:dim(data)[1]) {
             if (!is.null(Yname)) {
-                Y[data[i,index.time],data[i,index.id]] <- data[i,Yname]
+                Y[data[i,index.time],data[i,index.id]] <- data[i,Yname] 
             }
             if (ignore.treat == 0) {
-                D[data[i,index.time],data[i,index.id]] <- data[i,Dname]
+                D[data[i,index.time],data[i,index.id]] <- data[i,Dname] 
             }
             I[data[i,index.time], data[i,index.id]] <- 1 #I: observed(1) and missing(0)
         }
 
     } else { # balanced panel
-        I <- matrix(1, TT, N)
+        I <- matrix(1, TT, N) 
         if (!is.null(Yname)) {
             Y <- matrix(data[,Yname], TT, N)
         }
@@ -485,7 +498,7 @@ panelview <- function(data, # a data frame (long-form)
 
         M <- matrix(0, TT, N)
         for (i in 1:dim(data)[1]) {
-            M[data[i,index.time], data[i,index.id]] <- data[i,rowmissname]
+            M[data[i,index.time], data[i,index.id]] <- data[i,rowmissname] 
         }
 
         if (!is.null(Yname)) {
@@ -494,22 +507,22 @@ panelview <- function(data, # a data frame (long-form)
         I <- matrix(0, TT, N) #I: observed(1) and missing(0)
         if (ignore.treat == 0) {
             D <- matrix(0, TT, N)
-        }
+        } 
 
         for (i in 1:dim(data)[1]) {
             if (!is.null(Yname)) {
-                Y[data[i,index.time],data[i,index.id]] <- data[i,Yname]
+                Y[data[i,index.time],data[i,index.id]] <- data[i,Yname] 
             }
             if (ignore.treat == 0) {
-
-                D[data[i,index.time],data[i,index.id]] <- data[i,Dname]
+                
+                D[data[i,index.time],data[i,index.id]] <- data[i,Dname] 
             }
             I[data[i,index.time], data[i,index.id]] <- 1 #I: observed(1) and missing(0)
         }
     }
 
 
-    ## binary treatment indicator
+    ## binary treatment indicator 
     if (ignore.treat == 0 && d.bi == 1) {
 
         D.old <- D ## store the original indicators
@@ -527,17 +540,17 @@ panelview <- function(data, # a data frame (long-form)
         tr.pos <- which(D[TT,] == 1) ## which units are treated
         T0 <- apply(D == 0, 2, sum)[tr.pos]+1 ## first time expose to treatment
         T1 <- apply(D == 1, 2, sum)[tr.pos] ## number of periods expose to treatment
-        T1[which(T1 > 1)] <- 0 ## indicate the last dot of treatment status change
+        T1[which(T1 > 1)] <- 0 ## indicate the last dot of treatment status change        
 
-        co.total <- co.total.all[tr.pos] ## total number of periods not exposed to treatment
+        co.total <- co.total.all[tr.pos] ## total number of periods not exposed to treatment 
 
         DID <- length(unique(T0)) == 1 ## DID type: all treated units are treated at the same time
 
         ## number of periods after first get treated
         # T1 <- t1 <- NULL ## sort by timing
         # if (by.timing == TRUE) {
-
-        #     T1 <- rep(NA, length(tr.pos))
+            
+        #     T1 <- rep(NA, length(tr.pos))            
         #     for (i in 1:length(tr.pos)) {
         #         i.tr <- I[,tr.pos[i]]
         #         d.tr <- D.old[,tr.pos[i]]
@@ -572,25 +585,25 @@ panelview <- function(data, # a data frame (long-form)
         FEmode <- 0
     }
 
-    ## missing matrix
+    ## missing matrix 
 
     ########################################
     ## unified labels:
     ##  -200 for missing
     ##  -1 for control condition (or observed)
     ##   0 for treated pre
-    ##   1 for treated post
+    ##   1 for treated post  
     ########################################
-
+    
     obs.missing <- NULL
 
 if (leave.gap == 0) {
-    if (ignore.treat == 0 && d.bi == 1) { #  binary, and without ignore.treat
+    if (ignore.treat == 0 && d.bi == 1) { #  binary, and without ignore.treat 
         con1 <- type == "treat" && pre.post == TRUE
         con2 <- type == "outcome" && by.group == FALSE
 
         if (FEmode == 0 && (con1 || con2)) {  ## DID type data
-
+            
             tr <- D[TT,] == 1     # cross-sectional: treated unit
 
             id.tr <- which(tr==1)
@@ -603,7 +616,7 @@ if (leave.gap == 0) {
                 Y.tr <- as.matrix(Y[,which(tr==1)])
                 Y.co <- as.matrix(Y[,which(tr==0)])
             }
-
+            
 
             Ntr <- sum(tr)
             Nco <- N - Ntr
@@ -620,7 +633,7 @@ if (leave.gap == 0) {
 
         } else {
             unit.type <- rep(NA, N) ## 1 for control; 2 for treated; 3 for reversal
-
+            
             for (i in 1:N) {
                 di <- D.old[, i]
                 ii <- I[, i]
@@ -634,15 +647,15 @@ if (leave.gap == 0) {
                     unit.type[i] <- 3 ## reversal
                 }
             }
-
-            ## 1. using D.old
-            obs.missing <- D.old
+        
+            ## 1. using D.old  
+            obs.missing <- D.old 
             ## 2. set controls
             obs.missing[which(D.old == 0)] <- -1 ## under control
-            ## 3. set missing
+            ## 3. set missing 
             obs.missing[which(I==0)] <- -200 ## missing
         }
-
+        
         obs.missing.treat <- obs.missing
         if (length(unique(c(D.old))) > 2) {
             obs.missing[which(obs.missing > 1)] <- 1
@@ -653,22 +666,22 @@ if (leave.gap == 0) {
         if (n.levels > 0 && type == "treat") { ## >2 treatment levels
             obs.missing <- D
             # NA: leave.gap == 0
-            obs.missing[which(I == 0)] <- NA
+            obs.missing[which(I == 0)] <- NA             
         } else {
-                    obs.missing <- matrix(-1, TT, N)
+                    obs.missing <- matrix(-1, TT, N) 
                     obs.missing[which(I==0)] <- -200 ## missing
-                    ignore.treat <- 1
+                    ignore.treat <- 1   
         }
     }
-}
+} 
 
 else if (leave.gap == 1) {
-        if (ignore.treat == 0 && d.bi == 1) { #  binary, and without ignore.treat
+        if (ignore.treat == 0 && d.bi == 1) { #  binary, and without ignore.treat 
         con1 <- type == "treat" && pre.post == TRUE
         con2 <- type == "outcome" && by.group == FALSE
 
         if (FEmode == 0 && (con1 || con2)) {  ## DID type data
-
+            
             tr <- D[TT,] == 1     # cross-sectional: treated unit
 
             id.tr <- which(tr==1)
@@ -681,7 +694,7 @@ else if (leave.gap == 1) {
                 Y.tr <- as.matrix(Y[,which(tr==1)])
                 Y.co <- as.matrix(Y[,which(tr==0)])
             }
-
+            
 
             Ntr <- sum(tr)
             Nco <- N - Ntr
@@ -699,7 +712,7 @@ else if (leave.gap == 1) {
 
         } else {
             unit.type <- rep(NA, N) ## 1 for control; 2 for treated; 3 for reversal
-
+            
             for (i in 1:N) {
                 di <- D.old[, i]
                 ii <- I[, i]
@@ -713,16 +726,16 @@ else if (leave.gap == 1) {
                     unit.type[i] <- 3 ## reversal
                 }
             }
-
-            ## 1. using D.old
-            obs.missing <- D.old
+        
+            ## 1. using D.old  
+            obs.missing <- D.old 
             ## 2. set controls
             obs.missing[which(D.old == 0)] <- -1 ## under control
-            ## 3. set missing
+            ## 3. set missing 
             obs.missing[which(I==0)] <- -200 ## missing
             obs.missing[which(M!=0)] <- -200
         }
-
+        
         obs.missing.treat <- obs.missing
         if (length(unique(c(D.old))) > 2) {
             obs.missing[which(obs.missing > 1)] <- 1
@@ -733,33 +746,33 @@ else if (leave.gap == 1) {
             obs.missing <- D
             # -200: leave.gap == 1
             obs.missing[which(I == 0)] <- -200
-            obs.missing[which(M != 0)] <- -200
-        }
+            obs.missing[which(M != 0)] <- -200          
+        } 
         else {
             obs.missing <- matrix(-1, TT, N)
             obs.missing[which(I==0)] <- -200
             obs.missing[which(M != 0)] <- -200
-            ignore.treat <- 1
+            ignore.treat <- 1 
         }
     }
 }
 
-
+    
     colnames(obs.missing) <- input.id
     rownames(obs.missing) <- raw.time
-
+    
 
     time <- raw.time
-    id <- input.id
+    id <- input.id 
 
     ## ------------------------------------- ##
     ##          part 2: plot
     ## ------------------------------------- ##
-
+    
     outcome <- NULL ## global variable
     treatment <- NULL
     labels1 <- labels2 <- labels3 <- NULL
-
+    
     if (is.null(xlim)==FALSE) {
         if (is.numeric(xlim)==FALSE) {
             stop("Some element in \"xlim\" is not numeric.")
@@ -787,14 +800,14 @@ else if (leave.gap == 1) {
             stop("\"xlab\" is not a string.")
         } else {
             xlab <- xlab[1]
-        }
+        }   
     }
     if (is.null(ylab)==FALSE) {
         if (is.character(ylab) == FALSE) {
             stop("\"ylab\" is not a string.")
         } else {
             ylab <- ylab[1]
-        }
+        }   
     }
 
     if (is.logical(legendOff) == FALSE & is.numeric(legendOff)==FALSE) {
@@ -810,7 +823,7 @@ else if (leave.gap == 1) {
             stop("\"main\" is not a string.")
         } else {
             main <- main[1]
-        }
+        }   
     }
 
     if (axis.adjust == TRUE) {
@@ -826,7 +839,7 @@ else if (leave.gap == 1) {
             x.h <- 0
         }
     }
-
+    
     ## type of plots
     if (!is.numeric(time[1])) {
         time <- 1:TT
@@ -837,7 +850,7 @@ else if (leave.gap == 1) {
         show <- which(time>=xlim[1] & time<=xlim[2])
     } else {
         show <- 1:length(time)
-    }
+    }     
 
     nT <- length(show)
     time.label <- raw.time[show]
@@ -849,7 +862,7 @@ else if (leave.gap == 1) {
         if (axis.lab == "both") {
             if (length(axis.lab.gap)==2) {
                 x.gap <- axis.lab.gap[1]
-                y.gap <- axis.lab.gap[2]
+                y.gap <- axis.lab.gap[2] 
             } else {
                 x.gap <- y.gap <- axis.lab.gap[1]
             }
@@ -875,9 +888,9 @@ else if (leave.gap == 1) {
     }
 
 
-    ############  START  ###############
+    ############  START  ###############    
     if (type == "outcome") {
-
+        
         ## axes labels
         if (is.null(xlab)==TRUE) {
             xlab <- index[2]
@@ -898,7 +911,7 @@ else if (leave.gap == 1) {
             if (theme.bw == FALSE) {
                 if (ignore.treat == 0) {
                     raw.color <- c("#99999950", "#FC8D6280", "red")
-
+                    
                 } else {
                     raw.color <- "#99999950"
                 }
@@ -917,11 +930,11 @@ else if (leave.gap == 1) {
                     }
                 }
             }
-        } else {
+        } else {        
             if (ignore.treat == 0) {
                 if (FEmode == 1) {
                     if (length(color) != 2) {
-                        stop("Length of \"color\" should be equal to 2.\n")
+                        stop("Length of \"color\" should be equal to 2.\n")    
                     } else {
                         cat("Specified colors are in the order of \"under treatment\", \"under control\".\n")
                         raw.color <- color[c(2,1)]
@@ -944,14 +957,14 @@ else if (leave.gap == 1) {
                 }
             } else {
                 if (length(color) != 1) {
-                    stop("Length of \"color\" should be equal to 1.\n")
+                    stop("Length of \"color\" should be equal to 1.\n") 
                 }
             }
         }
 
         if (ignore.treat == 1) {
 
-            data <- cbind.data.frame("time" = rep(time[show], N),
+            data <- cbind.data.frame("time" = rep(time[show], N), 
                                      "outcome" = c(Y[show,]),
                                      "type" = rep("co",(N*nT)),
                                      "id" = rep(1:N,each = nT))
@@ -963,7 +976,7 @@ else if (leave.gap == 1) {
 
             ## theme
             p <- ggplot(data) + xlab(xlab) +  ylab(ylab)
-
+            
             if (theme.bw == TRUE) {
                 p <- p + theme_bw()
             }
@@ -987,7 +1000,7 @@ else if (leave.gap == 1) {
                 if (!is.null(legend.labs)) {
                     if (length(legend.labs) != 1) {
                         warning("Incorrect number of labels in the legend. Using default.\n")
-                        set.labels = "Observed"
+                        set.labels = "Observed"  
                     } else {
                         set.labels <- legend.labs
                     }
@@ -1011,7 +1024,7 @@ else if (leave.gap == 1) {
                            size = guide_legend(title=NULL, ncol=labels.ncol))
 
             } else { ## categorical data
-
+              
                 ## main
                 p <- p + geom_jitter(width = 0.15, height = 0.15,
                                      aes(x = time, y = outcome, colour = type, shape = type))
@@ -1027,24 +1040,24 @@ else if (leave.gap == 1) {
                     } else {
                         set.labels <- legend.labs
                     }
-                } else {
+                } else {                      
                     set.labels = "Observed"
                 }
-
+              
                 labels.ncol <- 1
 
                 p <- p + scale_colour_manual(limits = set.limits,
                                              labels = set.labels,
-                                             values =set.colors) +
+                                             values =set.colors) + 
                          scale_shape_manual(limits = set.limits,
                                             labels = set.labels,
-                                            values =set.shapes) +
+                                            values =set.shapes) + 
                          guides(colour = guide_legend(title=NULL, ncol=labels.ncol),
                                 shape = guide_legend(title=NULL, ncol=labels.ncol))
             }
 
             if (!is.numeric(time.label)) {
-                p <- p +
+                p <- p + 
                      scale_x_continuous(expand = c(0, 0), breaks = show[T.b], labels = time.label[T.b])
             }
 
@@ -1059,15 +1072,15 @@ else if (leave.gap == 1) {
             if (is.null(ylim) == FALSE) {
                 p <- p + coord_cartesian(ylim = ylim)
             }
-
+            
             suppressWarnings(print(p))
 
         }
         else if (ignore.treat == 0 && by.group == FALSE) { ## Mixed units
-
+            
             ## time-line
             if (outcome.type == "continuous") { ## continuous outcome
-
+                
                 if (FEmode == 0) { ## DID data
 
                     time.bf <- time[unique(T0)]
@@ -1085,8 +1098,8 @@ else if (leave.gap == 1) {
                     T1_0 <- c(T1)[which(T1==0)]
                     T1_1 <- c(T1)[which(T1==1)]
                     N_T1_1 <- sum(T1_1)
-                    N_T1_0 <- Nco*nT + Ntr*nT + length(Y.tr.pst) - N_T1_1
-
+                    N_T1_0 <- Nco*nT + Ntr*nT + length(Y.tr.pst) - N_T1_1 
+                    
 
                     data <- cbind.data.frame("time" = c(rep(time[show], N), time.pst),
                                              "outcome" = c(c(Y.tr[show,]),
@@ -1106,7 +1119,7 @@ else if (leave.gap == 1) {
                     data$last_dot[data$idtimes == 1] <- 1
 
 
-                    ## legend
+                    ## legend 
                     set.limits = c("co", "tr", "tr.pst")
                     set.colors = c(raw.color[1], raw.color[2], raw.color[3])
                     set.linetypes = c("solid","solid","solid")
@@ -1114,17 +1127,17 @@ else if (leave.gap == 1) {
                     if (!is.null(legend.labs)) {
                         if (length(legend.labs) != 3) {
                             warning("Incorrect number of labels in the legend. Using default.\n")
-                            set.labels <- c("Controls","Treated (Pre)","Treated (Post)")
+                            set.labels <- c("Controls","Treated (Pre)","Treated (Post)")  
                         } else {
                             set.labels <- legend.labs
                         }
                     } else {
-                        set.labels <- c("Controls","Treated (Pre)","Treated (Post)")
+                        set.labels <- c("Controls","Treated (Pre)","Treated (Post)") 
                     }
                     labels.ncol <- 3
-                }
+                } 
                 else { ## FE mode data
-
+                
                     D.plot <- D.old
                     D.plot[which(D.plot == 0)] <- NA
                     D.plot[which(I == 0)] <- NA
@@ -1167,17 +1180,17 @@ else if (leave.gap == 1) {
                     if (!is.null(legend.labs)) {
                         if (length(legend.labs) != 2) {
                             warning("Incorrect number of labels in the legend. Using default.\n")
-                            set.labels = c("Control", "Treated")
+                            set.labels = c("Control", "Treated")  
                         } else {
                             set.labels <- legend.labs
                         }
                     } else {
-                        set.labels <- c("Control", "Treated")
+                        set.labels <- c("Control", "Treated") 
                     }
                     labels.ncol <- 2
                 }
-
-
+            
+        
                 ## theme
                 p <- ggplot(data) + xlab(xlab) +  ylab(ylab)
                 if (theme.bw == TRUE) {
@@ -1186,17 +1199,17 @@ else if (leave.gap == 1) {
                 p <- p + theme(legend.position = legend.pos,
                     axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
                     plot.title = element_text(size=cex.main, hjust = 0.5, face="bold",margin = margin(8, 0, 8, 0)))
-
+            
                 if (DID == TRUE && Ntr >= 1) {
                     if (time.bf >= min(show) && time.bf <= max(show)) {
                         p <- p + geom_vline(xintercept=time.bf,colour="white",size = 2)
                         if (shade.post == TRUE) {
                             p <- p + annotate("rect", xmin= time.bf, xmax= Inf,
-                                     ymin=-Inf, ymax=Inf, alpha = .3)
-                        }
+                                     ymin=-Inf, ymax=Inf, alpha = .3) 
+                        }                            
                     }
                 }
-
+        
                 ## main
                 p <- p + geom_line(aes(time, outcome,
                                        colour = type,
@@ -1204,13 +1217,13 @@ else if (leave.gap == 1) {
                                        linetype = type,
                                        group = id))
 
-                data1 <- subset(data, data$last_dot==1)
+                data1 <- subset(data, data$last_dot==1)                       
                 p <- p + geom_point(data = data1,
                                     aes(time, outcome),
                                     colour = raw.color[3],
                                     size = 0.5)
-
-
+          
+            
                 p <- p + scale_colour_manual(limits = set.limits,
                                              labels = set.labels,
                                              values =set.colors) +
@@ -1223,10 +1236,10 @@ else if (leave.gap == 1) {
                     guides(linetype = guide_legend(title=NULL, ncol=labels.ncol),
                            colour = guide_legend(title=NULL, ncol=labels.ncol),
                            size = guide_legend(title=NULL, ncol=labels.ncol))
-
+            
             } else { ## categorical data
-
-                data <- cbind.data.frame("time" = rep(time[show], N),
+                
+                data <- cbind.data.frame("time" = rep(time[show], N), 
                                          "outcome" = factor(c(Y[show,])),
                                          "type" = c(obs.missing[show,]))
 
@@ -1241,14 +1254,14 @@ else if (leave.gap == 1) {
                 p <- p + theme(legend.position = legend.pos,
                     axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
                     plot.title = element_text(size=cex.main, hjust = 0.5, face="bold",margin = margin(8, 0, 8, 0)))
-
+                
                 ## main plot
                 p <- p + geom_jitter(width = 0.15, height = 0.15,
                                      aes(x = time, y = outcome, colour = type, shape = type))
 
                 ## legend
                 if (FEmode == 0) {
-
+                    
                     time.bf <- time[unique(T0)]
                     set.limits = c("co", "tr", "tr.pst")
                     set.colors = c(raw.color[1], raw.color[2], raw.color[3])
@@ -1256,45 +1269,45 @@ else if (leave.gap == 1) {
                     if (!is.null(legend.labs)) {
                         if (length(legend.labs) != 3) {
                             warning("Incorrect number of labels in the legend. Using default.\n")
-                            set.labels = c("Controls","Treated (Pre)","Treated (Post)")
+                            set.labels = c("Controls","Treated (Pre)","Treated (Post)")  
                         } else {
                             set.labels <- legend.labs
                         }
                     } else {
-                        set.labels = c("Controls","Treated (Pre)","Treated (Post)")
+                        set.labels = c("Controls","Treated (Pre)","Treated (Post)") 
                     }
                     labels.ncol <- 3
-
+                
                 } else {
-
+                    
                     set.limits = c("co", "tr")
                     set.colors = raw.color[1:2]
                     set.shapes = c(1, 1)
                     if (!is.null(legend.labs)) {
                         if (length(legend.labs) != 2) {
                             warning("Incorrect number of labels in the legend. Using default.\n")
-                            set.labels = c("Control", "Treatment")
+                            set.labels = c("Control", "Treatment")  
                         } else {
                             set.labels <- legend.labs
                         }
                     } else {
-                        set.labels = c("Control", "Treatment")
+                        set.labels = c("Control", "Treatment") 
                     }
                     labels.ncol <- 2
                 }
 
                 p <- p + scale_colour_manual(limits = set.limits,
                                              labels = set.labels,
-                                             values =set.colors) +
+                                             values =set.colors) + 
                          scale_shape_manual(limits = set.limits,
                                             labels = set.labels,
-                                            values =set.shapes) +
+                                            values =set.shapes) + 
                     guides(colour = guide_legend(title=NULL, ncol=labels.ncol),
-                           shape = guide_legend(title=NULL, ncol=labels.ncol))
-            }
-
+                           shape = guide_legend(title=NULL, ncol=labels.ncol))                
+            } 
+        
             if (!is.numeric(time.label)) {
-                p <- p +
+                p <- p + 
                     scale_x_continuous(expand = c(0, 0), breaks = show[T.b], labels = time.label[T.b])
             }
 
@@ -1309,12 +1322,12 @@ else if (leave.gap == 1) {
             if (is.null(ylim) == FALSE) {
                 p <- p + coord_cartesian(ylim = ylim)
             }
-
+            
             suppressWarnings(print(p))
             ## end of raw plot
-
+        
         } else { ## separate plot (by.group==T)
-
+            
             if (is.null(main) == TRUE) {
                 main <- "Raw Data"
             }
@@ -1322,13 +1335,13 @@ else if (leave.gap == 1) {
             if (!is.null(legend.labs)) {
                if (length(legend.labs) != 2) {
                    warning("Incorrect number of labels in the legend. Using default.\n")
-                   set.labels = c("Control", "Treatment")
+                   set.labels = c("Control", "Treatment") 
                } else {
                    set.labels <- legend.labs
                }
             } else {
-                set.labels = c("Control", "Treatment")
-            }
+                set.labels = c("Control", "Treatment") 
+            } 
 
 
             if (1 %in% unit.type) {
@@ -1399,8 +1412,8 @@ else if (leave.gap == 1) {
                                                              rep("1",N_T1_1)),
                                               "id" = c(rep(1:Nrv,each = nT), ut.id))
 
-                    data3_tr <- subset(data3, data3$type=="tr")
-                    data3_co <- subset(data3, data3$type=="co")
+                    data3_tr <- subset(data3, data3$type=="tr")  
+                    data3_co <- subset(data3, data3$type=="co") 
 
                     idtimes <- sapply(1:length(data3_tr$id),function(x)sum(data3_tr$id[1:x]==data3_tr$id[x]))
                     data3_tr <- cbind(data3_tr, idtimes)
@@ -1431,10 +1444,10 @@ else if (leave.gap == 1) {
 
                 main3 <- "Treatment Status Changed"
             }
-
+            
             ## sub-plot function for each type
             subplot <- function (data, limits, labels, colors, main, outcome.type, theme.bw) {
-
+                
                 if (outcome.type == "discrete") {
                     data$outcome <- factor(data$outcome)
                     data <- na.omit(data)
@@ -1450,7 +1463,7 @@ else if (leave.gap == 1) {
                 set.linewidth = rep(0.5, length(limits))
 
                 if (theme.bw == TRUE) {
-                    p <- p + theme_bw() +
+                    p <- p + theme_bw() + 
                              theme(panel.grid.major = element_blank(),
                                    panel.grid.minor = element_blank(),
                                    axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
@@ -1460,7 +1473,7 @@ else if (leave.gap == 1) {
                     p <- p + theme(axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
                                    plot.title = element_text(size=cex.main, hjust = 0.5, face="bold",margin = margin(8, 0, 8, 0)))
                 }
-
+                
 
                 ## main
                 if (outcome.type == "continuous") {
@@ -1470,7 +1483,7 @@ else if (leave.gap == 1) {
                                            linetype = type,
                                            group = id))
 
-                data1 <- subset(data, data$last_dot==1)
+                data1 <- subset(data, data$last_dot==1)                       
                 p <- p + geom_point(data = data1,
                                     aes(time, outcome),
                                     colour = raw.color[2],
@@ -1499,10 +1512,10 @@ else if (leave.gap == 1) {
                                colour = guide_legend(title=NULL, nrow=1),
                                size = guide_legend(title=NULL, nrow=1))
 
-                }
-
+                } 
+        
                 if (!is.numeric(time.label)) {
-                    p <- p +
+                    p <- p + 
                         scale_x_continuous(expand = c(0, 0), breaks = show[T.b], labels = time.label[T.b])
                 }
 
@@ -1521,7 +1534,7 @@ else if (leave.gap == 1) {
             }
 
             if (length(unique(unit.type)) == 1) {
-
+                
                 if (1%in%unit.type) {
                     p1 <- subplot(data1, limits1, labels1, colors1, main1, outcome.type, theme.bw)
                     if (legend.pos != "none") {
@@ -1533,7 +1546,7 @@ else if (leave.gap == 1) {
                     } else {
                         suppressWarnings(grid.arrange(p1 + theme(legend.position="none"),
                                          top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
-                    }
+                    }   
                 }
                 else if (2%in%unit.type) {
                     p2 <- subplot(data2, limits2, labels2, colors2, main2, outcome.type, theme.bw)
@@ -1542,11 +1555,11 @@ else if (leave.gap == 1) {
                         legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
                         suppressWarnings(grid.arrange(arrangeGrob(p2 + theme(legend.position="none"),
                                          legend, nrow = 2, heights = c (1, 1/5)),
-                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2)))) 
                     } else {
                         suppressWarnings(grid.arrange(p2 + theme(legend.position="none"),
                                          top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
-                    }
+                    }   
                 }
                 else if (3%in%unit.type) {
                     p3 <- subplot(data3, limits3, labels3, colors3, main3, outcome.type, theme.bw)
@@ -1555,16 +1568,16 @@ else if (leave.gap == 1) {
                         legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
                         suppressWarnings(grid.arrange(arrangeGrob(p3 + theme(legend.position="none"),
                                          legend, nrow = 2, heights = c (1, 1/5)),
-                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2)))) 
                     } else {
                         suppressWarnings(grid.arrange(p3 + theme(legend.position="none"),
                                          top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
-                    }
+                    }  
                 }
 
             }
             else if (length(unique(unit.type))==2) {
-
+                
                 if (!1%in%unit.type) {
                     p2 <- subplot(data2, limits2, labels2, colors2, main2, outcome.type, theme.bw)
                     p3 <- subplot(data3, limits3, labels3, colors3, main3, outcome.type, theme.bw)
@@ -1573,12 +1586,12 @@ else if (leave.gap == 1) {
                         legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
                         suppressWarnings(grid.arrange(arrangeGrob(p2 + theme(legend.position="none"), p3 + theme(legend.position="none"),
                                          legend, nrow = 3, heights = c (1, 1, 1/5)),
-                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))  
                     } else {
                         suppressWarnings(grid.arrange(p2 + theme(legend.position="none"),
                                          p3 + theme(legend.position="none"),
                                          top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
-                    }
+                    }  
                 }
                 else if (!2%in%unit.type) {
                     p1 <- subplot(data1, limits1, labels1, colors1, main1, outcome.type, theme.bw)
@@ -1588,12 +1601,12 @@ else if (leave.gap == 1) {
                         legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
                         suppressWarnings(grid.arrange(arrangeGrob(p1 + theme(legend.position="none"), p3 + theme(legend.position="none"),
                                          legend, nrow = 3, heights = c (1, 1, 1/5)),
-                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))  
                     } else {
                         suppressWarnings(grid.arrange(p1 + theme(legend.position="none"),
                                          p3 + theme(legend.position="none"),
                                          top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
-                    }
+                    }  
                 }
                 else if (!3%in%unit.type) {
                     p1 <- subplot(data1, limits1, labels1, colors1, main1, outcome.type, theme.bw)
@@ -1603,17 +1616,17 @@ else if (leave.gap == 1) {
                         legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
                         suppressWarnings(grid.arrange(arrangeGrob(p1 + theme(legend.position="none"), p2 + theme(legend.position="none"),
                                          legend, nrow = 3, heights = c (1, 1, 1/5)),
-                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))  
                     } else {
                         suppressWarnings(grid.arrange(p1 + theme(legend.position="none"),
                                          p2 + theme(legend.position="none"),
                                          top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
-                    }
+                    }   
                 }
 
             }
             else {
-
+                
                 p1 <- subplot(data1, limits1, labels1, colors1, main1, outcome.type, theme.bw)
                 p2 <- subplot(data2, limits2, labels2, colors2, main2, outcome.type, theme.bw)
                 p3 <- subplot(data3, limits3, labels3, colors3, main3, outcome.type, theme.bw)
@@ -1632,10 +1645,10 @@ else if (leave.gap == 1) {
 
             }
         }    ## end of raw plot
-
+    
     }   ############# Treatment Status ###############
     else if (type=="treat") {
-
+        
         if (is.null(xlab)==TRUE) {
             xlab <- index[2]
         } else if (xlab == "") {
@@ -1665,10 +1678,10 @@ else if (leave.gap == 1) {
         m <- as.matrix(obs.missing[show,])
         all <- unique(na.omit(c(m)))
 
-        col <- breaks <- label <- NULL
+        col <- breaks <- label <- NULL 
 
         ## set breaks, colors and labels
-
+        
         if (d.bi == FALSE && ignore.treat == 0) { ## >2 treatment level
 
             tr.col <- c("#66C2A5","#FC8D62","#8DA0CB","#E78AC3","#A6D854","#FFD92F","#E5C494",
@@ -1679,7 +1692,7 @@ else if (leave.gap == 1) {
                     breaks <- c(breaks, d.levels[i])
                     label <- c(label, paste("Treatment level: ", d.levels[i], sep = ""))
                 }
-                col <- tr.col[1:n.levels]
+                col <- tr.col[1:n.levels]                
 
             } else {
                 cat("Continuous treatment.\n")
@@ -1697,19 +1710,19 @@ else if (leave.gap == 1) {
         } else { ## binary treatment indicator
 
             if (0 %in% all) { ## have pre and post: general DID type data
-
+                
                 ## control
                 if (-1 %in% all) {
                     col <- c(col,"#B0C4DE")
                     breaks <- c(breaks, -1)
                     label <- c(label,"Controls")
                 }
-
+                
                 ## treated pre
                 col <- c(col,"#4671D5")
                 breaks <- c(breaks, 0)
                 label <- c(label,"Treated (Pre)")
-
+                
                 ## treated post
                 if (1 %in% all) {
                     col <- c(col,"#06266F")
@@ -1732,10 +1745,10 @@ else if (leave.gap == 1) {
                     } else {
                         label <- c(label, "Observed")
                     }
-
+                    
                 }
 
-                ## treated
+                ## treated 
                 if (1 %in% all) {
                     col <- c(col,"#06266F")
                     breaks <- c(breaks, 1)
@@ -1754,7 +1767,7 @@ else if (leave.gap == 1) {
                 breaks <- c(breaks, -200)
                 label <- c(label,"Missing")
             }
-
+            
             ## adjust DID: treated units on top
             ## if (length(id) >1 && 1 %in% all && by.treatment == TRUE) {
 
@@ -1772,13 +1785,13 @@ else if (leave.gap == 1) {
             ##     missing.co <- NULL
             ##     if (length(missing.tr) < N) {
             ##         missing.co <- setdiff(1:N, missing.tr)
-            ##     }
+            ##     } 
                 ## 3. re-order id
             ##     m <- as.matrix(m[,c(missing.tr, missing.co)])
             ##     id <- id[c(missing.tr, missing.co)]
             ## }
 
-            ## sort units
+            ## sort units 
             if (length(id) > 1 && ignore.treat == 0 && d.bi == TRUE) {
 
                 if (by.timing == TRUE) {
@@ -1794,7 +1807,7 @@ else if (leave.gap == 1) {
                     id <- id[missing.seq]
 
                 }
-
+                
             }
 
         }
@@ -1815,8 +1828,8 @@ else if (leave.gap == 1) {
                     col <- color
                 }
             }
-        }
-
+        }       
+        
         if (!is.null(legend.labs)) {
             if (treat.type == "discrete") { ## discrete treatment indicator
                 if (length(legend.labs) != length(label)) {
@@ -1832,36 +1845,36 @@ else if (leave.gap == 1) {
                     label <- legend.labs
                 }
             }
-        }
+        } 
 
-        ## start plot
+        ## start plot 
         if (treat.type == "continuous" && ignore.treat == 0 && leave.gap == 1) {
         m2 <- NULL
         m2 <- m
         m2 <- replace(m2, m2 == -200, NA) # if NA in the first and last period, then this period will disappear
         res <- c(m2)
         }
-        else{
+        else{        
         res <- c(m)
         }
-
+        
         data <- cbind.data.frame(units=units, period=period, res=res)
 
         ## if (treat.type == "discrete") {
         ##     data[,"res"] <- as.factor(data[,"res"])
         ## } else {
-            # data <- na.omit(data)
+            # data <- na.omit(data) 
 
-        # }
+        # }       
 
         if (leave.gap == 0) {
             data <- na.omit(data)
         }
 
-        if (treat.type == "discrete") {
+        if (treat.type == "discrete") { 
             data[,"res"] <- as.factor(data[,"res"])
         }
-
+        
         ## check if N >= 200
         if (dim(m)[2] >= 200) {
             if (axis.lab == "both") {
@@ -1876,15 +1889,15 @@ else if (leave.gap == 1) {
         if (is.null(background)==FALSE) {
             grid.color <- border.color <- background.color <- legend.color <- background
         } else {
-            grid.color <- border.color <- background.color <- legend.color <- "grey90"
+            grid.color <- border.color <- background.color <- legend.color <- "grey90"       
         }
 
 
-
+        
         id <- rev(id)
         p <- ggplot(data, aes(x = period, y = units,
-                              fill = res), position = "identity")
-
+                              fill = res), position = "identity") 
+        
 
         if (gridOff == FALSE) {
             p <- p + geom_tile(colour=grid.color, size=0.1, stat="identity")
@@ -1892,7 +1905,7 @@ else if (leave.gap == 1) {
             p <- p + geom_tile(stat="identity")
         }
 
-        p <- p + labs(x = xlab, y = ylab, title=main) + theme_bw()
+        p <- p + labs(x = xlab, y = ylab, title=main) + theme_bw() 
 
         if (treat.type == "discrete") {
             p <- p + scale_fill_manual(NA, breaks = breaks, values = col, labels=label)
@@ -1918,7 +1931,7 @@ else if (leave.gap == 1) {
               legend.margin = margin(c(0, 5, 5, 0)),
               legend.text = element_text(margin = margin(r = 10, unit = "pt"), size = cex.legend),
               plot.title = element_text(size=cex.main, hjust = 0.5,face="bold",margin = margin(8, 0, 8, 0)))
-
+                      
 
         if (treat.type == "discrete") {
             p <- p + theme(legend.title=element_blank())
@@ -1930,7 +1943,7 @@ else if (leave.gap == 1) {
         }
         else if (axis.lab == "unit") {
             p <- p + scale_x_continuous(expand = c(0, 0), breaks = T.b, labels = NULL) +
-            scale_y_continuous(expand = c(0, 0), breaks = N.b, labels = id[N.b])
+            scale_y_continuous(expand = c(0, 0), breaks = N.b, labels = id[N.b])            
         }
         else if (axis.lab == "time") {
             p <- p + scale_x_continuous(expand = c(0, 0), breaks = T.b, labels = time.label[T.b]) +
@@ -1940,7 +1953,7 @@ else if (leave.gap == 1) {
             p <- p + scale_x_continuous(expand = c(0, 0), breaks = 1:length(show), labels = NULL) +
             scale_y_continuous(expand = c(0, 0), breaks = 1:N, labels = NULL)
         }
-
+        
         if(length(all) >= 4 && length(all) < 6) {
             p <- p + guides(fill=guide_legend(nrow=2,byrow=TRUE))
         }
@@ -1954,16 +1967,16 @@ else if (leave.gap == 1) {
     else if (type == "bivar" || type == "bivariate") {
 
         ## line, bar, or connedted line
-        if (length(style) == 0) {
-            if (treat.type == "discrete" & outcome.type == "continuous") {
+        if (length(style) == 0) { 
+            if (treat.type == "discrete" & outcome.type == "continuous") { 
                 ystyle <- "l"
-                Dstyle <- "b"
+                Dstyle <- "b" 
             }
             else if (treat.type == "discrete" & outcome.type == "discrete") {
                 ystyle <- "b"
                 Dstyle <- "b"
             }
-            else if (treat.type == "continuous" & outcome.type == "discrete") {
+            else if (treat.type == "continuous" & outcome.type == "discrete") { 
                 ystyle <- "b"
                 Dstyle <- "l"
             }
@@ -1971,7 +1984,7 @@ else if (leave.gap == 1) {
                 ystyle <- "l"
                 Dstyle <- "l"
             }
-        }
+        } 
         else {
             if (length(style) == 2) {
                 ystyle <- style[1]
@@ -2002,18 +2015,18 @@ else if (leave.gap == 1) {
 
         ## plot color setting
         raw.color <- NULL
-        ## color setting
+        ## color setting 
         if (is.null(color)==TRUE) { #not indicate color
             if (theme.bw == FALSE) { # not theme.bw (black and white theme)
-                    raw.color <- c("dodgerblue4", "lightsalmon2")
-            }
+                    raw.color <- c("dodgerblue4", "lightsalmon2") 
+            } 
             else { #  theme.bw
                     raw.color <- c("black","azure4")
             }
-        }
-        else { #indicate color
+        } 
+        else { #indicate color    
                 if (length(color) != 2) {
-                    stop("Length of \"color\" should be equal to 2.\n")
+                    stop("Length of \"color\" should be equal to 2.\n") 
                 }
                 else {
                     raw.color <- color[c(1,2)]
@@ -2025,7 +2038,7 @@ else if (leave.gap == 1) {
             }
 
             data <- cbind.data.frame("time" = rep(time[show], N),
-                                    "outcome" = c(Y[show,]),
+                                    "outcome" = c(Y[show,]), 
                                     "treatment"= c(D.old[show,]),
                                     "id" = rep(1:N,each = nT),
                                     "input.id" = rep(input.id, each = nT))
@@ -2062,7 +2075,7 @@ else if (leave.gap == 1) {
             colnames(data.means) <- c("time","outcome","treatment")
 
             p <- ggplot(na.omit(data.means), aes(x=time))
-
+            
             if (theme.bw == TRUE) {
                 p <- p + theme_bw()
             }
@@ -2072,7 +2085,7 @@ else if (leave.gap == 1) {
                     axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
                     plot.title = element_text(size=cex.main, hjust = 0.5, face="bold",margin = margin(8, 0, 8, 0)))
 
-
+                        
             if (is.null(ylim) == TRUE) {
                 ylim <- c(min(data.means$outcome, na.rm = TRUE),max(data.means$outcome, na.rm = TRUE))
 
@@ -2089,24 +2102,24 @@ else if (leave.gap == 1) {
                         nrow=2,ncol=2,byrow=TRUE),
                 b=matrix(c(max(ylim.prim[2]),min(ylim.prim[1])),ncol=1)))
 
-                ylim <- ylim.prim
+                ylim <- ylim.prim  
             }
-
+        
 
         if ((ystyle == "line" | ystyle == "l") & (Dstyle == "line" | Dstyle == "l")) { #ll
                 p <- p + geom_y +
-                        geom_D +
+                        geom_D + 
                         scale_y_continuous(sec.axis = sec_axis(~(. - coeff[1L]) / coeff[2L], name=xlab),
-                        expand = c (0.1, 0.2)) +
-                        scale_colour_manual(values = raw.color) +
-                        labs(y=ylab, x = "", colour = "")
+                        expand = c (0.1, 0.2)) + 
+                        scale_colour_manual(values = raw.color) + 
+                        labs(y=ylab, x = "", colour = "") 
                 }
         else if ((ystyle == "bar" | ystyle == "b") & (Dstyle == "bar" | Dstyle == "b")) { #bb
                 p <- p + geom_y +
-                        geom_D +
+                        geom_D + 
                         scale_y_continuous(sec.axis = sec_axis(~(. - coeff[1L]) / coeff[2L], name=xlab),
-                        expand = c (0.1, 0.2)) +
-                        scale_fill_manual(values = rev(raw.color)) +
+                        expand = c (0.1, 0.2)) + 
+                        scale_fill_manual(values = rev(raw.color)) + 
                         labs(y=ylab, x = "", colour = "", fill = "") +
                         coord_cartesian(default = TRUE, ylim=ylim)
                 }
@@ -2114,46 +2127,46 @@ else if (leave.gap == 1) {
                 p <- p + geom_y + geom_yc +
                         geom_D + geom_Dc +
                         scale_y_continuous(sec.axis = sec_axis(~(. - coeff[1L]) / coeff[2L], name=xlab),
-                        expand = c (0.1, 0.2)) +
-                        scale_colour_manual(values = rev(raw.color)) +
-                        labs(y=ylab, x = "", colour = "")
-                }
+                        expand = c (0.1, 0.2)) + 
+                        scale_colour_manual(values = rev(raw.color)) + 
+                        labs(y=ylab, x = "", colour = "") 
+                } 
         else if ((ystyle == "line" | ystyle == "l") & (Dstyle == "connected" | Dstyle == "c")) { #lc
                 p <- p + geom_y +
                         geom_D + geom_Dc +
                         scale_y_continuous(sec.axis = sec_axis(~(. - coeff[1L]) / coeff[2L], name=xlab),
-                        expand = c (0.1, 0.2)) +
-                        scale_colour_manual(values = rev(raw.color)) +
+                        expand = c (0.1, 0.2)) + 
+                        scale_colour_manual(values = rev(raw.color)) + 
                         labs(y=ylab, x = "", colour = "") +
                         guides(colour = guide_legend(override.aes = list(shape = c(16, NA))))
-
+                
                 }
         else if ((ystyle == "connected" | ystyle == "c") & (Dstyle == "line" | Dstyle == "l")) { #cl
                 p <- p + geom_y + geom_yc +
                         geom_D +
                         scale_y_continuous(sec.axis = sec_axis(~(. - coeff[1L]) / coeff[2L], name=xlab),
-                        expand = c (0.1, 0.2)) +
-                        scale_colour_manual(NULL, values = rev(raw.color)) +
+                        expand = c (0.1, 0.2)) + 
+                        scale_colour_manual(NULL, values = rev(raw.color)) + 
                         labs(y=ylab, x = "", colour = "") +
                         guides(colour = guide_legend(override.aes = list(shape = c(NA, 16))))
                 }
         else if ((ystyle == "line" | ystyle == "l") & (Dstyle == "bar" | Dstyle == "b")) { #lb
                 p <- p + geom_y +
-                        geom_D +
+                        geom_D + 
                         scale_y_continuous(sec.axis = sec_axis(~(. - coeff[1L]) / coeff[2L], name=xlab),
-                        expand = c (0.1, 0.2)) +
+                        expand = c (0.1, 0.2)) + 
                         scale_colour_manual(values = raw.color[1]) +
-                        scale_fill_manual(values = raw.color[2]) +
+                        scale_fill_manual(values = raw.color[2]) + 
                         labs(y=ylab, x = "", colour = "", fill = "") +
                         coord_cartesian(default = TRUE, ylim=ylim)
                 }
         else if ((ystyle == "bar" | ystyle == "b") & (Dstyle == "line" | Dstyle == "l")) { #bl
                 p <- p + geom_y +
-                        geom_D +
+                        geom_D + 
                         scale_y_continuous(sec.axis = sec_axis(~(. - coeff[1L]) / coeff[2L], name=xlab),
-                        expand = c (0.1, 0.2)) +
+                        expand = c (0.1, 0.2)) + 
                         scale_colour_manual(values = raw.color[1]) +
-                        scale_fill_manual(values = raw.color[2]) +
+                        scale_fill_manual(values = raw.color[2]) + 
                         labs(y=ylab, x = "", colour = "", fill = "") +
                         coord_cartesian(default = TRUE, ylim=ylim)
                 }
@@ -2161,19 +2174,19 @@ else if (leave.gap == 1) {
                 p <- p + geom_y +
                         geom_D + geom_Dc +
                         scale_y_continuous(sec.axis = sec_axis(~(. - coeff[1L]) / coeff[2L], name=xlab),
-                        expand = c (0.1, 0.2)) +
+                        expand = c (0.1, 0.2)) + 
                         scale_colour_manual(values = raw.color[1]) +
-                        scale_fill_manual(values = raw.color[2]) +
+                        scale_fill_manual(values = raw.color[2]) + 
                         labs(y=ylab, x = "", colour = "", fill = "") +
                         coord_cartesian(default = TRUE, ylim=ylim)
                 }
         else if ((ystyle == "connected" | ystyle == "c") & (Dstyle == "bar" | Dstyle == "b")) { #cb
                 p <- p + geom_y + geom_yc +
-                        geom_D +
+                        geom_D + 
                         scale_y_continuous(sec.axis = sec_axis(~(. - coeff[1L]) / coeff[2L], name=xlab),
-                        expand = c (0.1, 0.2)) +
+                        expand = c (0.1, 0.2)) + 
                         scale_colour_manual(values = raw.color[1]) +
-                        scale_fill_manual(values = raw.color[2]) +
+                        scale_fill_manual(values = raw.color[2]) + 
                         labs(y=ylab, x = "", colour = "", fill = "") +
                         coord_cartesian(default = TRUE, ylim=ylim)
                 }
@@ -2212,7 +2225,7 @@ else if (leave.gap == 1) {
                         nrow=2,ncol=2,byrow=TRUE),
                 b=matrix(c(max(ylim.prim[2]),min(ylim.prim[1])),ncol=1)))
 
-                ylim <- ylim.prim
+                ylim <- ylim.prim  
             }
 
             width <- (max(time, na.rm = TRUE)-min(time, na.rm = TRUE))/(length(time)-1)
@@ -2241,18 +2254,18 @@ else if (leave.gap == 1) {
             }
 
 
-            if (treat.type == "discrete" & outcome.type == "continuous") {
-                scale_y_conti <- scale_y_continuous(sec.axis = sec_axis(~(. - coeff[1L]) / coeff[2L], name=xlab,
+            if (treat.type == "discrete" & outcome.type == "continuous") { 
+                scale_y_conti <- scale_y_continuous(sec.axis = sec_axis(~(. - coeff[1L]) / coeff[2L], name=xlab, 
                         breaks = 0:(length(d.levels)-1), labels = d.levels),
                         expand = c (0.1, 0.2))
             }
             else if (treat.type == "discrete" & outcome.type == "discrete") {
-                scale_y_conti <- scale_y_continuous(sec.axis = sec_axis(~(. - coeff[1L]) / coeff[2L], name=xlab,
+                scale_y_conti <- scale_y_continuous(sec.axis = sec_axis(~(. - coeff[1L]) / coeff[2L], name=xlab, 
                         breaks = 0:(length(d.levels)-1), labels = d.levels),
                         breaks = 0:(length(y.levels)-1), labels = y.levels,
                         expand = c (0.1, 0.2))
             }
-            else if (treat.type == "continuous" & outcome.type == "discrete") {
+            else if (treat.type == "continuous" & outcome.type == "discrete") { 
                 scale_y_conti <- scale_y_continuous(sec.axis = sec_axis(~(. - coeff[1L]) / coeff[2L], name=xlab),
                         breaks = 0:(length(y.levels)-1), labels = y.levels,
                         expand = c (0.1, 0.2))
@@ -2261,24 +2274,24 @@ else if (leave.gap == 1) {
                 scale_y_conti <- scale_y_continuous(sec.axis = sec_axis(~(. - coeff[1L]) / coeff[2L], name=xlab),
                         expand = c (0.1, 0.2))
             }
+            
 
 
-
-            if ((ystyle == "line" | ystyle == "l") & (Dstyle == "line" | Dstyle == "l")) {
+            if ((ystyle == "line" | ystyle == "l") & (Dstyle == "line" | Dstyle == "l")) { 
                 #ll
                 p <- p + geom_y +
-                        geom_D +
-                        scale_y_conti +
+                        geom_D + 
+                        scale_y_conti + 
                         scale_colour_manual(values = raw.color) +
                         labs(y=ylab, x = "", colour = "") +
                         facet_wrap(~input.id, ncol = 4)
                 }
-            else if ((ystyle == "bar" | ystyle == "b") & (Dstyle == "bar" | Dstyle == "b")) {
+            else if ((ystyle == "bar" | ystyle == "b") & (Dstyle == "bar" | Dstyle == "b")) { 
                 #bb
                 p <- p + geom_y +
-                        geom_D +
-                        scale_y_conti +
-                        scale_fill_manual(values = rev(raw.color)) +
+                        geom_D + 
+                        scale_y_conti + 
+                        scale_fill_manual(values = rev(raw.color)) + 
                         labs(y=ylab, x = "", colour = "", fill = "") +
                         facet_wrap(~input.id, ncol = 4) +
                         coord_cartesian(default = TRUE, ylim=ylim)
@@ -2287,82 +2300,82 @@ else if (leave.gap == 1) {
                  #cc
                 p <- p + geom_y + geom_yc +
                         geom_D + geom_Dc +
-                        scale_y_conti +
-                        scale_colour_manual(values = rev(raw.color)) +
+                        scale_y_conti + 
+                        scale_colour_manual(values = rev(raw.color)) + 
                         labs(y=ylab, x = "", colour = "") +
                         facet_wrap(~input.id, ncol = 4)
-                }
-            else if ((ystyle == "line" | ystyle == "l") & (Dstyle == "connected" | Dstyle == "c")) {
+                } 
+            else if ((ystyle == "line" | ystyle == "l") & (Dstyle == "connected" | Dstyle == "c")) { 
                 #lc
                 p <- p + geom_y +
                         geom_D + geom_Dc +
-                        scale_y_conti +
-                        scale_colour_manual(values = rev(raw.color)) +
+                        scale_y_conti + 
+                        scale_colour_manual(values = rev(raw.color)) + 
                         labs(y=ylab, x = "", colour = "") +
                         guides(colour = guide_legend(override.aes = list(shape = c(16, NA)))) +
                         facet_wrap(~input.id, ncol = 4)
-
+                
                 }
-            else if ((ystyle == "connected" | ystyle == "c") & (Dstyle == "line" | Dstyle == "l")) {
+            else if ((ystyle == "connected" | ystyle == "c") & (Dstyle == "line" | Dstyle == "l")) { 
                 #cl
                 p <- p + geom_y + geom_yc +
                         geom_D +
-                        scale_y_conti +
-                        scale_colour_manual(NULL, values = rev(raw.color)) +
+                        scale_y_conti + 
+                        scale_colour_manual(NULL, values = rev(raw.color)) + 
                         labs(y=ylab, x = "", colour = "") +
                         guides(colour = guide_legend(override.aes = list(shape = c(NA, 16)))) +
                         facet_wrap(~input.id, ncol = 4)
                 }
-                else if ((ystyle == "line" | ystyle == "l") & (Dstyle == "bar" | Dstyle == "b")) {
+                else if ((ystyle == "line" | ystyle == "l") & (Dstyle == "bar" | Dstyle == "b")) { 
                 #lb
                 p <- p + geom_y +
-                        geom_D +
-                        scale_y_conti +
+                        geom_D + 
+                        scale_y_conti + 
                         scale_colour_manual(values = raw.color[1]) +
-                        scale_fill_manual(values = raw.color[2]) +
+                        scale_fill_manual(values = raw.color[2]) + 
                         labs(y=ylab, x = "", colour = "", fill = "") +
                         facet_wrap(~input.id, ncol = 4) +
                         coord_cartesian(default = TRUE, ylim=ylim)
                 }
-                else if ((ystyle == "bar" | ystyle == "b") & (Dstyle == "line" | Dstyle == "l")) {
+                else if ((ystyle == "bar" | ystyle == "b") & (Dstyle == "line" | Dstyle == "l")) { 
                 #bl
                 p <- p + geom_y +
-                        geom_D +
-                        scale_y_conti +
+                        geom_D + 
+                        scale_y_conti + 
                         scale_colour_manual(values = raw.color[1]) +
-                        scale_fill_manual(values = raw.color[2]) +
+                        scale_fill_manual(values = raw.color[2]) + 
                         labs(y=ylab, x = "", colour = "", fill = "") +
                         facet_wrap(~input.id, ncol = 4)
                 }
-                else if ((ystyle == "bar" | ystyle == "b") & (Dstyle == "connected" | Dstyle == "c")) {
+                else if ((ystyle == "bar" | ystyle == "b") & (Dstyle == "connected" | Dstyle == "c")) { 
                 #bc
                 p <- p + geom_y +
                         geom_D + geom_Dc +
-                        scale_y_conti +
+                        scale_y_conti + 
                         scale_colour_manual(values = raw.color[1]) +
-                        scale_fill_manual(values = raw.color[2]) +
+                        scale_fill_manual(values = raw.color[2]) + 
                         labs(y=ylab, x = "", colour = "", fill = "") +
                         facet_wrap(~input.id, ncol = 4)
                 }
-                else if ((ystyle == "connected" | ystyle == "c") & (Dstyle == "bar" | Dstyle == "b")) {
+                else if ((ystyle == "connected" | ystyle == "c") & (Dstyle == "bar" | Dstyle == "b")) { 
                 #cb
                 p <- p + geom_y + geom_yc +
-                        geom_D +
-                        scale_y_conti +
+                        geom_D + 
+                        scale_y_conti + 
                         scale_colour_manual(values = raw.color[1]) +
-                        scale_fill_manual(values = raw.color[2]) +
+                        scale_fill_manual(values = raw.color[2]) + 
                         labs(y=ylab, x = "", colour = "", fill = "") +
                         facet_wrap(~input.id, ncol = 4) +
                         coord_cartesian(default = TRUE, ylim=ylim)
                 }
-
+            
         }
-
+        
             if (!is.numeric(time.label)) {
-                p <- p +
+                p <- p + 
                     scale_x_continuous(expand = c(0, 0), breaks = show[T.b], labels = time.label[T.b])
             }
-
+            
             ## title
             if ("main" != "") {
                 p <- p + ggtitle(main)
@@ -2372,8 +2385,8 @@ else if (leave.gap == 1) {
             if (is.null(ylim) == FALSE) {
                 p <- p + coord_cartesian(ylim = ylim)
             }
-
+            
             suppressWarnings(print(p))
         }
-
+    
 }

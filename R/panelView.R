@@ -170,26 +170,10 @@ panelview <- function(data, # a data frame (long-form)
     }
     else {
     # if there is a unit that has variable missing across all periods, then we drop this unit
-        data <- data[order(data[,index.id], data[,index.time]), ]
-    data$rowmiss <- rowSums(is.na(data)) #if minrowmiss != 0, drop this unit！
-        data$minrowmiss <- ave(data$rowmiss, list(data[,1]), FUN=min)
-        data$rowmisscsum <- ave(data$rowmiss, list(data[,1]), FUN=cumsum)
-        data$minrowmisscsum <- ave(data$rowmisscsum, list(data[,1]), FUN=min)
-        data$maxrowmisscsum <- ave(data$rowmisscsum, list(data[,1]), FUN=max)
-        data$maxbyunitmissvar <- with(data, ave(rowmiss, list(data[,1]), FUN = sum))
-        data$counttime <- ave(data[,2], data[,1], FUN=length)
-
-        data$firstmiss <- ifelse(data$rowmisscsum > 0 & data$rowmisscsum == data$minrowmisscsum, data$year, NA)
-        data$lastmiss <- ifelse(data$rowmisscsum > 0 & data$rowmisscsum == data$maxrowmisscsum, data$year, NA)
-        data$firstperiod <- ave(data[,2], list(data[,1]), FUN=min)
-        data$lastperiod <- ave(data[,2], list(data[,1]), FUN=max)
-        data$firstmissall <- ave(data$firstmiss, list(data[,1]), FUN=function(x) mean(x, na.rm=T))
-        data$lastmissall <- ave(data$lastmiss, list(data[,1]), FUN=function(x) mean(x, na.rm=T))
-
-    ## drop if maxbyunitmissvar >= counttime & firstmissall = first period & lastmissall = last period & minrowmiss != 0
-    data <- data[!(data$maxbyunitmissvar >= data$counttime & data$firstmissall == data$firstperiod 
-                & data$lastmissall == data$lastperiod & data$minrowmiss != 0),]
-    data <- data[1:(ncol(data)-13)]
+    data$rowmiss <- rowSums(is.na(data))
+    data$minrowmiss <- ave(data$rowmiss, list(data[,1]), FUN=min)
+    data <- data[!(data$minrowmiss != 0),] #if minrowmiss != 0, drop this unit
+    data <- data[1:(ncol(data)-2)]
     }
 
     ## remove missing values
@@ -199,9 +183,9 @@ panelview <- function(data, # a data frame (long-form)
 
     #if (na.rm == FALSE & sum(is.na(data)) > 0) {
     #    stop("Missing values in dataset. Try set na.rm = TRUE.\n")
-    #}     
-
-    ## sort data
+    #}    
+    
+    # sort data
     data <- data[order(data[,index.id], data[,index.time]), ]
 
 
@@ -262,6 +246,15 @@ panelview <- function(data, # a data frame (long-form)
     unique_label <- unique(paste(data[,index[1]],"_",data[,index[2]],sep=""))
     if (length(unique_label)!= dim(data)[1]) {
         stop("Unit and time variables do not uniquely identify all observations. Some may be duplicated or Incorrectly marked in the dataset.")
+    }
+
+    #if (length(unique(data[,index[1]])) > 1000) {
+    #    stop("Please limit your units within 1000 for elegant presentation")
+    #}
+
+    if (length(unique(data[,index[1]])) > 300 & gridOff != TRUE) {
+        warning("If the number of units is more than 300, we set gridOff = TRUE.\n")
+        gridOff <- TRUE
     }
 
     ##-------------------------------##
@@ -661,9 +654,9 @@ if (leave.gap == 0) {
             obs.missing[which(obs.missing > 1)] <- 1
         }
 
-    } else { # either not binary (>2 treatment levels) or ignore.treat == 1
-
-        if (n.levels > 0 && type == "treat") { ## >2 treatment levels
+    } 
+    else { # either not binary (>2 treatment levels) or ignore.treat == 1
+        if (n.levels > 2 && type == "treat") { ## >2 treatment levels
             obs.missing <- D
             # NA: leave.gap == 0
             obs.missing[which(I == 0)] <- NA             
@@ -742,7 +735,7 @@ else if (leave.gap == 1) {
         }
 
     } else { # either not binary (>2 treatment levels) or ignore.treat == 1
-        if (n.levels > 0 && type == "treat") { ## >2 treatment levels (note that if ignore.treat = 1, n.levels = 0)
+        if (n.levels > 2 && type == "treat") { ## >2 treatment levels (note that if ignore.treat = 1, n.levels = 0)
             obs.missing <- D
             # -200: leave.gap == 1
             obs.missing[which(I == 0)] <- -200
@@ -757,7 +750,6 @@ else if (leave.gap == 1) {
     }
 }
 
-    
     colnames(obs.missing) <- input.id
     rownames(obs.missing) <- raw.time
     

@@ -1,5 +1,5 @@
 ## A pre-view function for TSCS data
-## 2022-01-28
+## 2022-03-21
 
 ##---------------------------------------------------------------##
 ## preview of data treatment status, missing values and outcome ##
@@ -354,7 +354,7 @@ panelview <- function(data, # a data frame (long-form)
             if (!treat.type %in% c("discrete","continuous")) {
                 stop("\"treat.type\" must be \"discrete\" or \"continuous\"")
             }
-            if (treat.type == "discrete" & n.levels>5) {
+            if (treat.type == "discrete" & n.levels>=5) {
                 warning("Too many treatment levels; treat as continuous.")
                 treat.type <- "continuous"
             }
@@ -1682,14 +1682,28 @@ else if (leave.gap == 1) {
             if (treat.type == "discrete") {
                 for (i in 1:n.levels) {
                     breaks <- c(breaks, d.levels[i])
-                    label <- c(label, paste("Treatment level: ", d.levels[i], sep = ""))
+                    #label <- c(label, paste("Treatment level: ", d.levels[i], sep = ""))
+                    label <- c(label, paste(d.levels[i], sep = ""))
                 }
                 col <- tr.col[1:n.levels]                
 
             } else {
                 cat("Continuous treatment.\n")
-                col <- c("#87CEEB", "#00008B")
-                label <- "Treatment Levels"
+                #col <- c("#87CEEB", "#00008B")
+                interval <- (max(d.levels)-min(d.levels))/4
+                m[m >= min(d.levels) & m < min(d.levels)+interval] <- min(d.levels)
+                m[m >= min(d.levels)+interval & m < min(d.levels)+2*interval] <- min(d.levels)+interval
+                m[m >= min(d.levels)+2*interval & m < min(d.levels)+3*interval] <- min(d.levels)+2*interval
+                m[m >= min(d.levels)+3*interval & m < min(d.levels)+4*interval] <- min(d.levels)+3*interval
+                m[m >= max(d.levels)] <- max(d.levels)
+                
+                breaks <- c(min(d.levels), min(d.levels)+interval, min(d.levels)+2*interval, min(d.levels)+3*interval, max(d.levels))
+                col <- c("#c6dbef","#4292c6", "#1f78b4", "#08519c", "#042b53")
+                #label <- "Treatment Levels"
+                for (i in 1:length(breaks)) {
+                    label <- c(label, paste(breaks[i], sep = ""))
+                }
+                treat.type <- "discrete"
             }
 
              # missing values
@@ -1813,13 +1827,14 @@ else if (leave.gap == 1) {
                 } else {
                     stop(paste("Length of \"color\" should be equal to ",length(col),".\n", sep=""))
                 }
-            } else {
-                if (length(color) != 2) {
-                    stop(paste("Length of \"color\" should be equal to ",length(col),".\n", sep=""))
-                } else {
-                    col <- color
-                }
-            }
+            } 
+            #else {
+            #    if (length(color) != 2) {
+             #       stop(paste("Length of \"color\" should be equal to ",length(col),".\n", sep=""))
+              #  } else {
+               #     col <- color
+                #}
+            #}
         }       
         
         if (!is.null(legend.labs)) {
@@ -1830,42 +1845,37 @@ else if (leave.gap == 1) {
                     cat(paste("Specified labels in the order of: ", paste(label, collapse = ", "), ".\n", sep = ""))
                     label <- legend.labs
                 }
-            } else {
-                if (length(legend.labs) != 1) {
-                    warning("The length of label should be equal to 1.\n")
-                } else {
-                    label <- legend.labs
-                }
-            }
+            } 
+            #else {
+             #   if (length(legend.labs) != 1) {
+              #      warning("The length of label should be equal to 1.\n")
+               # } else {
+                #    label <- legend.labs
+                #}
+            #}
         } 
 
         ## start plot 
-        if (treat.type == "continuous" && ignore.treat == 0 && leave.gap == 1) {
-        m2 <- NULL
-        m2 <- m
-        m2 <- replace(m2, m2 == -200, NA) # if NA in the first and last period, then this period will disappear
-        res <- c(m2)
-        }
-        else{        
+        #if (treat.type == "continuous" && ignore.treat == 0 && leave.gap == 1) {
+        #m2 <- NULL
+        #m2 <- m
+        #m2 <- replace(m2, m2 == -200, NA) # if NA in the first and last period, then this period will disappear
+        #res <- c(m2)
+        #}
+        #else{        
         res <- c(m)
-        }
+        #}
         
         data <- cbind.data.frame(units=units, period=period, res=res)
-
-        ## if (treat.type == "discrete") {
-        ##     data[,"res"] <- as.factor(data[,"res"])
-        ## } else {
-            # data <- na.omit(data) 
-
-        # }       
+      
 
         if (leave.gap == 0) {
             data <- na.omit(data)
         }
 
-        if (treat.type == "discrete") { 
+        #if (treat.type == "discrete") { 
             data[,"res"] <- as.factor(data[,"res"])
-        }
+        #}
         
         ## check if N >= 200
         if (dim(m)[2] >= 200) {
@@ -1899,11 +1909,14 @@ else if (leave.gap == 1) {
 
         p <- p + labs(x = xlab, y = ylab, title=main) + theme_bw() 
 
-        if (treat.type == "discrete") {
-            p <- p + scale_fill_manual(NA, breaks = breaks, values = col, labels=label)
-        } else {
-            p <- p + scale_fill_gradient(low = col[1], high = col[2], na.value="white") + guides(fill=guide_legend(title= label))
-        }
+        #if (treat.type == "discrete") {
+            p <- p + scale_fill_manual("Treatment level: ", breaks = breaks, values = col, labels=label)
+            if (n.levels < 3) {
+                p <- p + theme(legend.title=element_blank())
+            }
+        #} else {
+            #p <- p + scale_fill_gradient(low = col[1], high = col[2], na.value="white") + guides(fill=guide_legend(title= label))
+        #}
 
         p <- p +
         theme(panel.grid.major = element_blank(),
@@ -1925,10 +1938,6 @@ else if (leave.gap == 1) {
               plot.title = element_text(size=cex.main, hjust = 0.5,face="bold",margin = margin(8, 0, 8, 0)))
                       
 
-        if (treat.type == "discrete") {
-            p <- p + theme(legend.title=element_blank())
-        }
-
         if (axis.lab == "both") {
             p <- p + scale_x_continuous(expand = c(0, 0), breaks = T.b, labels = time.label[T.b]) +
             scale_y_continuous(expand = c(0, 0), breaks = N.b, labels = id[N.b])
@@ -1946,7 +1955,7 @@ else if (leave.gap == 1) {
             scale_y_continuous(expand = c(0, 0), breaks = 1:N, labels = NULL)
         }
         
-        if(length(all) >= 4 && length(all) < 6) {
+        if (length(all) >= 4 && length(all) < 6) {
             p <- p + guides(fill=guide_legend(nrow=2,byrow=TRUE))
         }
         suppressWarnings(print(p))

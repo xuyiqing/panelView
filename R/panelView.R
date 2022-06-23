@@ -1,5 +1,5 @@
 ## A pre-view function for TSCS data
-## 2022-03-21
+## 2022-06-23
 
 ##---------------------------------------------------------------##
 ## preview of data treatment status, missing values and outcome ##
@@ -45,7 +45,9 @@ panelview <- function(data, # a data frame (long-form)
                       style = NULL, ## bar, connected line, or line
                       by.unit = FALSE,
                       lwd = 0.2,
-                      leave.gap = FALSE
+                      leave.gap = FALSE,
+                      random.select = TRUE,
+                      by.group.side = FALSE
                     ) {  
         
     ## ------------------------- ##
@@ -56,13 +58,16 @@ panelview <- function(data, # a data frame (long-form)
         data <- as.data.frame(data)        
     }
 
+    if (class(data[,index[1]]) == "factor") {
+        data[,index[1]] <- as.numeric(as.character(data[,index[1]]))
+    }
+
     if (type == "missing" | type == "miss") {
         if (ignore.treat == 1) {
             stop("option type = missing should not be combined with ignoretreat = TRUE")
         }
     }
-
-    
+            
 
     if (!is.null(formula)) { # with formula
 
@@ -83,7 +88,7 @@ panelview <- function(data, # a data frame (long-form)
             ignore.treat <- 1
 
             if (type == "treat") { # Y ~ 1, type(treat)
-                warning("type = treat not allowed. Plot type = missing instead.\n")
+                message("type = treat not allowed. Plot type = missing instead.\n")
                 type <- "missing"
             }
         } else if (length(varnames) == 2) {
@@ -139,7 +144,7 @@ panelview <- function(data, # a data frame (long-form)
         varnames <- c(Y, D, X)
         if (is.null(D)==TRUE & is.null(X)==TRUE) { # Y="Y", set type = "miss" as default
             if (type == "treat") {
-                warning("type = treat not allowed. Plot type = missing instead.\n")
+                message("type = treat not allowed. Plot type = missing instead.\n")
                 type <- "missing"
             }
         }
@@ -161,6 +166,7 @@ panelview <- function(data, # a data frame (long-form)
     ## index names
     index.id <- index[1]
     index.time <- index[2]
+
 
     ## exclude other covariates 
     data <- data[,c(index, Y, D, X)] 
@@ -188,7 +194,6 @@ panelview <- function(data, # a data frame (long-form)
     # sort data
     data <- data[order(data[,index.id], data[,index.time]), ]
 
-
     minmintime <- as.numeric(min(data[, 2], na.rm = TRUE))
     maxmaxtime <- as.numeric(max(data[, 2], na.rm = TRUE))
     timegap <- (maxmaxtime - minmintime)/(length(unique(data[,index.time]))-1)
@@ -200,7 +205,7 @@ panelview <- function(data, # a data frame (long-form)
 
     if (leave.gap == 0) {
         if (timegap != mintimegap | timegap != inttimegap) {
-            warning("Time is not evenly distributed (possibly due to missing data).\n")
+            message("Time is not evenly distributed (possibly due to missing data).\n")
     }
     }
 
@@ -252,9 +257,22 @@ panelview <- function(data, # a data frame (long-form)
     #    stop("Please limit your units within 1000 for elegant presentation")
     #}
 
-    if (length(unique(data[,index[1]])) > 300 & gridOff != TRUE) {
-        warning("If the number of units is more than 300, we set gridOff = TRUE.\n")
+    if (length(unique(data[,index[1]])) > 300 & gridOff != TRUE & type != "outcome") {
+        message("If the number of units is more than 300, we set gridOff = TRUE.\n")
         gridOff <- TRUE
+    }
+    
+    if (length(unique(data[,index[1]])) > 300 & gridOff != TRUE & type == "outcome") {
+        gridOff <- TRUE
+    }
+
+    if (length(unique(data[,index[1]])) > 500  & random.select == TRUE) {
+        message("If the number of units is more than 500, we randomly select 500 units to present.
+        You can set random.select = FALSE to show all units.\n")
+        set.seed(1346)
+        sample_subject_ids = sample(unique(data[,index[1]]), 500)
+        data = subset(data, data[,index[1]] %in% sample_subject_ids)
+        #print(length(unique(data[,index[1]])))
     }
 
     ##-------------------------------##
@@ -291,7 +309,7 @@ panelview <- function(data, # a data frame (long-form)
     ## check plot 
     if (is.null(D)) {
         if (ignore.treat == 0) {
-            warning("No treatment indicator.\n")
+            message("No treatment indicator.\n")
             ignore.treat <- 1
         }
     }
@@ -342,7 +360,7 @@ panelview <- function(data, # a data frame (long-form)
         }
 
         if (n.levels == 1) {
-            warning("Only one treatment level...\n")
+            message("Only one treatment level...\n")
             ignore.treat <- 1
         } else {
             if (d.bi == FALSE) {
@@ -355,7 +373,7 @@ panelview <- function(data, # a data frame (long-form)
                 stop("\"treat.type\" must be \"discrete\" or \"continuous\"")
             }
             if (treat.type == "discrete" & n.levels>=5) {
-                warning("Too many treatment levels; treat as continuous.")
+                message("Too many treatment levels; treat as continuous.")
                 treat.type <- "continuous"
             }
             if (treat.type == "continuous" & n.levels<=4) {
@@ -383,6 +401,8 @@ panelview <- function(data, # a data frame (long-form)
         stop("Incorrect type for option \"shade.post\"")
     }
 
+    
+
     ## ------------------------ ##
     ## parsing data.            ##
     ## ------------------------ ##
@@ -397,7 +417,7 @@ panelview <- function(data, # a data frame (long-form)
     input.id <- NULL
     if (!is.null(id)) {
         if (!is.null(show.id)) {
-            warning("Using specified id.\n")
+            message("Using specified id.\n")
         }
         ## check id 
         remove.id <- setdiff(id, raw.id)
@@ -430,6 +450,7 @@ panelview <- function(data, # a data frame (long-form)
             input.id <- raw.id
         }
     }
+
 
     ## store variable names
     ## data.old <- data
@@ -465,13 +486,17 @@ panelview <- function(data, # a data frame (long-form)
         if (ignore.treat == 0) {
             D <- matrix(0, TT, N)
         }
+        
+
         for (i in 1:dim(data)[1]) {
             if (!is.null(Yname)) {
                 Y[data[i,index.time],data[i,index.id]] <- data[i,Yname] 
             }
+
             if (ignore.treat == 0) {
                 D[data[i,index.time],data[i,index.id]] <- data[i,Dname] 
             }
+
             I[data[i,index.time], data[i,index.id]] <- 1 #I: observed(1) and missing(0)
         }
 
@@ -532,8 +557,8 @@ panelview <- function(data, # a data frame (long-form)
         ## timing
         tr.pos <- which(D[TT,] == 1) ## which units are treated
         T0 <- apply(D == 0, 2, sum)[tr.pos]+1 ## first time expose to treatment
-        T1 <- apply(D == 1, 2, sum)[tr.pos] ## number of periods expose to treatment
-        T1[which(T1 > 1)] <- 0 ## indicate the last dot of treatment status change        
+        T1 <- apply(D == 1, 2, sum)[tr.pos] ## number of periods expose to treatment 
+        T1[which(T1 > 1)] <- 0 ## indicate the last dot of treatment status change         
 
         co.total <- co.total.all[tr.pos] ## total number of periods not exposed to treatment 
 
@@ -566,8 +591,8 @@ panelview <- function(data, # a data frame (long-form)
             FEmode <- 0
         } else { ## FE mode
             DID <- 0
-            if (by.group == FALSE & (type == "outcome" || type == "bivar" || type == "bivariate")) {
-                warning("Treatment has reversals.\n")
+            if (type == "outcome" || type == "bivar" || type == "bivariate") {
+                message("Treatment has reversals.\n")
             }
             ## by.group <- TRUE
             FEmode <- 1
@@ -910,7 +935,7 @@ else if (leave.gap == 1) {
             } else {
                 if (outcome.type == "continuous") {
                     if (ignore.treat == 0) {
-                        raw.color <- c("#5e5e5e50", "#4671D565", "#06266F")
+                        raw.color <- c("#5e5e5e50", "#124ab965", "#062263")
                     } else {
                         raw.color <- "#5e5e5e50"
                     }
@@ -1318,7 +1343,7 @@ else if (leave.gap == 1) {
             suppressWarnings(print(p))
             ## end of raw plot
         
-        } else { ## separate plot (by.group==T)
+        } else { ## separate plot (by.group == TRUE)
             
             if (is.null(main) == TRUE) {
                 main <- "Raw Data"
@@ -1525,6 +1550,7 @@ else if (leave.gap == 1) {
                 return(p)
             }
 
+        if (by.group.side == FALSE) {
             if (length(unique(unit.type)) == 1) {
                 
                 if (1%in%unit.type) {
@@ -1636,7 +1662,118 @@ else if (leave.gap == 1) {
                 }
 
             }
-        }    ## end of raw plot
+        }
+        else if (by.group.side == TRUE) {
+
+            if (length(unique(unit.type)) == 1) {
+                
+                if (1%in%unit.type) {
+                    p1 <- subplot(data1, limits1, labels1, colors1, main1, outcome.type, theme.bw)
+                    if (legend.pos != "none") {
+                        suppressWarnings(g <- ggplotGrob(p1 + theme(legend.position="bottom"))$grobs)
+                        legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
+                        suppressWarnings(grid.arrange(arrangeGrob(p1 + theme(legend.position="none"),
+                                         nrow =1, top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))),legend,nrow=2,heights=c(1,1/8)))
+                    } else {
+                        suppressWarnings(grid.arrange(p1 + theme(legend.position="none"), nrow =1,
+                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                    }   
+                }
+                else if (2%in%unit.type) {
+                    p2 <- subplot(data2, limits2, labels2, colors2, main2, outcome.type, theme.bw)
+                    if (legend.pos != "none") {
+                        suppressWarnings(g <- ggplotGrob(p2 + theme(legend.position="bottom"))$grobs)
+                        legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
+                        suppressWarnings(grid.arrange(arrangeGrob(p2 + theme(legend.position="none"),
+                                         nrow =1, top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))),legend,nrow=2,heights=c(1,1/8)))
+                    } else {
+                        suppressWarnings(grid.arrange(p2 + theme(legend.position="none"), nrow =1,
+                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                    }   
+                }
+                else if (3%in%unit.type) {
+                    p3 <- subplot(data3, limits3, labels3, colors3, main3, outcome.type, theme.bw)
+                    if (legend.pos != "none") {
+                        suppressWarnings(g <- ggplotGrob(p3 + theme(legend.position="bottom"))$grobs)
+                        legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
+                        suppressWarnings(grid.arrange(arrangeGrob(p3 + theme(legend.position="none"),
+                                         nrow =1, top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))),legend,nrow=2,heights=c(1,1/8)))
+                    } else {
+                        suppressWarnings(grid.arrange(p3 + theme(legend.position="none"), nrow =1,
+                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                    }  
+                }
+
+            }
+            else if (length(unique(unit.type))==2) {
+                
+                if (!1%in%unit.type) {
+                    p2 <- subplot(data2, limits2, labels2, colors2, main2, outcome.type, theme.bw)
+                    p3 <- subplot(data3, limits3, labels3, colors3, main3, outcome.type, theme.bw)
+                    if (legend.pos != "none") {
+                        suppressWarnings(g <- ggplotGrob(p2 + theme(legend.position="bottom"))$grobs)
+                        legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
+                        suppressWarnings(grid.arrange(arrangeGrob(p2 + theme(legend.position="none"), p3 + theme(legend.position="none"),
+                                         nrow =1, top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))),legend,nrow=2,heights=c(1,1/8)))
+                    } else {
+                        suppressWarnings(grid.arrange(p2 + theme(legend.position="none"),
+                                         p3 + theme(legend.position="none"), nrow =1,
+                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                    }  
+                }
+                else if (!2%in%unit.type) {
+                    p1 <- subplot(data1, limits1, labels1, colors1, main1, outcome.type, theme.bw)
+                    p3 <- subplot(data3, limits3, labels3, colors3, main3, outcome.type, theme.bw)
+                    if (legend.pos != "none") {
+                        suppressWarnings(g <- ggplotGrob(p1 + theme(legend.position="bottom"))$grobs)
+                        legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
+                        suppressWarnings(grid.arrange(arrangeGrob(p1 + theme(legend.position="none"), p3 + theme(legend.position="none"),
+                                         nrow =1, top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))),legend,nrow=2,heights=c(1,1/8)))
+                    } else {
+                        suppressWarnings(grid.arrange(p1 + theme(legend.position="none"),
+                                         p3 + theme(legend.position="none"), nrow =1,
+                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                    }  
+                }
+                else if (!3%in%unit.type) {
+                    p1 <- subplot(data1, limits1, labels1, colors1, main1, outcome.type, theme.bw)
+                    p2 <- subplot(data2, limits2, labels2, colors2, main2, outcome.type, theme.bw)
+                    if (legend.pos != "none") {
+                        suppressWarnings(g <- ggplotGrob(p1 + theme(legend.position="bottom"))$grobs)
+                        legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
+                        suppressWarnings(grid.arrange(arrangeGrob(p1 + theme(legend.position="none"), p2 + theme(legend.position="none"),
+                                         nrow =1, top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))),legend,nrow=2,heights=c(1,1/8)))
+                    } else {
+                        suppressWarnings(grid.arrange(p1 + theme(legend.position="none"),
+                                         p2 + theme(legend.position="none"), nrow =1,
+                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                    }   
+                }
+
+            }
+            else {
+                p1 <- subplot(data1, limits1, labels1, colors1, main1, outcome.type, theme.bw)
+                p2 <- subplot(data2, limits2, labels2, colors2, main2, outcome.type, theme.bw)
+                p3 <- subplot(data3, limits3, labels3, colors3, main3, outcome.type, theme.bw)
+
+                if (legend.pos != "none") {
+                    suppressWarnings(g <- ggplotGrob(p1 + theme(legend.position="bottom"))$grobs)
+
+                    legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
+
+                    suppressWarnings(grid.arrange(arrangeGrob(p1 + theme(legend.position="none"), p2 + theme(legend.position="none"),
+                                     p3 + theme(legend.position="none"), nrow =1,
+                                     top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))),legend,nrow=2,heights=c(1,1/8)))
+                } else {
+                    suppressWarnings(grid.arrange(p1 + theme(legend.position="none"),
+                                         p2 + theme(legend.position="none"),
+                                         p3 + theme(legend.position="none"), nrow =1,
+                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                }
+
+            }
+        }
+    }    ## end of raw plot
     
     }   ############# Treatment Status ###############
     else if (type=="treat") {

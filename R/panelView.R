@@ -1,5 +1,5 @@
 ## A pre-view function for TSCS data
-## 2022-06-23
+## 2022-06-30
 
 ##---------------------------------------------------------------##
 ## preview of data treatment status, missing values and outcome ##
@@ -59,7 +59,7 @@ panelview <- function(data, # a data frame (long-form)
     }
 
     if (class(data[,index[1]]) == "factor") {
-        data[,index[1]] <- as.numeric(as.character(data[,index[1]]))
+        data[,index[1]] <- as.character(data[,index[1]])
     }
 
     if (type == "missing" | type == "miss") {
@@ -194,6 +194,7 @@ panelview <- function(data, # a data frame (long-form)
     # sort data
     data <- data[order(data[,index.id], data[,index.time]), ]
 
+
     minmintime <- as.numeric(min(data[, 2], na.rm = TRUE))
     maxmaxtime <- as.numeric(max(data[, 2], na.rm = TRUE))
     timegap <- (maxmaxtime - minmintime)/(length(unique(data[,index.time]))-1)
@@ -202,6 +203,7 @@ panelview <- function(data, # a data frame (long-form)
     data_1 <- transform(data, differencetime = ave(as.numeric(data[, 2]), data[, 1], FUN = function(x) c(NA, diff(x))))
     mintimegap <- min(data_1$differencetime, na.rm = TRUE)
     maxtimegap <- max(data_1$differencetime, na.rm = TRUE)
+
 
     if (leave.gap == 0) {
         if (timegap != mintimegap | timegap != inttimegap) {
@@ -272,7 +274,6 @@ panelview <- function(data, # a data frame (long-form)
         set.seed(1346)
         sample_subject_ids = sample(unique(data[,index[1]]), 500)
         data = subset(data, data[,index[1]] %in% sample_subject_ids)
-        #print(length(unique(data[,index[1]])))
     }
 
     ##-------------------------------##
@@ -548,17 +549,18 @@ panelview <- function(data, # a data frame (long-form)
             D[which(D > 1)] <- 1 ## set all treatment levels to 1
         }
 
-        ## once treated, always treated
-        D <- apply(D, 2, function(vec){cumsum(vec)})
+        ## once treated, always treated SSS!
+        D <- apply(D, 2, function(vec){cumsum(coalesce(vec, 0)) + vec*0}) 
         co.total.all <- TT - apply(D, 2, sum)
         D <- ifelse(D > 0, 1, 0)
 
 
+
         ## timing
         tr.pos <- which(D[TT,] == 1) ## which units are treated
-        T0 <- apply(D == 0, 2, sum)[tr.pos]+1 ## first time expose to treatment
-        T1 <- apply(D == 1, 2, sum)[tr.pos] ## number of periods expose to treatment 
-        T1[which(T1 > 1)] <- 0 ## indicate the last dot of treatment status change         
+        T0 <- apply(D == 0, 2, sum, na.rm = TRUE)[tr.pos]+1 ## first time expose to treatment
+        T1 <- apply(D == 1, 2, sum, na.rm = TRUE)[tr.pos] ## number of periods expose to treatment 
+        T1[which(T1 > 1)] <- 0 ## indicate the last dot of treatment status change
 
         co.total <- co.total.all[tr.pos] ## total number of periods not exposed to treatment 
 
@@ -651,18 +653,21 @@ if (leave.gap == 0) {
 
         } else {
             unit.type <- rep(NA, N) ## 1 for control; 2 for treated; 3 for reversal
-            
+
+
             for (i in 1:N) {
                 di <- D.old[, i]
                 ii <- I[, i]
+
+
                 if (length(unique(di[which(ii==1)])) == 1) { ## treated or control
                     if (0 %in% unique(di[which(ii==1)])) {
-                        unit.type[i] <- 1 ## control
+                        unit.type[i] <- 1 ## always control
                     } else {
-                        unit.type[i] <- 2 ## treated
+                        unit.type[i] <- 2 ## always treated
                     }
                 } else {
-                    unit.type[i] <- 3 ## reversal
+                    unit.type[i] <- 3 ## control to treated / treated to control
                 }
             }
         
@@ -730,18 +735,27 @@ else if (leave.gap == 1) {
 
         } else {
             unit.type <- rep(NA, N) ## 1 for control; 2 for treated; 3 for reversal
-            
+
             for (i in 1:N) {
                 di <- D.old[, i]
-                ii <- I[, i]
+                ii <- I[, i] ## I: observed or missing
+
                 if (length(unique(di[which(ii==1)])) == 1) { ## treated or control
                     if (0 %in% unique(di[which(ii==1)])) {
                         unit.type[i] <- 1 ## control
                     } else {
                         unit.type[i] <- 2 ## treated
                     }
-                } else {
-                    unit.type[i] <- 3 ## reversal
+                } 
+                else if ((length(unique(di[which(ii==1)])) == 2) & (NA %in% unique(di[which(ii==1)]))) { # NA 0 / NA 1
+                    if (0 %in% unique(di[which(ii==1)])) {
+                        unit.type[i] <- 1 ## control
+                    } else {
+                        unit.type[i] <- 2 ## treated
+                    }
+                    }
+                else {
+                    unit.type[i] <- 3 ## control to treated / treated to control / NA 0 1 / NA 1 0
                 }
             }
         
@@ -1940,7 +1954,7 @@ else if (leave.gap == 1) {
                 if (by.timing == TRUE) {
                     co.seq <- which(unit.type == 1)
                     tr.seq <- setdiff(1:N, co.seq)
-                    dataT0 <- cbind.data.frame(tr.seq, T0, co.total)
+                    dataT0 <- cbind.data.frame(tr.seq, T0, co.total) 
                     names(dataT0) <- c("id", "T0", "co.total")
                     dataT0 <- dataT0[order(dataT0[, "T0"], dataT0[, "co.total"]),]
                     tr.seq <- dataT0[,"id"]

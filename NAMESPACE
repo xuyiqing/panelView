@@ -14,5 +14,6 @@ importFrom("ggplot2", "geom_boxplot", "geom_density", "geom_tile",
            "scale_fill_gradient", "sec_axis", "facet_wrap")
 importFrom("gridExtra", "grid.arrange", "arrangeGrob")
 importFrom("grid", "textGrob", "gpar")
+importFrom("dplyr", "coalesce")
 
 export(panelview)

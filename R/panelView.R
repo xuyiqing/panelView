@@ -47,7 +47,8 @@ panelview <- function(data, # a data frame (long-form)
                       lwd = 0.2,
                       leave.gap = FALSE,
                       random.select = TRUE,
-                      by.group.side = FALSE
+                      by.group.side = FALSE, 
+                      display.all = FALSE
                     ) {  
         
     ## ------------------------- ##
@@ -268,7 +269,7 @@ panelview <- function(data, # a data frame (long-form)
         gridOff <- TRUE
     }
 
-    if (length(unique(data[,index[1]])) > 500  & random.select == TRUE) {
+    if (display.all == FALSE & length(unique(data[,index[1]])) > 500  & random.select == TRUE) {
         message("If the number of units is more than 500, we randomly select 500 units to present.
         You can set random.select = FALSE to show all units.\n")
         set.seed(1346)

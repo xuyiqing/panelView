@@ -15,7 +15,7 @@
 }
 
 \author{
-  Hongyu Mou <hongyumou5@gmail.com>, Peking Univeristy
+  Hongyu Mou <hongyumou@g.ucla.edu>, University of California, Los Angeles
 
   Licheng Liu <liulch@mit.edu>, Massachusetts Institute of Technology
 

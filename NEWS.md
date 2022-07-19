@@ -1,10 +1,16 @@
+# panelView 1.1.10
+
+1. Add `by.group.side` to arrange subfigures of `by.group = TRUE` in a row rather than in a column.
+
+2. Add `display.all` to show all units if the number of units is more than 500, otherwise we randomly select 500 units to present.
+
+3. The old version (v.1.1.6) can be found [here](https://yiqingxu.org/packages/panelview/panelView_1.1.6.tar.gz); its user's guide [here](https://yiqingxu.org/packages/panelview/panelView_1.1.6.html). 
+
 # panelView 1.1.8
 
 1. Add a new option `leave.gap` to keep gaps in time using white bars when the time variable is not evenly distributed (possibly due to missing data).
 
-2. Add `type(missing)` to plot the missingness in data.
-
-3. The old version (v.1.1.6) can be found [here](https://yiqingxu.org/packages/panelview/panelView_1.1.6.tar.gz); its user's guide [here](https://yiqingxu.org/packages/panelview/panelView_1.1.6.html). 
+2. Add `type(missing)` to plot the missingness in data. 
 
 # panelView 1.1.7
 

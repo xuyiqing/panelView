@@ -11,12 +11,12 @@ stable](https://img.shields.io/badge/lifecycle-stable-green.svg)](https://www.ti
 MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 <!-- badges: end -->
 
-**Authors:** Hongyu Mou (PKU); Licheng Liu (MIT); [Yiqing
+**Authors:** Hongyu Mou (UCLA); Licheng Liu (MIT); [Yiqing
 Xu](https://yiqingxu.org/) (Stanford)
 
-**Date:** Feb 16, 2022
+**Date:** July 17, 2022
 
-**Repos:** [Github](https://github.com/xuyiqing/panelView) (1.1.9)
+**Repos:** [Github](https://github.com/xuyiqing/panelView) (1.1.10)
 [CRAN](https://cran.r-project.org/web/packages/panelView/index.html)
 (1.1.9)
 
@@ -68,6 +68,7 @@ For example, plot treatment status in a panel dataset:
 
 ``` r
 library(panelView)
+data(panelView)
 panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, 
           data = turnout, index = c("abb","year"), 
           xlab = "Year", ylab = "State")

@@ -318,6 +318,14 @@ panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
           by.group = TRUE, cex.main = 20, cex.main.sub = 15)
 ```
 
+If we want to arrange the subfigures in a row rather than in a column,  use the `by.group.side = TRUE` option instead of `by.group = TRUE`.
+
+```{r outcome1-7, cache = TRUE, fig.height = 6}
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, 
+          data = turnout, index = c("abb","year"), 
+          type = "outcome", main = "EDR Reform and Turnout",
+          by.group.side = TRUE, cex.main = 20, cex.main.sub = 15)
+```
 ***
 ### Ignore treatment status
 
@@ -346,7 +354,7 @@ We can accommodate discrete variables by setting `outcome.type = "discrete"`. Be
 
 ```{r outcome3-1, cache = TRUE, fig.height = 5}
 panelview(Y ~ D, data = simdata, index = c("id", "time"), 
-          by.group = FALSE, outcome.type = "discrete", 
+          outcome.type = "discrete", 
           type = "outcome", xlim = c(8, 15))
 ```
 

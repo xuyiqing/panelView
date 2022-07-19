@@ -1,5 +1,5 @@
 ## A pre-view function for TSCS data
-## 2022-06-30
+## 2022-07-17
 
 ##---------------------------------------------------------------##
 ## preview of data treatment status, missing values and outcome ##
@@ -46,8 +46,7 @@ panelview <- function(data, # a data frame (long-form)
                       by.unit = FALSE,
                       lwd = 0.2,
                       leave.gap = FALSE,
-                      random.select = TRUE,
-                      by.group.side = FALSE, 
+                      by.group.side = FALSE,
                       display.all = FALSE
                     ) {  
         
@@ -56,12 +55,26 @@ panelview <- function(data, # a data frame (long-form)
     ## ------------------------- ##
 
     if (is.data.frame(data) == FALSE || length(class(data)) > 1) {
-        data <- as.data.frame(data)        
+        data <- as.data.frame(data)
     }
 
     if (class(data[,index[1]]) == "factor") {
-        data[,index[1]] <- as.character(data[,index[1]])
+        sumcheck <- sum(as.numeric(levels(data[,index[1]]))[data[,index[1]]])
+        
+        if (is.na(sumcheck)) { #units are texts as factor
+            data[,index[1]] <- as.character(data[,index[1]])
+        }
+        else {
+            data[,index[1]] <- as.numeric(levels(data[,index[1]]))[data[,index[1]]] #units are numbers as factor
+        }
     }
+
+    if (by.group.side == TRUE) {
+        if (by.group == FALSE) {
+            by.group <- TRUE
+        }
+    }
+
 
     if (type == "missing" | type == "miss") {
         if (ignore.treat == 1) {
@@ -213,6 +226,7 @@ panelview <- function(data, # a data frame (long-form)
     }
 
 
+
     if (leave.gap == 1) {
        # expand panel data
 
@@ -269,9 +283,9 @@ panelview <- function(data, # a data frame (long-form)
         gridOff <- TRUE
     }
 
-    if (display.all == FALSE & length(unique(data[,index[1]])) > 500  & random.select == TRUE) {
+    if (display.all == FALSE & length(unique(data[,index[1]])) > 500) {
         message("If the number of units is more than 500, we randomly select 500 units to present.
-        You can set random.select = FALSE to show all units.\n")
+        You can set display.all = TRUE to show all units.\n")
         set.seed(1346)
         sample_subject_ids = sample(unique(data[,index[1]]), 500)
         data = subset(data, data[,index[1]] %in% sample_subject_ids)
@@ -478,8 +492,8 @@ panelview <- function(data, # a data frame (long-form)
     if (leave.gap == 0) {
     ## check balanced panel and fill unbalanced panel
     if (dim(data)[1] != TT*N) { # unbalanced panel
-        data[,index.id] <- as.numeric(as.factor(data[,index.id]))
-        data[,index.time] <- as.numeric(as.factor(data[,index.time]))
+        data[,index.id] <- as.numeric(as.factor(data[,index.id])) 
+        data[,index.time] <- as.numeric(as.factor(data[,index.time])) 
 
         if (!is.null(Yname)) {
             Y <- matrix(NA, TT, N)
@@ -550,7 +564,7 @@ panelview <- function(data, # a data frame (long-form)
             D[which(D > 1)] <- 1 ## set all treatment levels to 1
         }
 
-        ## once treated, always treated SSS!
+        ## once treated, always treated!
         D <- apply(D, 2, function(vec){cumsum(coalesce(vec, 0)) + vec*0}) 
         co.total.all <- TT - apply(D, 2, sum)
         D <- ifelse(D > 0, 1, 0)
@@ -559,7 +573,8 @@ panelview <- function(data, # a data frame (long-form)
 
         ## timing
         tr.pos <- which(D[TT,] == 1) ## which units are treated
-        T0 <- apply(D == 0, 2, sum, na.rm = TRUE)[tr.pos]+1 ## first time expose to treatment
+        T0 <- apply(D == 0, 2, sum, na.rm = TRUE)[tr.pos]+1 ## first time expose to treatment 
+
         T1 <- apply(D == 1, 2, sum, na.rm = TRUE)[tr.pos] ## number of periods expose to treatment 
         T1[which(T1 > 1)] <- 0 ## indicate the last dot of treatment status change
 
@@ -1957,7 +1972,8 @@ else if (leave.gap == 1) {
                     tr.seq <- setdiff(1:N, co.seq)
                     dataT0 <- cbind.data.frame(tr.seq, T0, co.total) 
                     names(dataT0) <- c("id", "T0", "co.total")
-                    dataT0 <- dataT0[order(dataT0[, "T0"], dataT0[, "co.total"]),]
+                    dataT0 <- dataT0[order(dataT0[, "T0"], dataT0[, "co.total"], dataT0[, "id"]),] 
+
                     tr.seq <- dataT0[,"id"]
                     missing.seq <- c(tr.seq, co.seq)
 
@@ -1965,7 +1981,7 @@ else if (leave.gap == 1) {
                     id <- id[missing.seq]
 
                 }
-                
+
             }
 
         }

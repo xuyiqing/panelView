@@ -2,7 +2,7 @@
 ## panelview: Visualizing Panel Data
 ## User's Guide
 
-## Hongyu Mou(PKU); Licheng Liu (MIT); Yiqing Xu (Stanford)
+## Hongyu Mou(UCLA); Licheng Liu (MIT); Yiqing Xu (Stanford)
 ## July 17, 2022
 ## version 1.1.10
 

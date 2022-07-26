@@ -9,3 +9,4 @@
 ^pkgdown$
 ^NEWS\.md$
 ^README\.md$
+^examples\.R

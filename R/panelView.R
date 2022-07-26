@@ -58,8 +58,8 @@ panelview <- function(data, # a data frame (long-form)
         data <- as.data.frame(data)
     }
 
-    if (class(data[,index[1]]) == "factor") {
-        sumcheck <- sum(as.numeric(levels(data[,index[1]]))[data[,index[1]]])
+    if (is.factor(data[,index[1]]) == TRUE) {
+        sumcheck <- sum(suppressWarnings(as.numeric(levels(data[,index[1]])))[data[,index[1]]])
         
         if (is.na(sumcheck)) { #units are texts as factor
             data[,index[1]] <- as.character(data[,index[1]])
@@ -1992,7 +1992,8 @@ else if (leave.gap == 1) {
                 if (length(col) == length(color)) {
                     cat(paste("Specified colors in the order of: ", paste(label, collapse = ", "), ".\n", sep = ""))
                     col <- color
-                } else {
+                } 
+                else { 
                     stop(paste("Length of \"color\" should be equal to ",length(col),".\n", sep=""))
                 }
             } 

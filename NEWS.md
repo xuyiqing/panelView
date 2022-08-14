@@ -1,10 +1,14 @@
+# panelView 1.1.11
+
+1. Add `by.cohort` to allow users to plot the average outcome trajectories of units with the same treatment history (if the number of unique treatment history is less than 20).
+
+2. The old version (v.1.1.6) can be found [here](https://yiqingxu.org/packages/panelview/panelView_1.1.6.tar.gz); its user's guide [here](https://yiqingxu.org/packages/panelview/panelView_1.1.6.html). 
+
 # panelView 1.1.10
 
 1. Add `by.group.side` to arrange subfigures of `by.group = TRUE` in a row rather than in a column.
 
 2. Add `display.all` to show all units if the number of units is more than 500, otherwise we randomly select 500 units to present.
-
-3. The old version (v.1.1.6) can be found [here](https://yiqingxu.org/packages/panelview/panelView_1.1.6.tar.gz); its user's guide [here](https://yiqingxu.org/packages/panelview/panelView_1.1.6.html). 
 
 # panelView 1.1.8
 

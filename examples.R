@@ -2,9 +2,9 @@
 ## panelview: Visualizing Panel Data
 ## User's Guide
 
-## Hongyu Mou(UCLA); Licheng Liu (MIT); Yiqing Xu (Stanford)
-## July 17, 2022
-## version 1.1.10
+## Hongyu Mou(PKU); Licheng Liu (MIT); Yiqing Xu (Stanford)
+## Aug 14, 2022
+## version 1.1.11
 
 ## install.packages('devtools', repos = 'http://cran.us.r-project.org') # if not already installed
 ## devtools::install_github('xuyiqing/panelview')
@@ -51,7 +51,7 @@ turnout %>% panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, colo
 
 ## leave gap if time is not evenly distributed
 turnout2<-turnout[!(turnout$year=="1924" | turnout$year=="1928" | turnout$year == "1940"),]
-panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, data = turnout2, index = c("abb","year"), 
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, data = turnout2, index = c("abb","year"),
           type = "treat", leave.gap = T)
 
 
@@ -107,7 +107,7 @@ capacity$demo2 <- demo2
 
 panelview(Capacity ~ demo2 + lngdp, data = capacity, index = c("ccode", "year"), axis.lab.gap = c(2,10), main = "Regime Type")
 
-library(RColorBrewer) 
+library(RColorBrewer)
 mycol<-brewer.pal(3,"Set1")[c(1,3,2)]
 panelview(Capacity ~ demo2, data = capacity, index = c("ccode", "year"), axis.lab.gap = c(2), main = "Regime Type", axis.lab = c("time"), color = mycol, legend.labs = c("Autocracy", "Hybrid", "Democracy"))
 
@@ -118,7 +118,7 @@ panelview(D = "demo2", data = capacity, index = c("ccode", "year"), axis.lab.gap
 panelview(Capacity ~ polity2 + lngdp, data = capacity, index = c("ccode", "year"), axis.lab.gap = c(2,10), main = "Regime Type", gridOff = TRUE)
 
 ## change colors
-panelview(Capacity ~ polity2 + lngdp, data = capacity, index = c("ccode", "year"), axis.lab.gap = c(2,10), main = "Regime Type", 
+panelview(Capacity ~ polity2 + lngdp, data = capacity, index = c("ccode", "year"), axis.lab.gap = c(2,10), main = "Regime Type",
           color = c("yellow", "red","blue","green","gray"), background = "white")
 
 
@@ -130,9 +130,9 @@ panelview(Capacity ~ polity2 + lngdp, data = capacity, index = c("ccode", "year"
 panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, data = turnout, index = c("abb","year"), type = "outcome", main = "EDR Reform and Turnout", ylim = c(0,100),xlab = "Year", ylab = "Turnout")
 
 ## change legend
-panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, 
-          data = turnout, index = c("abb","year"), type = "outcome", 
-          main = "EDR Reform and Turnout", 
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
+          data = turnout, index = c("abb","year"), type = "outcome",
+          main = "EDR Reform and Turnout",
           legend.labs = c("Control States","Treated States (before EDR)",
                           "Treated States (after EDR)"))
 
@@ -146,13 +146,13 @@ panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, data = turnout, 
 panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, data = turnout, index = c("abb","year"), type = "outcome", main = "EDR Reform and Turnout (AL, AR, CT)", id = c("AL", "AR", "CT"))
 
 ## by group (in a column by default)
-panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, 
-          data = turnout, index = c("abb","year"), type = "outcome", 
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
+          data = turnout, index = c("abb","year"), type = "outcome",
           main = "", by.group = TRUE, cex.main = 20, cex.main.sub = 15)
 
 ## by group (in a row)
-panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, 
-          data = turnout, index = c("abb","year"), type = "outcome", 
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
+          data = turnout, index = c("abb","year"), type = "outcome",
           main = "", by.group.side = TRUE, cex.main = 20, cex.main.sub = 15)
 
 ## ignore treatment status
@@ -160,6 +160,13 @@ panelview(turnout ~ 1, data = turnout, index = c("abb","year"), type = "outcome"
 
 # same as above
 panelview(Y = "turnout", data = turnout, index = c("abb","year"), type = "outcome", main = "Turnout", ylim = c(0,100), xlab = "Year", ylab = "Turnout")
+
+## outcome cohorts
+panelview(turnout ~ policy_edr+policy_motor,
+          data = turnout, index = c("abb","year"), type = "outcome",
+          main = "EDR Reform and Turnout", by.cohort = TRUE,
+          legend.labs = c("Control States","Treated States (before EDR)",
+                          "Treated States (after EDR)"))
 
 
 
@@ -173,7 +180,7 @@ panelview(Y ~ D, data = simdata, index = c("id", "time"), by.group = FALSE, outc
 panelview(Y ~ D, data = simdata, index = c("id", "time"), by.group = TRUE, outcome.type = "discrete", type = "outcome",  xlim = c(8, 15))
 
 ## ignore treatment status
-panelview(Capacity ~ polity2 + lngdp, data = capacity, index = c("ccode", "year"), 
+panelview(Capacity ~ polity2 + lngdp, data = capacity, index = c("ccode", "year"),
           main = "Measuring State Capacity", type = "outcome", legendOff = TRUE)
 
 
@@ -188,13 +195,13 @@ panelview(Capacity ~ polity2 + lngdp, data = capacity, index = c("ccode", "year"
 ##########################################
 
 # 1. Continuous Y, discrete D:
-panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, data = turnout, 
-          index = c("abb","year"), 
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, data = turnout,
+          index = c("abb","year"),
           type = "bivariate",
           style = c("c","b"),
           main = "EDR Reform and Turnout", ylab = "Turnout")
 
-panelview(lnpop ~ demo, data = capacity, index = c("country", "year"), 
+panelview(lnpop ~ demo, data = capacity, index = c("country", "year"),
           ylim = list(c(8, 9.4), c(0.25, 0.6)),
           type = "bivar")
 
@@ -216,8 +223,8 @@ panelview(Y ~ x, data = simdata,
 
 
 ## Line the discete treatment
-# 1. Y: continuous; D: discrete 
-panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, data = turnout, 
+# 1. Y: continuous; D: discrete
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, data = turnout,
           index = c("abb","year"),
           type = "bivar",
           style = c("line","connected"),
@@ -234,7 +241,7 @@ panelview(Y ~ D, data = simdata, index = c("id", "time"),
 ##########################################
 
 # 1. Continuous Y, discrete D:
-panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, data = turnout, 
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, data = turnout,
           index = c("abb","year"),
           type = "bivar",
           by.unit = TRUE,
@@ -276,8 +283,8 @@ panelview(Y ~ x, data = simdata,
 
 
 ## Line the discete treatment
-# 1. Y: continuous; D: discrete 
-panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, data = turnout, 
+# 1. Y: continuous; D: discrete
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, data = turnout,
           index = c("abb","year"),
           type = "bivar",
           by.unit = TRUE,
@@ -285,7 +292,7 @@ panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, data = turnout,
           theme.bw = FALSE,
           lwd = 0.5,
           show.id = c(1:12),
-          ylab = "Turnout") 
+          ylab = "Turnout")
 
 # 2. Y: Discrete; D: discrete
 panelview(Y ~ D, data = simdata,
@@ -296,5 +303,5 @@ panelview(Y ~ D, data = simdata,
           style = "line",
           theme.bw = FALSE,
           lwd = 0.4,
-          id = unique(simdata$id)[1:20]) 
+          id = unique(simdata$id)[1:20])
 

@@ -1,8 +1,8 @@
 Package: panelView
 Type: Package
 Title: Visualizing Panel Data
-Version: 1.1.10
-Date: 2022-7-17
+Version: 1.1.11
+Date: 2022-8-14
 Authors@R: 
   c(person("Hongyu", "Mou", , "hongyumou@g.ucla.edu", role = c("aut")), 
   person("Licheng", "Liu", ,"liulch@mit.edu", role = c("aut")), 
@@ -16,7 +16,7 @@ Imports: ggplot2 (>= 2.1.0), gridExtra, grid, dplyr
 Depends: R (>= 2.10)
 RoxygenNote: 6.0.1
 NeedsCompilation: no
-Packaged: 2022-07-19 05:00:38 UTC; PC
+Packaged: 2022-08-14 05:56:31 UTC; PC
 Author: Hongyu Mou [aut],
   Licheng Liu [aut],
   Yiqing Xu [aut, cre] (<https://orcid.org/0000-0003-2041-6671>)

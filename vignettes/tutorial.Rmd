@@ -44,10 +44,6 @@ Note that *Y*, *D*, and *X* in the above table are merely labels; they can be an
 
 First, we show how to visualize the treatment conditions and missing values in a panel dataset. The treatment indicator may be dichotomous or have more than 2 levels. We first load the **panelView** package, which ships three datasets.
 
-```{r echo = FALSE, results = 'asis', message = FALSE}
-rm(list=ls())
-```
-
 ```{r}
 library(panelView)
 data(panelView)
@@ -81,7 +77,7 @@ panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
           xlab = "Year", ylab = "State", pre.post = TRUE)
 ```
 
-Again, we can change the labels in the legend. Make sure the length of `legend.labs` is the same as the number of treatment status (in this case, 3).
+Again, we can change the labels in the legend. Make sure the length of `legend.labs` is the same as the number of treatment statuses (in this case, 3).
 ```{r treat1-4, cache = TRUE, fig.height = 8}
 panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, 
           data = turnout, index = c("abb","year"), 
@@ -127,7 +123,7 @@ panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
 
 ***
 
-For a panel dataset in which the treatment may switch on and off, we do not differentiate between pre- and post-treatment status. To demonstrate how `panelview` can be used in a more general setting, the following plot uses the `capacity` dataset, which is used to investigate the effect of democracy, the treatment, on state capacity, the outcome ([Wang and Xu 2018](http://journals.sagepub.com/doi/full/10.1177/2053168018772398)).  From the figure below, we see quite a few cases of democratic reversals and that there are many missing values. 
+For a panel dataset in which the treatment may switch on and off, we do not differentiate between pre- and post-treatment statuses. To demonstrate how `panelview` can be used in a more general setting, the following plot uses the `capacity` dataset, which is used to investigate the effect of democracy, the treatment, on state capacity, the outcome ([Wang and Xu 2018](http://journals.sagepub.com/doi/full/10.1177/2053168018772398)).  From the figure below, we see quite a few cases of democratic reversals and that there are many missing values. 
 
 ```{r treat2-1, fig.height = 10}
 panelview(Capacity ~ demo + lnpop + lngdp, 
@@ -149,7 +145,7 @@ panelview(Capacity ~ demo + lnpop + lngdp,
 ***
 ### Plot a subset of units
 
-Sometimes a dataset has many units and we only want to take a peak of a subset of the units. **panelview** allows users to specify the units to be be shown by specifying the `show.id` (units in their alphabetical order) or `id` (original unit ids recoded in the "unit" variable) options. In the following figure, we plot the treatment status of the first 25 units. When the number of units is over 500, **panelview** will display treatment status of 500 randomly selected units. Users can overwrite this behavior either by specifying the unit to be displayed using `show.id` or `id` options, or by setting `display.all = TRUE`.
+Sometimes a dataset has many units and we only want to take a peak of a subset of the units. **panelview** allows users to specify the units to be be shown by specifying the `show.id` (units in their alphabetical order) or `id` (original unit ids recoded in the "unit" variable) options. In the following figure, we plot the treatment statuses of the first 25 units. 
 
 ```{r treat3-1, fig.height = 5}
 panelview(Capacity ~ demo + lnpop + lngdp, data = capacity, 
@@ -165,7 +161,7 @@ panelview(D = "demo", data = capacity, index = c("ccode", "year"),
           show.id = c(1:25), type = "treat")
 ```
 
-Below we plot the treatment status of the next 25 units by calling their names, i.e., their `ccode`. Note that several countries are removed from the plot due to missing values in the specified variables. 
+Below we plot the treatment statuses of the next 25 units by calling their names, i.e., their `ccode`. Note that several countries are removed from the plot due to missing values in the specified variables. 
 
 ```{r treat3-3, fig.height = 5}
 panelview(Capacity ~ demo + lnpop + lngdp, 
@@ -293,7 +289,7 @@ panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
           main = "EDR Reform and Turnout", theme.bw = FALSE)
 ```
 
-And we can change the colors for observations under different treatment status using the option `color`.
+And we can change the colors for observations under different treatment statuses using the option `color`.
 
 ```{r outcome1-4, cache = TRUE, fig.height = 6}
 panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, 
@@ -330,6 +326,8 @@ panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
           type = "outcome", main = "EDR Reform and Turnout",
           by.group.side = TRUE, cex.main = 20, cex.main.sub = 15)
 ```
+
+
 ***
 ### Ignore treatment status
 
@@ -348,6 +346,20 @@ panelview(Y = "turnout", data = turnout,
           index = c("abb","year"), type = "outcome",
           main = "Turnout", ylim = c(0,100), 
           xlab = "Year", ylab = "Turnout")
+```
+
+
+***
+### Outcome trajectories by cohort
+
+Starting from v 1.1.11, users can use the `by.cohort = TRUE` option to plot the average outcome trajectories of units with same treatment history (if the number of unique treatment history is less than 20). This type of plots can help users diagnose the extent to which treatment effect heterogeneity may cause biases of certain estimators (e.g. the two-way fixed effects estimators).
+
+```{r outcome4-1, cache = TRUE, fig.height = 6}
+panelview(turnout ~ policy_edr+policy_motor,
+          data = turnout, index = c("abb","year"), type = "outcome",
+          main = "EDR Reform and Turnout", by.cohort = TRUE, ylim = c(40, 80),
+          legend.labs = c("Control States","Treated States (before EDR)",
+                          "Treated States (after EDR)"))
 ```
 
 

@@ -1,5 +1,5 @@
 ## A pre-view function for TSCS data
-## 2022-07-17
+## 2022-08-14
 
 ##---------------------------------------------------------------##
 ## preview of data treatment status, missing values and outcome ##
@@ -47,8 +47,9 @@ panelview <- function(data, # a data frame (long-form)
                       lwd = 0.2,
                       leave.gap = FALSE,
                       by.group.side = FALSE,
-                      display.all = FALSE
-                    ) {  
+                      display.all = FALSE,
+                      by.cohort = FALSE
+                    ) {
         
     ## ------------------------- ##
     ## parse variable.           ##
@@ -78,15 +79,20 @@ panelview <- function(data, # a data frame (long-form)
 
     if (type == "missing" | type == "miss") {
         if (ignore.treat == 1) {
-            stop("option type = missing should not be combined with ignoretreat = TRUE")
+            stop("option \"type = missing\" should not be combined with \"ignoretreat = TRUE\"")
         }
     }
+
+    if (type != "outcome" & by.cohort == TRUE) {
+        stop("option \"by.cohort = TRUE\" should be combined with \"type = \'outcome\'\"")
+    }
+
             
 
     if (!is.null(formula)) { # with formula
 
         if (formula[[1]] != "~") { # no "Y/D/X = var" or "var1 ~ var2"
-            stop("need to specify Y/D/X or formula")
+            stop("need to specify \"Y\"/\"D\"/\"X\" or \"formula\"")
         }
 
         varnames <- all.vars(formula)
@@ -102,7 +108,7 @@ panelview <- function(data, # a data frame (long-form)
             ignore.treat <- 1
 
             if (type == "treat") { # Y ~ 1, type(treat)
-                message("type = treat not allowed. Plot type = missing instead.\n")
+                message("\"type = treat\" not allowed. Plot \"type = missing\" instead.\n")
                 type <- "missing"
             }
         } else if (length(varnames) == 2) {
@@ -158,7 +164,7 @@ panelview <- function(data, # a data frame (long-form)
         varnames <- c(Y, D, X)
         if (is.null(D)==TRUE & is.null(X)==TRUE) { # Y="Y", set type = "miss" as default
             if (type == "treat") {
-                message("type = treat not allowed. Plot type = missing instead.\n")
+                message("\"type = treat\" not allowed. Plot \"type = missing\" instead.\n")
                 type <- "missing"
             }
         }
@@ -185,6 +191,10 @@ panelview <- function(data, # a data frame (long-form)
     ## exclude other covariates 
     data <- data[,c(index, Y, D, X)] 
 
+    if (by.cohort == TRUE) {
+        leave.gap <- 1
+    }
+
     if (leave.gap == 0) {
         data <- na.omit(data)
     }
@@ -200,6 +210,46 @@ panelview <- function(data, # a data frame (long-form)
     if (is.logical(leave.gap) == FALSE & !leave.gap%in%c(0, 1)) {
         stop("leave.gap is not a logical flag.")
     } 
+
+    if (is.logical(by.cohort) == FALSE & !by.cohort%in%c(0, 1)) {
+        stop("by.cohort is not a logical flag.")
+    } 
+
+    if (is.logical(display.all) == FALSE & !display.all%in%c(0, 1)) {
+        stop("display.all is not a logical flag.")
+    }
+
+    if (is.logical(by.group.side) == FALSE & !by.group.side%in%c(0, 1)) {
+        stop("by.group.side is not a logical flag.")
+    }
+
+    if (is.logical(by.unit) == FALSE & !by.unit%in%c(0, 1)) {
+        stop("by.unit is not a logical flag.")
+    }
+
+    if (is.logical(axis.adjust) == FALSE & !axis.adjust%in%c(0, 1)) {
+        stop("axis.adjust is not a logical flag.")
+    }
+
+    if (is.logical(pre.post) == FALSE & !pre.post%in%c(0, 1)) {
+        stop("pre.post is not a logical flag.")
+    }
+
+    if (is.logical(theme.bw) == FALSE & !theme.bw%in%c(0, 1)) {
+        stop("theme.bw is not a logical flag.")
+    }
+
+    if (is.logical(by.timing) == FALSE & !by.timing%in%c(0, 1)) {
+        stop("by.timing is not a logical flag.")
+    }
+
+    if (is.logical(by.group) == FALSE & !by.group%in%c(0, 1)) {
+        stop("by.group is not a logical flag.")
+    }
+
+    if (is.logical(ignore.treat) == FALSE & !ignore.treat%in%c(0, 1)) {
+        stop("ignore.treat is not a logical flag.")
+    }
 
     #if (na.rm == FALSE & sum(is.na(data)) > 0) {
     #    stop("Missing values in dataset. Try set na.rm = TRUE.\n")
@@ -224,7 +274,6 @@ panelview <- function(data, # a data frame (long-form)
             message("Time is not evenly distributed (possibly due to missing data).\n")
     }
     }
-
 
 
     if (leave.gap == 1) {
@@ -261,7 +310,7 @@ panelview <- function(data, # a data frame (long-form)
         }
         data <- data[1:(length(data)-1)] #drop the differencetime column
     }
-    
+
 
 
     ## check duplicated observations
@@ -275,7 +324,7 @@ panelview <- function(data, # a data frame (long-form)
     #}
 
     if (length(unique(data[,index[1]])) > 300 & gridOff != TRUE & type != "outcome") {
-        message("If the number of units is more than 300, we set gridOff = TRUE.\n")
+        message("If the number of units is more than 300, we set \"gridOff = TRUE\".\n")
         gridOff <- TRUE
     }
     
@@ -285,7 +334,7 @@ panelview <- function(data, # a data frame (long-form)
 
     if (display.all == FALSE & length(unique(data[,index[1]])) > 500) {
         message("If the number of units is more than 500, we randomly select 500 units to present.
-        You can set display.all = TRUE to show all units.\n")
+        You can set \"display.all = TRUE\" to show all units.\n")
         set.seed(1346)
         sample_subject_ids = sample(unique(data[,index[1]]), 500)
         data = subset(data, data[,index[1]] %in% sample_subject_ids)
@@ -370,6 +419,10 @@ panelview <- function(data, # a data frame (long-form)
         d.levels <- sort(unique(data[, D]))
         n.levels <- length(d.levels) # n.levels: treatment levels
         d.bi <- d.levels[1] == 0 & d.levels[2] == 1 & n.levels == 2 # d.bi: binary treatment
+
+        if (d.bi == FALSE & by.cohort == TRUE) {
+            stop("option \"by.cohort = TRUE\" works only with dummy treatment variable")
+        }
 
         if (outcome.type == "discrete") {
             y.levels <- sort(unique(data[, Y]))
@@ -469,7 +522,7 @@ panelview <- function(data, # a data frame (long-form)
 
 
     ## store variable names
-    ## data.old <- data
+    data.old <- data
     Yname <- Y
     Dname <- D
 
@@ -547,8 +600,7 @@ panelview <- function(data, # a data frame (long-form)
             if (!is.null(Yname)) {
                 Y[data[i,index.time],data[i,index.id]] <- data[i,Yname] 
             }
-            if (ignore.treat == 0) {
-                
+            if (ignore.treat == 0) {  
                 D[data[i,index.time],data[i,index.id]] <- data[i,Dname] 
             }
             I[data[i,index.time], data[i,index.id]] <- 1 #I: observed(1) and missing(0)
@@ -611,6 +663,9 @@ panelview <- function(data, # a data frame (long-form)
             DID <- 0
             if (type == "outcome" || type == "bivar" || type == "bivariate") {
                 message("Treatment has reversals.\n")
+            if (by.cohort == TRUE) {
+                stop("option by.cohort = TRUE works only with staggered adoption")
+            }
             }
             ## by.group <- TRUE
             FEmode <- 1
@@ -712,8 +767,7 @@ if (leave.gap == 0) {
                     ignore.treat <- 1   
         }
     }
-} 
-
+}
 else if (leave.gap == 1) {
         if (ignore.treat == 0 && d.bi == 1) { #  binary, and without ignore.treat 
         con1 <- type == "treat" && pre.post == TRUE
@@ -729,10 +783,13 @@ else if (leave.gap == 1) {
             D.tr <- as.matrix(D[,which(tr==1)])
             I.tr <- as.matrix(I[,which(tr==1)])
             Y.tr <- Y.co <- NULL
+
             if (type == "outcome") {
                 Y.tr <- as.matrix(Y[,which(tr==1)])
                 Y.co <- as.matrix(Y[,which(tr==0)])
             }
+
+            
             
 
             Ntr <- sum(tr)
@@ -1111,7 +1168,7 @@ else if (leave.gap == 1) {
             ## title
             if (is.null(main) == TRUE) {
                 p <- p + ggtitle("Raw Data")
-            } else if (main!="") {
+            } else if (main != "") {
                 p <- p + ggtitle(main)
             }
 
@@ -1140,13 +1197,13 @@ else if (leave.gap == 1) {
                     time.pst <- c(pst[show,] * time[show])
                     time.pst <- time.pst[which(c(pst[show,])==1)]
                     Y.tr.pst <- c(Y.tr[show,])[which(pst[show,]==1)]
+                    
                     id.tr.pst <- matrix(rep(1:Ntr,each=TT),TT,Ntr,byrow=FALSE)[show,]
                     id.tr.pst <- c(id.tr.pst)[which(pst[show,]==1)]
                     T1_0 <- c(T1)[which(T1==0)]
                     T1_1 <- c(T1)[which(T1==1)]
                     N_T1_1 <- sum(T1_1)
-                    N_T1_0 <- Nco*nT + Ntr*nT + length(Y.tr.pst) - N_T1_1 
-                    
+                    N_T1_0 <- Nco*nT + Ntr*nT + length(Y.tr.pst) - N_T1_1                   
 
                     data <- cbind.data.frame("time" = c(rep(time[show], N), time.pst),
                                              "outcome" = c(c(Y.tr[show,]),
@@ -1157,7 +1214,7 @@ else if (leave.gap == 1) {
                                                         rep("tr.pst",length(Y.tr.pst))),
                                             "last_dot" = c(rep("0",N_T1_0),
                                                            rep("1",N_T1_1)),
-                                             "id" = c(rep(1:N,each = nT), id.tr.pst*(-1)))
+                                            "id" = c(rep(1:N,each = nT), id.tr.pst*(-1)))
 
                     idtimes <- sapply(1:length(data$id),function(x)sum(data$id[1:x]==data$id[x]))
                     data <- cbind(data, idtimes)
@@ -1182,6 +1239,134 @@ else if (leave.gap == 1) {
                         set.labels <- c("Controls","Treated (Pre)","Treated (Post)") 
                     }
                     labels.ncol <- 3
+
+                
+
+                if (by.cohort == TRUE) {
+                    # expand to balanced panel:
+                    ref <- expand.grid(id = unique(data.old[,index.id]), time = unique(data.old[,index.time]))
+                    data.old <- merge(ref, data.old, by = 1:2, all.x = TRUE)
+                    colnames(data.old)[4] <- "treatment"
+
+                    #data.old <- data.old %>%
+                     #               arrange(id) %>%
+                      #              mutate(post_value = lead(treatment))
+                    #for (i in 1:dim(data.old)[1]) {
+                     #   if (isTRUE(data.old[i, 2] == max(data.old$time))==TRUE) {
+                      #      data.old[i, ncol(data.old)] <- NA
+                       # }
+                    #}
+
+                    #data.old <- data.old[with(data.old, order(id,time)), ]  # sort by id and then by date
+                    #data.old$pre_value = c(NA, data.old$treatment[-length(data.old$treatment)]) # create a new var with data displaced by 1 unit                   
+                    #data.old$pre_value[data.old$id != c(NA, data.old$id[-length(data.old$id)])] = NA # NA data with different current and lagged id
+                    
+                    #for (i in 2:dim(data.old)[1]) {
+                        #if (isTRUE(data.old[i-1, "pre_value"] == 1)==TRUE & is.na(data.old[i, "pre_value"])==TRUE) {
+                         #   data.old[i, "pre_value"] <- 1
+                        #}
+                       # if (is.na(data.old[i, "treatment"])==TRUE & isTRUE(data.old[i, "pre_value"] == 1)==TRUE) {
+                      #      data.old[i, "treatment"] <- 1
+                     #   }
+                    #}
+
+
+                    #for (i in (dim(data.old)[1]-1):1) { # still need to bysort each id!
+                     #   if (is.na(data.old[i, "post_value"])==TRUE & isTRUE(data.old[i+1, "post_value"] == 0)==TRUE) {
+                      #      data.old[i, "post_value"] <- 0
+                       # }
+                        #if (is.na(data.old[i, "treatment"])==TRUE & isTRUE(data.old[i, "post_value"] == 0)==TRUE) {
+                         #   data.old[i, "treatment"] <- 0
+                    #}
+                    #}
+
+                    #data.old <- data.old[ , ! names(data.old) %in% c("pre_value", "post_value")]
+
+
+                    data.old$treatment<- ave(data.old$treatment, data.old$id, FUN=function(x) approxfun(x, method = "constant", rule=2)(seq_along(x)))
+                    #1. If a person's first follow-up data is missing, then add the value of the next row;
+                    #2. If a person's non-first follow-up data is missing, then add the value of the previous row;
+                    #3. If multiple consecutive follow-up data are missing, then add the value of the previous non-missing row.
+
+
+
+                    data.old$treatment_history <- ave(data.old[,"treatment"], data.old$id, FUN = function(x) paste(x, collapse= "_")) # data.old[,4]: treatment; data.old[,1]: id
+
+                    cat(paste0("Number of unique treatment history: ", length(unique(data.old$treatment_history))))
+                    cat("\n")
+
+#print(data.old)
+#print(unique(data.old$treatment_history)) #sss
+
+
+                    if (length(unique(data.old$treatment_history)) > 20) {
+                        stop("Option \"by.cohort = TRUE\" would not work if the number of unique treatment history is more than 20.")
+                    }
+                    else {
+                        data.old$outcomehistorymean <- ave(data.old[,3], data.old$treatment_history, data.old$time, FUN=function(x) mean(x, na.rm=TRUE)) # data.old[,3]: outcome
+
+                        data.old <- data.old[,c("time", "treatment", "treatment_history", "outcomehistorymean")]
+
+                        names(data.old)[names(data.old) == 'outcomehistorymean'] <- 'outcome'
+                        names(data.old)[names(data.old) == 'treatment_history'] <- 'id'
+                        #data.old <- data.old[!duplicated(data.old), ]
+                        N_cohort <- length(sort(unique(data.old$id))) 
+
+                        #group id and time to numeric values:
+                        data.old[,3] <- as.numeric(as.factor(data.old[,3]))
+                        data.old[,1] <- as.numeric(as.factor(data.old[,1]))
+
+                        Y <- matrix(NA, TT, N_cohort) 
+                        for (i in 1:dim(data.old)[1]) {
+                            Y[data.old[i,1],data.old[i,3]] <- data.old[i,4] # data.old[,1]: time; data.old[,3]: id; data.old[,4]: outcome
+                        }
+
+                        D <- matrix(0, TT, N_cohort)
+                        for (i in 1:dim(data.old)[1]) {
+                            D[data.old[i,1],data.old[i,3]] <- data.old[i,2] # data.old[,2]: treatment
+                        }
+
+                        tr <- D[TT,] == 1
+                        Ntr <- sum(tr)
+                        Nco <- N_cohort - Ntr
+                        Y.tr <- Y.co <- NULL
+                        Y.tr <- as.matrix(Y[,which(tr==1)])
+                        Y.co <- as.matrix(Y[,which(tr==0)])
+                        tr.pos <- which(D[TT,] == 1) ## which units are treated
+                        T1 <- apply(D == 1, 2, sum, na.rm = TRUE)[tr.pos] ## number of periods expose to treatment 
+                        T1[which(T1 > 1)] <- 0 ## indicate the last dot of treatment status change
+                        D.tr <- as.matrix(D[,which(tr==1)])
+                        pst <- D.tr
+                        
+                        time.pst <- c(pst[show,] * time[show])
+                        time.pst <- time.pst[which(c(pst[show,])==1)]
+                        Y.tr.pst <- c(Y.tr[show,])[which(pst[show,]==1)]
+                        id.tr.pst <- matrix(rep(1:Ntr,each=TT),TT,Ntr,byrow=FALSE)[show,]
+                        id.tr.pst <- c(id.tr.pst)[which(pst[show,]==1)]
+                        T1_0 <- c(T1)[which(T1==0)] 
+                        T1_1 <- c(T1)[which(T1==1)] #last dot of treatment status change
+                        N_T1_1 <- sum(T1_1)
+                        N_T1_0 <- Nco*nT + Ntr*nT + length(Y.tr.pst) - N_T1_1                        
+                    
+
+                    data <- cbind.data.frame("time" = c(rep(time[show], N_cohort), time.pst),
+                                             "outcome" = c(c(Y.tr[show,]),
+                                                           c(Y.co[show,]),
+                                                           Y.tr.pst),
+                                             "type" = c(rep("tr",(Ntr*nT)),
+                                                        rep("co",(Nco*nT)),
+                                                        rep("tr.pst",length(Y.tr.pst))),
+                                            "last_dot" = c(rep("0",N_T1_0),
+                                                           rep("1",N_T1_1)),
+                                            "id" = c(rep(1:N_cohort,each = nT), id.tr.pst*(-1)))
+
+                    idtimes <- sapply(1:length(data$id),function(x)sum(data$id[1:x]==data$id[x]))
+                    data <- cbind(data, idtimes)
+                    data$idtimes <- ave(data$idtimes, data$id, FUN=max)
+                    data$last_dot <- 0
+                    data$last_dot[data$idtimes == 1] <- 1
+                    }
+                }
                 } 
                 else { ## FE mode data
                 
@@ -1237,7 +1422,7 @@ else if (leave.gap == 1) {
                     labels.ncol <- 2
                 }
             
-        
+
                 ## theme
                 p <- ggplot(data) + xlab(xlab) +  ylab(ylab)
                 if (theme.bw == TRUE) {
@@ -1805,6 +1990,8 @@ else if (leave.gap == 1) {
         }
     }    ## end of raw plot
     
+
+
     }   ############# Treatment Status ###############
     else if (type=="treat") {
         
@@ -1968,11 +2155,11 @@ else if (leave.gap == 1) {
             if (length(id) > 1 && ignore.treat == 0 && d.bi == TRUE) {
 
                 if (by.timing == TRUE) {
-                    co.seq <- which(unit.type == 1)
+                    co.seq <- which(unit.type == 1) ## unit.type: 1 for control; 2 for treated; 3 for reversal
                     tr.seq <- setdiff(1:N, co.seq)
                     dataT0 <- cbind.data.frame(tr.seq, T0, co.total) 
                     names(dataT0) <- c("id", "T0", "co.total")
-                    dataT0 <- dataT0[order(dataT0[, "T0"], dataT0[, "co.total"], dataT0[, "id"]),] 
+                    dataT0 <- dataT0[order(dataT0[, "T0"], dataT0[, "co.total"], dataT0[, "id"]),] ## order of by.timing
 
                     tr.seq <- dataT0[,"id"]
                     missing.seq <- c(tr.seq, co.seq)

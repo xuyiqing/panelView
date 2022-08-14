@@ -19,7 +19,7 @@
             cex.axis.x = NULL, cex.axis.y = NULL,
             cex.lab = 12, cex.legend = 12, background = NULL,
             style = NULL, by.unit = FALSE, lwd = 0.2, leave.gap = FALSE,
-            by.group.side = FALSE, display.all = FALSE)
+            by.group.side = FALSE, display.all = FALSE, by.cohort = FALSE)
 }
 \arguments{
   \item{data}{a data frame. The panel does not have to be balanced.}
@@ -65,6 +65,7 @@
   \item{leave.gap}{a logical flag indicating whether to keep time gaps as  white bars if time is not evenly distributed (possibly due to missing data). Default value is \code{leave.gap = FALSE}.}
   \item{by.group.side}{a logic flag indicating whether to arrange subfigures of \code{by.group = TRUE} in a row rather than in a column.}
   \item{display.all}{a logic flag indicating whether to show all units if the number of units is more than 500, otherwise we randomly select 500 units to present.}
+  \item{by.cohort}{a logic flag indicating whether to plot the average outcome lines based on unique treatment history.}
 }
 
 \details{

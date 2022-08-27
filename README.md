@@ -9,6 +9,8 @@
 stable](https://img.shields.io/badge/lifecycle-stable-green.svg)](https://www.tidyverse.org/lifecycle/#stablel)
 [![License:
 MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![downloads:
+CRAN](https://cranlogs.r-pkg.org/badges/grand-total/panelView)](https://www.datasciencemeta.com/rpackages)
 <!-- badges: end -->
 
 **Authors:** Hongyu Mou (UCLA); Licheng Liu (MIT); [Yiqing
@@ -18,7 +20,7 @@ Xu](https://yiqingxu.org/) (Stanford)
 
 **Repos:** [Github](https://github.com/xuyiqing/panelView) (1.1.11)
 [CRAN](https://cran.r-project.org/web/packages/panelView/index.html)
-(1.1.9)
+(1.1.11)
 
 **Examples:** R code used in the tutorial can be downloaded from
 [here](https://yiqingxu.org/packages/panelview/examples.R).
@@ -62,7 +64,7 @@ remove.packages('panelView')
 remove.packages('panelview') # package name "panelview" no longer in use
 ```
 
-## Example
+## Tutorial & Paper
 
 For example, plot treatment status in a panel dataset:
 
@@ -75,9 +77,15 @@ panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
 ```
 
 Note that “V” in the package name is capitalized while “v” in the
-function name is not—to be consistent with the Stata version. See
+function name is not—to be consistent with the Stata version.
+
+See the
 [tutorial](https://yiqingxu.org/packages/panelview/articles/tutorial.html)
-for more details.
+page for more details.
+
+For a paper version of the tutorial, see [Mou, Liu & Xu
+(2022)](http://ssrn.com/abstract=4202154): “panelView: Panel Data
+Visualization in R and Stata.”
 
 ## Report bugs
 

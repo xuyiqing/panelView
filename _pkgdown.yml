@@ -41,8 +41,9 @@ reference:
     - simdata
     - turnout
     - capacity
-
-
+  - title: Other
+  - contents: panelView-package    
+  
 footer:
   structure:
     left: developed_by

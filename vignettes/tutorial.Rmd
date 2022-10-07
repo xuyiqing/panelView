@@ -20,6 +20,8 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
+  fig.width = 10,
+  fig.height = 7,
   comment = "#>"
 )
 ```  
@@ -52,7 +54,7 @@ ls()
 
 Using the `turnout` dataset (a balanced panel), we show the treatment status of Election Day Registration (EDR) in each state in a given year ([Xu 2017](http://dx.doi.org/10.1017/pan.2016.2)). The first variable on the right-hand-side of the regression formula is designated as the treatment indicator. Including covariates may change the plot because of missing values in these covariates. The `index` option specifies the unit (group) and time indicators. We can change the labels (titles) of x- and y-axes through `xlab` and `ylab`, respectively.
 
-```{r treat1-1, cache=FALSE, fig.height = 6}
+```{r treat1-1, cache=FALSE}
 panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, 
           data = turnout, index = c("abb","year"), 
           xlab = "Year", ylab = "State")

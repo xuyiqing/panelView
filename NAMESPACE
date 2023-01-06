@@ -10,10 +10,10 @@ importFrom("ggplot2", "geom_boxplot", "geom_density", "geom_tile",
            "scale_colour_manual", "aes", "annotate", "ggtitle", "geom_rect",
            "scale_color_discrete", "scale_color_manual", "ggplotGrob",
            "guide_legend", "margin", "guides","xlab","ylab", "unit",
-           "element_rect", "geom_jitter", "scale_shape_manual",
+           "element_rect", "geom_jitter", "scale_shape_manual", "geom_bar",
            "scale_fill_gradient", "sec_axis", "facet_wrap")
 importFrom("gridExtra", "grid.arrange", "arrangeGrob")
 importFrom("grid", "textGrob", "gpar")
-importFrom("dplyr", "coalesce")
+importFrom("dplyr", "coalesce", "summarise", "group_by_all")
 
 export(panelview)

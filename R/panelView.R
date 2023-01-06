@@ -12,7 +12,7 @@ panelview <- function(data, # a data frame (long-form)
                       X = NULL,
                       index, # c(unit, time) indicators
                       ignore.treat = FALSE,
-                      type = "treat", ## treat, miss(ing), outcome, or bivar(iate)
+                      type = "treat", ## treat, miss(ing), outcome, or bivar(iate), fraction
                       outcome.type = "continuous", # continuous or discrete
                       treat.type = NULL, # discrete or continuous
                       by.group = FALSE, # (color pre-treatment treated differently)
@@ -48,7 +48,8 @@ panelview <- function(data, # a data frame (long-form)
                       leave.gap = FALSE,
                       by.group.side = FALSE,
                       display.all = FALSE,
-                      by.cohort = FALSE
+                      by.cohort = FALSE,
+                      collapse.history = FALSE
                     ) {
         
     ## ------------------------- ##
@@ -68,142 +69,6 @@ panelview <- function(data, # a data frame (long-form)
         else {
             data[,index[1]] <- as.numeric(levels(data[,index[1]]))[data[,index[1]]] #units are numbers as factor
         }
-    }
-
-    if (by.group.side == TRUE) {
-        if (by.group == FALSE) {
-            by.group <- TRUE
-        }
-    }
-
-
-    if (type == "missing" | type == "miss") {
-        if (ignore.treat == 1) {
-            stop("option \"type = missing\" should not be combined with \"ignoretreat = TRUE\"")
-        }
-    }
-
-    if (type != "outcome" & by.cohort == TRUE) {
-        stop("option \"by.cohort = TRUE\" should be combined with \"type = \'outcome\'\"")
-    }
-
-            
-
-    if (!is.null(formula)) { # with formula
-
-        if (formula[[1]] != "~") { # no "Y/D/X = var" or "var1 ~ var2"
-            stop("need to specify \"Y\"/\"D\"/\"X\" or \"formula\"")
-        }
-
-        varnames <- all.vars(formula)
-    
-        Y <- formula[[2]] # left hand side of the formula
-
-        if (is.numeric(Y) == FALSE) { # Y is a variable
-        ## outcome
-        Y <- varnames[1]
-        ## treatment indicator and covariates
-        if (length(varnames) == 1) { ## only y
-            D <- X <- NULL
-            ignore.treat <- 1
-
-            if (type == "treat") { # Y ~ 1, type(treat)
-                message("\"type = treat\" not allowed. Plot \"type = missing\" instead.\n")
-                type <- "missing"
-            }
-        } else if (length(varnames) == 2) {
-            if (ignore.treat == 0) {
-                D <- varnames[2]
-                X <- NULL
-            } else {
-                D <- NULL
-                X <- varnames[2]
-            }   
-        } else { # length(varnames) > 2
-            if (ignore.treat == 0) {
-                D <- varnames[2]
-                X <- varnames[3:length(varnames)]
-            } else {
-                D <- NULL
-                X <- varnames[2:length(varnames)]
-            }
-        }
-        }
-        else if (is.numeric(Y) == TRUE) { # Y is a number
-         ## outcome
-        Y <- NULL
-        ## treatment indicator and covariates
-        if (length(varnames) == 1) { # 1 ~ D/X
-            if (ignore.treat == 0) { # 1 ~ D
-                D <- varnames[1]
-                X <- NULL
-            } else { # 1 ~ X
-                stop("formula form not allowed")
-            }
-            # 1 ~ variable, type(miss): not allowed
-            if (type == "missing" | type == "miss") {
-                stop("formula form not allowed")
-            }
-        } else if (length(varnames) == 2) { ## 1 ~ D + X
-            if (ignore.treat == 0) { # 1 ~ D + X
-                D <- varnames[1]
-                X <- varnames[2]
-            } else { # 1 ~ X
-                stop("formula form not allowed")
-            }   
-        } else { # length(varnames) > 2
-            if (ignore.treat == 0) {
-                D <- varnames[1]
-                X <- varnames[2:length(varnames)]
-            } else {
-                stop("formula form not allowed")
-            }
-        }
-        }
-    } else { # no formula
-        varnames <- c(Y, D, X)
-        if (is.null(D)==TRUE & is.null(X)==TRUE) { # Y="Y", set type = "miss" as default
-            if (type == "treat") {
-                message("\"type = treat\" not allowed. Plot \"type = missing\" instead.\n")
-                type <- "missing"
-            }
-        }
-    }
-    
-
-    ## check Incorrect variable names
-    for (i in 1:length(varnames)) {
-        if(!varnames[i] %in% colnames(data)) {
-            stop(paste("Variable \"", varnames[i],"\" is not in the dataset.", sep = ""))
-        }
-    }
-
-    ## index 
-    if (length(index) != 2 | sum(index %in% colnames(data)) != 2) {
-        stop("\"index\" option misspecified. Try, for example, index = c(\"unit.id\", \"time\").")
-    }
-        
-    ## index names
-    index.id <- index[1]
-    index.time <- index[2]
-
-
-    ## exclude other covariates 
-    data <- data[,c(index, Y, D, X)] 
-
-    if (by.cohort == TRUE) {
-        leave.gap <- 1
-    }
-
-    if (leave.gap == 0) {
-        data <- na.omit(data)
-    }
-    else {
-    # if there is a unit that has variable missing across all periods, then we drop this unit
-    data$rowmiss <- rowSums(is.na(data))
-    data$minrowmiss <- ave(data$rowmiss, list(data[,1]), FUN=min)
-    data <- data[!(data$minrowmiss != 0),] #if minrowmiss != 0, drop this unit
-    data <- data[1:(ncol(data)-2)]
     }
 
     ## remove missing values
@@ -251,6 +116,145 @@ panelview <- function(data, # a data frame (long-form)
         stop("ignore.treat is not a logical flag.")
     }
 
+
+    if (by.group.side == TRUE) {
+        if (by.group == FALSE) {
+            by.group <- TRUE
+        }
+    }
+
+
+    if (type == "missing" | type == "miss") {
+        if (ignore.treat == 1) {
+            stop("option \"type = missing\" should not be combined with \"ignoretreat = TRUE\"")
+        }
+    }
+
+    if (type != "outcome" & by.cohort == TRUE) {
+        stop("option \"by.cohort = TRUE\" should be combined with \"type = \'outcome\'\"")
+    }
+
+            
+    if (!is.null(formula)) { # with formula
+
+        if (formula[[1]] != "~") { # no "Y/D/X = var" or "var1 ~ var2"
+            stop("need to specify \"Y\"/\"D\"/\"X\" or \"formula\"")
+        }
+
+        varnames <- all.vars(formula)
+    
+        Y <- formula[[2]] # left hand side of the formula
+
+        if (is.numeric(Y) == FALSE) { # Y is a variable
+            ## outcome
+            Y <- varnames[1]
+            ## treatment indicator and covariates
+            if (length(varnames) == 1) { ## only y
+                D <- X <- NULL
+                ignore.treat <- 1
+
+                if (type == "treat") { # Y ~ 1, type(treat)
+                    message("\"type = treat\" not allowed. Plot \"type = missing\" instead.\n")
+                    type <- "missing"
+                }
+            } else if (length(varnames) == 2) {
+                if (ignore.treat == 0) {
+                    D <- varnames[2]
+                    X <- NULL
+                } else {
+                    D <- NULL
+                    X <- varnames[2]
+                }   
+            } else { # length(varnames) > 2
+                if (ignore.treat == 0) {
+                    D <- varnames[2]
+                    X <- varnames[3:length(varnames)]
+                } else {
+                    D <- NULL
+                    X <- varnames[2:length(varnames)]
+                }
+            }
+        }
+        else if (is.numeric(Y) == TRUE) { # Y is a number
+            ## outcome
+            Y <- NULL
+            ## treatment indicator and covariates
+            if (length(varnames) == 1) { # 1 ~ D/X
+                if (ignore.treat == 0) { # 1 ~ D
+                    D <- varnames[1]
+                    X <- NULL
+                } else { # 1 ~ X
+                    stop("formula form not allowed")
+                }
+                # 1 ~ variable, type(miss): not allowed
+                if (type == "missing" | type == "miss") {
+                    stop("formula form not allowed")
+                }
+            } else if (length(varnames) == 2) { ## 1 ~ D + X
+                if (ignore.treat == 0) { # 1 ~ D + X
+                    D <- varnames[1]
+                    X <- varnames[2]
+                } else { # 1 ~ X
+                    stop("formula form not allowed")
+                }   
+            } else { # length(varnames) > 2
+                if (ignore.treat == 0) {
+                    D <- varnames[1]
+                    X <- varnames[2:length(varnames)]
+                } else {
+                    stop("formula form not allowed")
+                }
+            }
+        }
+    
+    } else { # no formula
+        varnames <- c(Y, D, X)
+        if (is.null(D)==TRUE & is.null(X)==TRUE) { # Y="Y", set type = "miss" as default
+            if (type == "treat") {
+                message("\"type = treat\" not allowed. Plot \"type = missing\" instead.\n")
+                type <- "missing"
+            }
+        }
+    }
+    
+
+    ## check Incorrect variable names
+    for (i in 1:length(varnames)) {
+        if(!varnames[i] %in% colnames(data)) {
+            stop(paste("Variable \"", varnames[i],"\" is not in the dataset.", sep = ""))
+        }
+    }
+
+    ## index 
+    if (length(index) != 2 | sum(index %in% colnames(data)) != 2) {
+        stop("\"index\" option misspecified. Try, for example, index = c(\"unit.id\", \"time\").")
+    }
+        
+    ## index names
+    index.id <- index[1]
+    index.time <- index[2]
+
+
+    ## exclude other covariates 
+    data <- data[,c(index, Y, D, X)] 
+
+
+    if (by.cohort == TRUE) {
+        leave.gap <- 1
+    }
+
+    if (leave.gap == 0) {
+        data <- na.omit(data)
+    }
+    else {
+        # if there is a unit that has variable missing across all periods, then we drop this unit
+        data$rowmiss <- rowSums(is.na(data))
+        data$minrowmiss <- ave(data$rowmiss, list(data[,1]), FUN=min)
+        data <- data[!(data$minrowmiss != 0),] #if minrowmiss != 0, drop this unit
+        data <- data[1:(ncol(data)-2)]
+    }
+
+
     #if (na.rm == FALSE & sum(is.na(data)) > 0) {
     #    stop("Missing values in dataset. Try set na.rm = TRUE.\n")
     #}    
@@ -272,7 +276,7 @@ panelview <- function(data, # a data frame (long-form)
     if (leave.gap == 0) {
         if (timegap != mintimegap | timegap != inttimegap) {
             message("Time is not evenly distributed (possibly due to missing data).\n")
-    }
+        }
     }
 
 
@@ -344,7 +348,7 @@ panelview <- function(data, # a data frame (long-form)
     ## Checking Other Parameters
     ##-------------------------------## 
 
-    if (!type %in% c("miss", "missing", "raw", "treat", "outcome","bivar","bivariate")) {
+    if (!type %in% c("miss", "missing", "raw", "treat", "outcome","bivar","bivariate","fraction")) {
         stop("\"type\" option misspecified.")
     }
 
@@ -536,14 +540,13 @@ panelview <- function(data, # a data frame (long-form)
         N <- length(input.id)
     }
 
-    id.all <- time.all <- count <- coordin <- data.x <- x.na <- NULL
-    
-    
+    id.all <- time.all <- count <- coordin <- data.x <- x.na <- NULL  
     M <- Y <- I <- D <- X <- NULL
 
 
     if (leave.gap == 0) {
     ## check balanced panel and fill unbalanced panel
+    
     if (dim(data)[1] != TT*N) { # unbalanced panel
         data[,index.id] <- as.numeric(as.factor(data[,index.id])) 
         data[,index.time] <- as.numeric(as.factor(data[,index.time])) 
@@ -551,11 +554,12 @@ panelview <- function(data, # a data frame (long-form)
         if (!is.null(Yname)) {
             Y <- matrix(NA, TT, N)
         }
+        
         I <- matrix(0, TT, N) #I: observed(1) and missing(0)
+        
         if (ignore.treat == 0) {
             D <- matrix(0, TT, N)
         }
-        
 
         for (i in 1:dim(data)[1]) {
             if (!is.null(Yname)) {
@@ -570,6 +574,7 @@ panelview <- function(data, # a data frame (long-form)
         }
 
     } else { # balanced panel
+        
         I <- matrix(1, TT, N) 
         if (!is.null(Yname)) {
             Y <- matrix(data[,Yname], TT, N)
@@ -607,11 +612,47 @@ panelview <- function(data, # a data frame (long-form)
         }
     }
 
+    if (collapse.history == TRUE) {
+
+        if (is.null(M)) {
+            D.f <- rbind(D, I)
+        } else {
+            D.f <- rbind(D, I, M)
+        }
+
+        D.d <- as.data.frame(t(D.f))
+        suppressMessages(ff <- as.data.frame(summarise(group_by_all(D.d), COUNT = n())))
+
+        D <- t(as.matrix(ff[, 1:TT]))
+        I <- t(as.matrix(ff[, (TT+1):(2*TT)]))
+
+        if (is.null(M)) {
+            input.id <- ff[, (2 * TT + 1)]
+        } else {
+            M <- t(as.matrix(ff[, (2 * TT + 1):(3*TT)]))
+            input.id <- ff[, (3 * TT + 1)]
+        }
+
+       
+
+        ## return(obs.missing)
+
+        ## colnames(obs.missing) <- input.id
+        ## rownames(obs.missing) <- raw.time
+
+        N <- length(input.id) 
+
+        ## cat("ok2")
+        ## cat(N)
+
+    }
+
+    D.old <- D ## store the original indicators 
+
 
     ## binary treatment indicator 
     if (ignore.treat == 0 && d.bi == 1) {
 
-        D.old <- D ## store the original indicators
         if (length(unique(c(D.old))) > 2) {
             D[which(D > 1)] <- 1 ## set all treatment levels to 1
         }
@@ -620,7 +661,6 @@ panelview <- function(data, # a data frame (long-form)
         D <- apply(D, 2, function(vec){cumsum(coalesce(vec, 0)) + vec*0}) 
         co.total.all <- TT - apply(D, 2, sum)
         D <- ifelse(D > 0, 1, 0)
-
 
 
         ## timing
@@ -789,9 +829,6 @@ else if (leave.gap == 1) {
                 Y.co <- as.matrix(Y[,which(tr==0)])
             }
 
-            
-            
-
             Ntr <- sum(tr)
             Nco <- N - Ntr
 
@@ -865,9 +902,32 @@ else if (leave.gap == 1) {
     colnames(obs.missing) <- input.id
     rownames(obs.missing) <- raw.time
     
+## cat("ok")
+## plot unique treatment histories 
+#if (collapse.history == TRUE) {
 
-    time <- raw.time
-    id <- input.id 
+#    obs.missing.d <- as.data.frame(t(obs.missing))
+#    suppressMessages(ff <- as.data.frame(summarise(group_by_all(obs.missing.d), COUNT = n())))
+
+#    obs.missing <- t(as.matrix(ff[, 1:TT]))
+#    input.id <- ff[, (TT + 1)]
+
+    ## return(obs.missing)
+
+#    colnames(obs.missing) <- input.id
+#    rownames(obs.missing) <- raw.time
+
+#    N <- length(input.id) 
+
+    ## cat("ok2")
+    ## cat(N)
+
+#}
+
+time <- raw.time
+id <- input.id 
+
+
 
     ## ------------------------------------- ##
     ##          part 2: plot
@@ -993,7 +1053,59 @@ else if (leave.gap == 1) {
 
 
     ############  START  ###############    
-    if (type == "outcome") {
+    if (type == "fraction") {
+
+        ## axes labels
+        if (is.null(xlab) == TRUE) {
+            xlab <- index[2]
+        } else if (xlab == "") {
+            xlab <- NULL
+        }
+        if (is.null(ylab) == TRUE) {
+            ylab <- "Fraction"
+        } else if (ylab == "") {
+            ylab <- NULL
+        }
+
+        frac <- apply(D.old, 1, mean, na.rm = 1)
+        df <- cbind.data.frame(frac, t = 1:TT)
+        df <- df[show, ]
+
+        ## theme
+        p <- ggplot(df, aes(x = t, y = frac)) + geom_bar(stat="identity") + xlab(xlab) +  ylab(ylab)
+
+        if (theme.bw == TRUE) {
+            p <- p + theme_bw() + 
+                     theme(panel.grid.major = element_blank(),
+                           panel.grid.minor = element_blank(),
+                           axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
+                           plot.title = element_text(size=cex.main, hjust = 0.5, face="bold",margin = margin(8, 0, 8, 0)))
+        }
+        else {
+            p <- p + theme(axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
+                           plot.title = element_text(size=cex.main, hjust = 0.5, face="bold",margin = margin(8, 0, 8, 0)))
+        }    
+        
+        if (!is.numeric(time.label)) {
+            p <- p + 
+                scale_x_continuous(expand = c(0, 0), breaks = show[T.b], labels = time.label[T.b])
+        }
+
+        ## title
+        if (is.null(main) == TRUE) {
+            p <- p + ggtitle("Fraction of Treated Units")
+        } else if (main!="") {
+            p <- p + ggtitle(main)
+        }
+
+        ## ylim
+        if (is.null(ylim) == FALSE) {
+            p <- p + coord_cartesian(ylim = ylim)
+        }
+        
+        suppressWarnings(print(p))
+    
+    } else if (type == "outcome") {
         
         ## axes labels
         if (is.null(xlab)==TRUE) {
@@ -1994,7 +2106,8 @@ else if (leave.gap == 1) {
 
     }   ############# Treatment Status ###############
     else if (type=="treat") {
-        
+
+
         if (is.null(xlab)==TRUE) {
             xlab <- index[2]
         } else if (xlab == "") {
@@ -2002,19 +2115,28 @@ else if (leave.gap == 1) {
         }
         if (is.null(ylab)==TRUE) {
             ylab <- index[1]
+            if (collapse.history == TRUE) {
+                ylab <- "Number of Units"
+            }
         } else if (ylab == "") {
             ylab <- NULL
         }
 
         if (is.null(main)==TRUE) {
-            if (ignore.treat == 0) {
-                main <- "Treatment Status"
+            if (collapse.history == TRUE) {
+                main <- "All Treatment Histories"
             } else {
-                main <- "Missing Values"
+                if (ignore.treat == 0) {
+                    main <- "Treatment Status"
+                } else {
+                    main <- "Missing Values"
+                }
             }
         } else if (main == "") {
             main <- NULL
         }
+
+        ## cat(N)
 
         units <- rep(rev(1:N), each = TT)
         period <- rep(1:TT, N)

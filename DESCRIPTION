@@ -1,7 +1,7 @@
 Package: panelView
 Type: Package
 Title: Visualizing Panel Data
-Version: 1.1.13
+Version: 1.1.14
 Date: 2022-8-14
 Authors@R: 
   c(person("Hongyu", "Mou", , "hongyumou@g.ucla.edu", role = c("aut")), 

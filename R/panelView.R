@@ -47,9 +47,10 @@ panelview <- function(data, # a data frame (long-form)
                       lwd = 0.2,
                       leave.gap = FALSE,
                       by.group.side = FALSE,
-                      display.all = FALSE,
+                      display.all = NULL,
                       by.cohort = FALSE,
-                      collapse.history = FALSE
+                      collapse.history = NULL,
+                      missing = FALSE
                     ) {
         
     ## ------------------------- ##
@@ -70,6 +71,42 @@ panelview <- function(data, # a data frame (long-form)
             data[,index[1]] <- as.numeric(levels(data[,index[1]]))[data[,index[1]]] #units are numbers as factor
         }
     }
+
+
+
+
+    ## number of units
+    N0 <- length(unique(data[, index[1]]))
+
+    if (N0 < 500) {
+        
+        if (is.null(collapse.history)) {
+            collapse.history <- FALSE
+        } 
+        if (is.null(display.all)) {
+            display.all <- FALSE
+        }
+
+    } else {
+
+        if (!is.null(collapse.history)) {
+            ## if (collapse.history == FALSE) {
+                if (is.null(display.all)) {
+                    display.all <- FALSE
+                }
+            ## } else {
+
+            ## }
+        } else {
+            if (is.null(display.all)) {
+                collapse.history <- TRUE
+                display.all <- FALSE
+            } else {
+                collapse.history <- FALSE
+            }
+        }
+    }
+    
 
     ## remove missing values
     if (is.logical(leave.gap) == FALSE & !leave.gap%in%c(0, 1)) {
@@ -237,6 +274,27 @@ panelview <- function(data, # a data frame (long-form)
 
     ## exclude other covariates 
     data <- data[,c(index, Y, D, X)] 
+
+    varV <- nv <- NULL
+    if (missing) {
+        ## report missings
+        varV <- c(Y, D, X)
+        nv <- length(varV)
+
+        ## a nv*2 matrix 
+        mis <- matrix(NA, nv, 2)
+        for (i in 1:nv) {
+            mis[i, 1] <- sum(is.na(data[, varV[i]]))
+        }
+        mis[, 2] <- round(mis[, 1] / dim(data)[1] * 100, 1) 
+
+        rownames(mis) <- varV
+        colnames(mis) <- c("# Missing", "% Missing")
+
+        print(mis)
+        cat("\n")
+
+    }
 
 
     if (by.cohort == TRUE) {
@@ -633,14 +691,28 @@ panelview <- function(data, # a data frame (long-form)
             input.id <- ff[, (3 * TT + 1)]
         }
 
-       
+        N <- length(input.id)
+
+        ## sort by cohort size 
+        D.id <- cbind(1:N, input.id)
+        D.id <- D.id[order(D.id[, 2], decreasing = TRUE), ]
+
+        D.id.vec <- D.id[, 1]
+        input.id <- D.id[, 2]
+
+        D <- D[, D.id.vec]
+        I <- I[, D.id.vec]
+
+        if (!is.null(M)) {
+            M <- M[, D.id.vec]
+        }
 
         ## return(obs.missing)
 
         ## colnames(obs.missing) <- input.id
         ## rownames(obs.missing) <- raw.time
 
-        N <- length(input.id) 
+         
 
         ## cat("ok2")
         ## cat(N)

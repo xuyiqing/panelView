@@ -406,7 +406,7 @@ panelview <- function(data, # a data frame (long-form)
     ## Checking Other Parameters
     ##-------------------------------## 
 
-    if (!type %in% c("miss", "missing", "raw", "treat", "outcome","bivar","bivariate","fraction")) {
+    if (!type %in% c("miss", "missing", "raw", "treat", "outcome","bivar","bivariate")) {
         stop("\"type\" option misspecified.")
     }
 
@@ -1125,59 +1125,61 @@ id <- input.id
 
 
     ############  START  ###############    
-    if (type == "fraction") {
+    #if (type == "fraction") {
 
         ## axes labels
-        if (is.null(xlab) == TRUE) {
-            xlab <- index[2]
-        } else if (xlab == "") {
-            xlab <- NULL
-        }
-        if (is.null(ylab) == TRUE) {
-            ylab <- "Fraction"
-        } else if (ylab == "") {
-            ylab <- NULL
-        }
+    #    if (is.null(xlab) == TRUE) {
+    #        xlab <- index[2]
+    #    } else if (xlab == "") {
+    #        xlab <- NULL
+    #    }
+    #    if (is.null(ylab) == TRUE) {
+    #        ylab <- "Fraction"
+    #    } else if (ylab == "") {
+    #        ylab <- NULL
+    #    }
 
-        frac <- apply(D.old, 1, mean, na.rm = 1)
-        df <- cbind.data.frame(frac, t = 1:TT)
-        df <- df[show, ]
+    #    frac <- apply(D.old, 1, mean, na.rm = 1)
+    #    df <- cbind.data.frame(frac, t = 1:TT)
+    #    df <- df[show, ]
 
         ## theme
-        p <- ggplot(df, aes(x = t, y = frac)) + geom_bar(stat="identity") + xlab(xlab) +  ylab(ylab)
+    #    p <- ggplot(df, aes(x = t, y = frac)) + geom_bar(stat="identity") + xlab(xlab) +  ylab(ylab)
 
-        if (theme.bw == TRUE) {
-            p <- p + theme_bw() + 
-                     theme(panel.grid.major = element_blank(),
-                           panel.grid.minor = element_blank(),
-                           axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
-                           plot.title = element_text(size=cex.main, hjust = 0.5, face="bold",margin = margin(8, 0, 8, 0)))
-        }
-        else {
-            p <- p + theme(axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
-                           plot.title = element_text(size=cex.main, hjust = 0.5, face="bold",margin = margin(8, 0, 8, 0)))
-        }    
+    #    if (theme.bw == TRUE) {
+    #        p <- p + theme_bw() + 
+    #                 theme(panel.grid.major = element_blank(),
+    #                       panel.grid.minor = element_blank(),
+    #                       axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
+    #                       plot.title = element_text(size=cex.main, hjust = 0.5, face="bold",margin = margin(8, 0, 8, 0)))
+    #    }
+    #    else {
+    #        p <- p + theme(axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
+    #                       plot.title = element_text(size=cex.main, hjust = 0.5, face="bold",margin = margin(8, 0, 8, 0)))
+    #    }    
         
-        if (!is.numeric(time.label)) {
-            p <- p + 
-                scale_x_continuous(expand = c(0, 0), breaks = show[T.b], labels = time.label[T.b])
-        }
+    #    if (!is.numeric(time.label)) {
+    #        p <- p + 
+    #            scale_x_continuous(expand = c(0, 0), breaks = show[T.b], labels = time.label[T.b])
+    #    }
 
         ## title
-        if (is.null(main) == TRUE) {
-            p <- p + ggtitle("Fraction of Treated Units")
-        } else if (main!="") {
-            p <- p + ggtitle(main)
-        }
+    #    if (is.null(main) == TRUE) {
+    #        p <- p + ggtitle("Fraction of Treated Units")
+    #    } else if (main!="") {
+    #        p <- p + ggtitle(main)
+    #    }
 
         ## ylim
-        if (is.null(ylim) == FALSE) {
-            p <- p + coord_cartesian(ylim = ylim)
-        }
+    #    if (is.null(ylim) == FALSE) {
+    #        p <- p + coord_cartesian(ylim = ylim)
+    #    }
         
-        suppressWarnings(print(p))
+    #    suppressWarnings(print(p))
     
-    } else if (type == "outcome") {
+    #} else 
+
+    if (type == "outcome") {
         
         ## axes labels
         if (is.null(xlab)==TRUE) {

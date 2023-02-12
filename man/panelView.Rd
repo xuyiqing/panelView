@@ -14,7 +14,7 @@
             legend.labs = NULL, main = NULL,
             pre.post = FALSE, id = NULL, show.id = NULL,
             color = NULL, axis.adjust = FALSE, axis.lab = "both",
-            axis.lab.gap = c(0, 0), shade.post = TRUE,
+            axis.lab.gap = c(0, 0), axis.lab.angle = NULL, shade.post = TRUE,
             cex.main = 15, cex.main.sub = 12, cex.axis = 8,
             cex.axis.x = NULL, cex.axis.y = NULL,
             cex.lab = 12, cex.legend = 12, background = NULL,
@@ -43,13 +43,14 @@
   \item{legendOff}{a logical flag controlling whether to show the legend.}
   \item{legend.labs}{a vector specifying the legend labels. Ignored when \code{legendOff=TRUE}.}
   \item{main}{a string that controls the title of the plot.}
-  \item{pre.post}{a logical flag indicating whether to distinguish control status of treated units from that of control units. Only used for DID-type data in the treat plot.}
+  \item{pre.post}{a logical flag indicating whether to distinguish control status of treated units from that of control units. Only used for staggered data in the treat and outcome plots.}
   \item{id}{a vector specifying units to be shown in the plot. Useful when the number of units is very large.}
   \item{show.id}{a numeric vector or sequence specifying the sorted order of units to be shown in the \code{"treat"} plot. Useful when the number of units is very large. Ignored if \code{!is.null("id")}.}
   \item{color}{a string vector specifying color setting for the plot.}
   \item{axis.adjust}{a logic flag indicating whether to adjust labels on the x-axis.  Useful when the class of time variable is string and there are many time periods.}
   \item{axis.lab}{a string indicating whether labels on the x- and y-axis will be shown. There are four options: \code{"both"} (default): labels on both axes will be shown; \code{"unit"}: only labels on y-axis will be shown; \code{"time"}: only labels on the x-axis will be shown; "none": no labels will be shown.}
   \item{axis.lab.gap}{a numeric vector setting the gaps between labels on the x- or y-axis for the plot. Default is \code{axis.lab.gap = c(0, 0)}, which means that all labels will be shown. Useful for datasets with large N or T.}
+  \item{axis.lab.angle}{a numeric value setting the angle (degrees) of the labels shown on the x-axis. Must be between 0 and 90.}
   \item{shade.post}{a logical flag controlling whether to shade the post-treatment periods. Ignored if \code{type = "treat"} or no treatment variable is supplied.}
   \item{cex.main}{a numeric value (pt) specifying the fontsize of the main title.}
   \item{cex.main.sub}{a numeric value (pt) specifying the fontsize of the subtitles. Ignored if \code{type = "treat"} or \code{by.group = FALSE.}}
@@ -63,9 +64,11 @@
   \item{style}{a string vector to set line/connected line/bar styles for the outcome and treatment variables.}
   \item{lwd}{a numeric value (pt) specifying the line width when plotting time series of treatment and outcome variables.}
   \item{leave.gap}{a logical flag indicating whether to keep time gaps as  white bars if time is not evenly distributed (possibly due to missing data). Default value is \code{leave.gap = FALSE}.}
-  \item{by.group.side}{a logic flag indicating whether to arrange subfigures of \code{by.group = TRUE} in a row rather than in a column.}
-  \item{display.all}{a logic flag indicating whether to show all units if the number of units is more than 500, otherwise we randomly select 500 units to present.}
-  \item{by.cohort}{a logic flag indicating whether to plot the average outcome lines based on unique treatment history.}
+  \item{by.group.side}{a logical flag indicating whether to arrange subfigures of \code{by.group = TRUE} in a row rather than in a column.}
+  \item{display.all}{a logical flag indicating whether to show all units if the number of units is more than 500, otherwise we randomly select 500 units to present.}
+  \item{by.cohort}{a logical flag indicating whether to plot the average outcome lines based on unique treatment histories in an "outcome" plot.}
+  \item{collapse.hisotry}{a logical flag indicating whether to collapse units by treat history in a "treat"" plot.}
+  \item{show.missing}{a logical flag indicating whether to report missingness in the included variables.}
 }
 
 \details{

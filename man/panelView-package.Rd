@@ -1,6 +1,7 @@
 \name{panelView-package}
 \alias{panelView-package}
 \docType{package}
+\keyword{internal}
 \title{Panel Data Visualizations}
 \description{Visualizes panel data}
 

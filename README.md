@@ -16,14 +16,14 @@ CRAN](https://cranlogs.r-pkg.org/badges/grand-total/panelView)](https://www.data
 **Authors:** Hongyu Mou (UCLA); Licheng Liu (MIT); [Yiqing
 Xu](https://yiqingxu.org/) (Stanford)
 
-**Date:** Aug 14, 2022
+**Date:** Feb 12, 2023
 
-**Repos:** [Github](https://github.com/xuyiqing/panelView) (1.1.11)
+**Repos:** [Github](https://github.com/xuyiqing/panelView) (1.1.16)
 [CRAN](https://cran.r-project.org/web/packages/panelView/index.html)
 (1.1.11)
 
 **Examples:** R code used in the tutorial can be downloaded from
-[here](https://yiqingxu.org/packages/panelview/examples.R).
+[here](https://github.com/xuyiqing/panelView/blob/master/examples.R).
 
 ------------------------------------------------------------------------
 
@@ -32,8 +32,8 @@ Xu](https://yiqingxu.org/) (Stanford)
 **panelView** visualizes panel data. It has three main functionalities:
 
 1.  it plots treatment status and missing values in a panel dataset;
-2.  it plots an outcome variable (or any variable) in a time-series
-    fashion;
+2.  it plots the temporal dynamics of an outcome variable (or any
+    variable) in a panel dataset;
 3.  it visualizes bivariate relationships of two variables by unit or in
     aggregate.
 

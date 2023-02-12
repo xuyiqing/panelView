@@ -1,3 +1,17 @@
+# panelView 1.1.16
+
+1. Add `collapse.history` to allow users to collapse unit by treatment history in a `treat` plot.
+
+2. Add `show.missing` to output missing data summary statistics for the key variables. 
+
+3. Add `axis.lab.angle` to allow users to change the angle of the axis labels on the x-axis.
+
+3. Allow `pre.post` to be applied to an `outcome` plot.
+
+4. Change the color scheme in the `outcome` plot.
+
+5. Fix bugs.
+
 # panelView 1.1.11
 
 1. Add `by.cohort` to allow users to plot the average outcome trajectories of units with the same treatment history (if the number of unique treatment history is less than 20).

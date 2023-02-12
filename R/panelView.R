@@ -26,13 +26,14 @@ panelview <- function(data, # a data frame (long-form)
                       legendOff = FALSE,
                       legend.labs = NULL,
                       main = NULL,
-                      pre.post = FALSE, # only used for treat plot, different with Stata
+                      pre.post = NULL, # only used for treat & outcome plots
                       id = NULL,
                       show.id = NULL,
                       color = NULL,
                       axis.adjust = FALSE,
                       axis.lab = "both",
                       axis.lab.gap = c(0, 0),
+                      axis.lab.angle = NULL,
                       shade.post = TRUE,
                       cex.main = 15,
                       cex.main.sub = 12,
@@ -50,7 +51,7 @@ panelview <- function(data, # a data frame (long-form)
                       display.all = NULL,
                       by.cohort = FALSE,
                       collapse.history = NULL,
-                      missing = FALSE
+                      report.missing = FALSE
                     ) {
         
     ## ------------------------- ##
@@ -110,47 +111,63 @@ panelview <- function(data, # a data frame (long-form)
 
     ## remove missing values
     if (is.logical(leave.gap) == FALSE & !leave.gap%in%c(0, 1)) {
-        stop("leave.gap is not a logical flag.")
+        stop("\"leave.gap\" is not a logical flag.")
     } 
 
     if (is.logical(by.cohort) == FALSE & !by.cohort%in%c(0, 1)) {
-        stop("by.cohort is not a logical flag.")
+        stop("\"by.cohort\" is not a logical flag.")
     } 
 
     if (is.logical(display.all) == FALSE & !display.all%in%c(0, 1)) {
-        stop("display.all is not a logical flag.")
+        stop("\"display.all\" is not a logical flag.")
     }
 
     if (is.logical(by.group.side) == FALSE & !by.group.side%in%c(0, 1)) {
-        stop("by.group.side is not a logical flag.")
+        stop("\"by.group.side\" is not a logical flag.")
     }
 
     if (is.logical(by.unit) == FALSE & !by.unit%in%c(0, 1)) {
-        stop("by.unit is not a logical flag.")
+        stop("\"by.unit\" is not a logical flag.")
     }
 
     if (is.logical(axis.adjust) == FALSE & !axis.adjust%in%c(0, 1)) {
-        stop("axis.adjust is not a logical flag.")
+        stop("\"axis.adjust\" is not a logical flag.")
     }
 
-    if (is.logical(pre.post) == FALSE & !pre.post%in%c(0, 1)) {
-        stop("pre.post is not a logical flag.")
+    if (is.null(axis.lab.angle) == FALSE) {
+        if (is.numeric(axis.lab.angle) == FALSE) {
+            stop("\"axis.lab.angle\" must be numeric.")
+        } else if (axis.lab.angle < 0 | axis.lab.angle > 90) {
+            stop("\"axis.lab.angle\" needs to be in [0, 90].")
+        } 
     }
+    
+    # pre.post
+    if (is.null(pre.post) == TRUE) {
+        if (type == "outcome") {
+            pre.post <- TRUE
+        } else  {
+            pre.post <- FALSE
+        }
+    }
+    if (is.logical(pre.post) == FALSE & !pre.post%in%c(0, 1)) {
+        stop("\"pre.post\" is not a logical flag.")
+    }    
 
     if (is.logical(theme.bw) == FALSE & !theme.bw%in%c(0, 1)) {
-        stop("theme.bw is not a logical flag.")
+        stop("\"theme.bw\" is not a logical flag.")
     }
 
     if (is.logical(by.timing) == FALSE & !by.timing%in%c(0, 1)) {
-        stop("by.timing is not a logical flag.")
+        stop("\"by.timing\" is not a logical flag.")
     }
 
     if (is.logical(by.group) == FALSE & !by.group%in%c(0, 1)) {
-        stop("by.group is not a logical flag.")
+        stop("\"by.group\" is not a logical flag.")
     }
 
     if (is.logical(ignore.treat) == FALSE & !ignore.treat%in%c(0, 1)) {
-        stop("ignore.treat is not a logical flag.")
+        stop("\"ignore.treat\" is not a logical flag.")
     }
 
 
@@ -276,7 +293,7 @@ panelview <- function(data, # a data frame (long-form)
     data <- data[,c(index, Y, D, X)] 
 
     varV <- nv <- NULL
-    if (missing) {
+    if (report.missing == TRUE) {
         ## report missings
         varV <- c(Y, D, X)
         nv <- length(varV)
@@ -723,7 +740,7 @@ panelview <- function(data, # a data frame (long-form)
 
 
     ## binary treatment indicator 
-    if (ignore.treat == 0 && d.bi == 1) {
+    if (ignore.treat == FALSE && d.bi == 1) {
 
         if (length(unique(c(D.old))) > 2) {
             D[which(D > 1)] <- 1 ## set all treatment levels to 1
@@ -769,23 +786,21 @@ panelview <- function(data, # a data frame (long-form)
 
         ## check DID mode
         if (sum(abs(D.old[which(I==1)] - D[which(I==1)]), na.rm = TRUE) == 0) {
-            by.group <- by.group
-            FEmode <- 0
-        } else { ## FE mode
+            staggered <- 1
+        } else { ## FE mode, with reversals
             DID <- 0
             if (type == "outcome" || type == "bivar" || type == "bivariate") {
                 message("Treatment has reversals.\n")
             if (by.cohort == TRUE) {
-                stop("option by.cohort = TRUE works only with staggered adoption")
+                stop("option \"by.cohort = TRUE\" works only with staggered adoption.")
             }
-            }
-            ## by.group <- TRUE
-            FEmode <- 1
+            }            
+            staggered <- 0
         }
 
     } else {
         DID <- 0
-        FEmode <- 0
+        staggered <- 1
     }
 
     ## missing matrix 
@@ -805,7 +820,7 @@ if (leave.gap == 0) {
         con1 <- type == "treat" && pre.post == TRUE
         con2 <- type == "outcome" && by.group == FALSE
 
-        if (FEmode == 0 && (con1 || con2)) {  ## DID type data
+        if (staggered == 1 && (con1 || con2)) {  ## DID type data
             
             tr <- D[TT,] == 1     # cross-sectional: treated unit
 
@@ -885,7 +900,7 @@ else if (leave.gap == 1) {
         con1 <- type == "treat" && pre.post == TRUE
         con2 <- type == "outcome" && by.group == FALSE
 
-        if (FEmode == 0 && (con1 || con2)) {  ## DID type data
+        if (staggered == 1 && (con1 || con2)) {  ## DID type data
             
             tr <- D[TT,] == 1     # cross-sectional: treated unit
 
@@ -974,32 +989,30 @@ else if (leave.gap == 1) {
     colnames(obs.missing) <- input.id
     rownames(obs.missing) <- raw.time
     
-## cat("ok")
-## plot unique treatment histories 
-#if (collapse.history == TRUE) {
+    ## cat("ok")
+    ## plot unique treatment histories 
+    #if (collapse.history == TRUE) {
 
-#    obs.missing.d <- as.data.frame(t(obs.missing))
-#    suppressMessages(ff <- as.data.frame(summarise(group_by_all(obs.missing.d), COUNT = n())))
+    #    obs.missing.d <- as.data.frame(t(obs.missing))
+    #    suppressMessages(ff <- as.data.frame(summarise(group_by_all(obs.missing.d), COUNT = n())))
 
-#    obs.missing <- t(as.matrix(ff[, 1:TT]))
-#    input.id <- ff[, (TT + 1)]
+    #    obs.missing <- t(as.matrix(ff[, 1:TT]))
+    #    input.id <- ff[, (TT + 1)]
 
-    ## return(obs.missing)
+        ## return(obs.missing)
 
-#    colnames(obs.missing) <- input.id
-#    rownames(obs.missing) <- raw.time
+    #    colnames(obs.missing) <- input.id
+    #    rownames(obs.missing) <- raw.time
 
-#    N <- length(input.id) 
+    #    N <- length(input.id) 
 
-    ## cat("ok2")
-    ## cat(N)
+        ## cat("ok2")
+        ## cat(N)
 
-#}
+    #}
 
-time <- raw.time
-id <- input.id 
-
-
+    time <- raw.time
+    id <- input.id 
 
     ## ------------------------------------- ##
     ##          part 2: plot
@@ -1062,19 +1075,25 @@ id <- input.id
         }   
     }
 
-    if (axis.adjust == TRUE) {
-        angle <- 45
+    if (is.null(axis.lab.angle)==FALSE) {
+        angle <- axis.lab.angle
         x.v <- 1
         x.h <- 1
     } else {
-        angle <- 0
-        x.v <- 0
-        if (type == "treat") {
-            x.h <- 0.5
+        if (axis.adjust == TRUE) {
+            angle <- 45
+            x.v <- 1
+            x.h <- 1
         } else {
-            x.h <- 0
+            angle <- 0
+            x.v <- 0
+            if (type == "treat") {
+                x.h <- 0.5
+            } else {
+                x.h <- 0
+            }
         }
-    }
+    }    
     
     ## type of plots
     if (!is.numeric(time[1])) {
@@ -1123,62 +1142,10 @@ id <- input.id
         legend.pos <- "bottom"
     }
 
-
-    ############  START  ###############    
-    #if (type == "fraction") {
-
-        ## axes labels
-    #    if (is.null(xlab) == TRUE) {
-    #        xlab <- index[2]
-    #    } else if (xlab == "") {
-    #        xlab <- NULL
-    #    }
-    #    if (is.null(ylab) == TRUE) {
-    #        ylab <- "Fraction"
-    #    } else if (ylab == "") {
-    #        ylab <- NULL
-    #    }
-
-    #    frac <- apply(D.old, 1, mean, na.rm = 1)
-    #    df <- cbind.data.frame(frac, t = 1:TT)
-    #    df <- df[show, ]
-
-        ## theme
-    #    p <- ggplot(df, aes(x = t, y = frac)) + geom_bar(stat="identity") + xlab(xlab) +  ylab(ylab)
-
-    #    if (theme.bw == TRUE) {
-    #        p <- p + theme_bw() + 
-    #                 theme(panel.grid.major = element_blank(),
-    #                       panel.grid.minor = element_blank(),
-    #                       axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
-    #                       plot.title = element_text(size=cex.main, hjust = 0.5, face="bold",margin = margin(8, 0, 8, 0)))
-    #    }
-    #    else {
-    #        p <- p + theme(axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
-    #                       plot.title = element_text(size=cex.main, hjust = 0.5, face="bold",margin = margin(8, 0, 8, 0)))
-    #    }    
-        
-    #    if (!is.numeric(time.label)) {
-    #        p <- p + 
-    #            scale_x_continuous(expand = c(0, 0), breaks = show[T.b], labels = time.label[T.b])
-    #    }
-
-        ## title
-    #    if (is.null(main) == TRUE) {
-    #        p <- p + ggtitle("Fraction of Treated Units")
-    #    } else if (main!="") {
-    #        p <- p + ggtitle(main)
-    #    }
-
-        ## ylim
-    #    if (is.null(ylim) == FALSE) {
-    #        p <- p + coord_cartesian(ylim = ylim)
-    #    }
-        
-    #    suppressWarnings(print(p))
+    ###########################
+    ## Outcome Plot
+    ###########################
     
-    #} else 
-
     if (type == "outcome") {
         
         ## axes labels
@@ -1197,32 +1164,22 @@ id <- input.id
         raw.color <- NULL
 
         ## color setting
-        if (is.null(color)==TRUE) {
-            if (theme.bw == FALSE) {
-                if (ignore.treat == 0) {
-                    raw.color <- c("#99999950", "#FC8D6280", "red")
-                    
-                } else {
-                    raw.color <- "#99999950"
-                }
-            } else {
+        if (is.null(color) == TRUE) {
+            if (ignore.treat == FALSE) {
                 if (outcome.type == "continuous") {
-                    if (ignore.treat == 0) {
-                        raw.color <- c("#5e5e5e50", "#124ab965", "#062263")
-                    } else {
-                        raw.color <- "#5e5e5e50"
-                    }
+                    raw.color <- c("#5e5e5e50", "#FC8D62", "red")
                 } else {
-                    if (ignore.treat == 0) {
-                        raw.color <- c("#5e5e5e60", "#4671D5", "#06266F")
-                    } else {
-                        raw.color <- "#5e5e5e60"
-                    }
+                    raw.color <- c("#5e5e5e60", "#FC8D62", "red")
                 }
+                if (type == "outcome" && (staggered == 0 | by.group == TRUE | pre.post == FALSE)) { # two conditions only
+                    raw.color <- raw.color[c(1,3)]
+                }
+            } else { # ignore treat
+                raw.color <- "#5e5e5e50"
             }
-        } else {        
-            if (ignore.treat == 0) {
-                if (FEmode == 1) {
+        } else {    # color is specified  
+            if (ignore.treat == FALSE) {
+                if (staggered == 0 | pre.post == FALSE) { # with reversals or two groups only
                     if (length(color) != 2) {
                         stop("Length of \"color\" should be equal to 2.\n")    
                     } else {
@@ -1252,7 +1209,11 @@ id <- input.id
             }
         }
 
-        if (ignore.treat == 1) {
+        #####################    
+        ## prepare to plot
+        #####################
+
+        if (ignore.treat == TRUE) { # do not show treatment status
 
             data <- cbind.data.frame("time" = rep(time[show], N), 
                                      "outcome" = c(Y[show,]),
@@ -1365,196 +1326,13 @@ id <- input.id
             
             suppressWarnings(print(p))
 
-        }
-        else if (ignore.treat == 0 && by.group == FALSE) { ## Mixed units
+        } # ignore.treat == TRUE over
+        else if (ignore.treat == FALSE && by.group == FALSE) { ## Mixed units
             
             ## time-line
             if (outcome.type == "continuous") { ## continuous outcome
                 
-                if (FEmode == 0) { ## DID data
-
-                    time.bf <- time[unique(T0)]
-                    pst <- D.tr
-
-                    for (i in 1:Ntr) {
-                        pst[T0[i], i] <- 1
-                    }
-
-                    time.pst <- c(pst[show,] * time[show])
-                    time.pst <- time.pst[which(c(pst[show,])==1)]
-                    Y.tr.pst <- c(Y.tr[show,])[which(pst[show,]==1)]
-                    
-                    id.tr.pst <- matrix(rep(1:Ntr,each=TT),TT,Ntr,byrow=FALSE)[show,]
-                    id.tr.pst <- c(id.tr.pst)[which(pst[show,]==1)]
-                    T1_0 <- c(T1)[which(T1==0)]
-                    T1_1 <- c(T1)[which(T1==1)]
-                    N_T1_1 <- sum(T1_1)
-                    N_T1_0 <- Nco*nT + Ntr*nT + length(Y.tr.pst) - N_T1_1                   
-
-                    data <- cbind.data.frame("time" = c(rep(time[show], N), time.pst),
-                                             "outcome" = c(c(Y.tr[show,]),
-                                                           c(Y.co[show,]),
-                                                           Y.tr.pst),
-                                             "type" = c(rep("tr",(Ntr*nT)),
-                                                        rep("co",(Nco*nT)),
-                                                        rep("tr.pst",length(Y.tr.pst))),
-                                            "last_dot" = c(rep("0",N_T1_0),
-                                                           rep("1",N_T1_1)),
-                                            "id" = c(rep(1:N,each = nT), id.tr.pst*(-1)))
-
-                    idtimes <- sapply(1:length(data$id),function(x)sum(data$id[1:x]==data$id[x]))
-                    data <- cbind(data, idtimes)
-                    data$idtimes <- ave(data$idtimes, data$id, FUN=max)
-                    data$last_dot <- 0
-                    data$last_dot[data$idtimes == 1] <- 1
-
-
-                    ## legend 
-                    set.limits = c("co", "tr", "tr.pst")
-                    set.colors = c(raw.color[1], raw.color[2], raw.color[3])
-                    set.linetypes = c("solid","solid","solid")
-                    set.linewidth = c(0.5, 0.5, 0.5)
-                    if (!is.null(legend.labs)) {
-                        if (length(legend.labs) != 3) {
-                            warning("Incorrect number of labels in the legend. Using default.\n")
-                            set.labels <- c("Controls","Treated (Pre)","Treated (Post)")  
-                        } else {
-                            set.labels <- legend.labs
-                        }
-                    } else {
-                        set.labels <- c("Controls","Treated (Pre)","Treated (Post)") 
-                    }
-                    labels.ncol <- 3
-
-                
-
-                if (by.cohort == TRUE) {
-                    # expand to balanced panel:
-                    ref <- expand.grid(id = unique(data.old[,index.id]), time = unique(data.old[,index.time]))
-                    data.old <- merge(ref, data.old, by = 1:2, all.x = TRUE)
-                    colnames(data.old)[4] <- "treatment"
-
-                    #data.old <- data.old %>%
-                     #               arrange(id) %>%
-                      #              mutate(post_value = lead(treatment))
-                    #for (i in 1:dim(data.old)[1]) {
-                     #   if (isTRUE(data.old[i, 2] == max(data.old$time))==TRUE) {
-                      #      data.old[i, ncol(data.old)] <- NA
-                       # }
-                    #}
-
-                    #data.old <- data.old[with(data.old, order(id,time)), ]  # sort by id and then by date
-                    #data.old$pre_value = c(NA, data.old$treatment[-length(data.old$treatment)]) # create a new var with data displaced by 1 unit                   
-                    #data.old$pre_value[data.old$id != c(NA, data.old$id[-length(data.old$id)])] = NA # NA data with different current and lagged id
-                    
-                    #for (i in 2:dim(data.old)[1]) {
-                        #if (isTRUE(data.old[i-1, "pre_value"] == 1)==TRUE & is.na(data.old[i, "pre_value"])==TRUE) {
-                         #   data.old[i, "pre_value"] <- 1
-                        #}
-                       # if (is.na(data.old[i, "treatment"])==TRUE & isTRUE(data.old[i, "pre_value"] == 1)==TRUE) {
-                      #      data.old[i, "treatment"] <- 1
-                     #   }
-                    #}
-
-
-                    #for (i in (dim(data.old)[1]-1):1) { # still need to bysort each id!
-                     #   if (is.na(data.old[i, "post_value"])==TRUE & isTRUE(data.old[i+1, "post_value"] == 0)==TRUE) {
-                      #      data.old[i, "post_value"] <- 0
-                       # }
-                        #if (is.na(data.old[i, "treatment"])==TRUE & isTRUE(data.old[i, "post_value"] == 0)==TRUE) {
-                         #   data.old[i, "treatment"] <- 0
-                    #}
-                    #}
-
-                    #data.old <- data.old[ , ! names(data.old) %in% c("pre_value", "post_value")]
-
-
-                    data.old$treatment<- ave(data.old$treatment, data.old$id, FUN=function(x) approxfun(x, method = "constant", rule=2)(seq_along(x)))
-                    #1. If a person's first follow-up data is missing, then add the value of the next row;
-                    #2. If a person's non-first follow-up data is missing, then add the value of the previous row;
-                    #3. If multiple consecutive follow-up data are missing, then add the value of the previous non-missing row.
-
-
-
-                    data.old$treatment_history <- ave(data.old[,"treatment"], data.old$id, FUN = function(x) paste(x, collapse= "_")) # data.old[,4]: treatment; data.old[,1]: id
-
-                    cat(paste0("Number of unique treatment history: ", length(unique(data.old$treatment_history))))
-                    cat("\n")
-
-#print(data.old)
-#print(unique(data.old$treatment_history)) #sss
-
-
-                    if (length(unique(data.old$treatment_history)) > 20) {
-                        stop("Option \"by.cohort = TRUE\" would not work if the number of unique treatment history is more than 20.")
-                    }
-                    else {
-                        data.old$outcomehistorymean <- ave(data.old[,3], data.old$treatment_history, data.old$time, FUN=function(x) mean(x, na.rm=TRUE)) # data.old[,3]: outcome
-
-                        data.old <- data.old[,c("time", "treatment", "treatment_history", "outcomehistorymean")]
-
-                        names(data.old)[names(data.old) == 'outcomehistorymean'] <- 'outcome'
-                        names(data.old)[names(data.old) == 'treatment_history'] <- 'id'
-                        #data.old <- data.old[!duplicated(data.old), ]
-                        N_cohort <- length(sort(unique(data.old$id))) 
-
-                        #group id and time to numeric values:
-                        data.old[,3] <- as.numeric(as.factor(data.old[,3]))
-                        data.old[,1] <- as.numeric(as.factor(data.old[,1]))
-
-                        Y <- matrix(NA, TT, N_cohort) 
-                        for (i in 1:dim(data.old)[1]) {
-                            Y[data.old[i,1],data.old[i,3]] <- data.old[i,4] # data.old[,1]: time; data.old[,3]: id; data.old[,4]: outcome
-                        }
-
-                        D <- matrix(0, TT, N_cohort)
-                        for (i in 1:dim(data.old)[1]) {
-                            D[data.old[i,1],data.old[i,3]] <- data.old[i,2] # data.old[,2]: treatment
-                        }
-
-                        tr <- D[TT,] == 1
-                        Ntr <- sum(tr)
-                        Nco <- N_cohort - Ntr
-                        Y.tr <- Y.co <- NULL
-                        Y.tr <- as.matrix(Y[,which(tr==1)])
-                        Y.co <- as.matrix(Y[,which(tr==0)])
-                        tr.pos <- which(D[TT,] == 1) ## which units are treated
-                        T1 <- apply(D == 1, 2, sum, na.rm = TRUE)[tr.pos] ## number of periods expose to treatment 
-                        T1[which(T1 > 1)] <- 0 ## indicate the last dot of treatment status change
-                        D.tr <- as.matrix(D[,which(tr==1)])
-                        pst <- D.tr
-                        
-                        time.pst <- c(pst[show,] * time[show])
-                        time.pst <- time.pst[which(c(pst[show,])==1)]
-                        Y.tr.pst <- c(Y.tr[show,])[which(pst[show,]==1)]
-                        id.tr.pst <- matrix(rep(1:Ntr,each=TT),TT,Ntr,byrow=FALSE)[show,]
-                        id.tr.pst <- c(id.tr.pst)[which(pst[show,]==1)]
-                        T1_0 <- c(T1)[which(T1==0)] 
-                        T1_1 <- c(T1)[which(T1==1)] #last dot of treatment status change
-                        N_T1_1 <- sum(T1_1)
-                        N_T1_0 <- Nco*nT + Ntr*nT + length(Y.tr.pst) - N_T1_1                        
-                    
-
-                    data <- cbind.data.frame("time" = c(rep(time[show], N_cohort), time.pst),
-                                             "outcome" = c(c(Y.tr[show,]),
-                                                           c(Y.co[show,]),
-                                                           Y.tr.pst),
-                                             "type" = c(rep("tr",(Ntr*nT)),
-                                                        rep("co",(Nco*nT)),
-                                                        rep("tr.pst",length(Y.tr.pst))),
-                                            "last_dot" = c(rep("0",N_T1_0),
-                                                           rep("1",N_T1_1)),
-                                            "id" = c(rep(1:N_cohort,each = nT), id.tr.pst*(-1)))
-
-                    idtimes <- sapply(1:length(data$id),function(x)sum(data$id[1:x]==data$id[x]))
-                    data <- cbind(data, idtimes)
-                    data$idtimes <- ave(data$idtimes, data$id, FUN=max)
-                    data$last_dot <- 0
-                    data$last_dot[data$idtimes == 1] <- 1
-                    }
-                }
-                } 
-                else { ## FE mode data
+                if (staggered == 0 || (by.cohort == FALSE && pre.post == FALSE)) { ## with reversals
                 
                     D.plot <- D.old
                     D.plot[which(D.plot == 0)] <- NA
@@ -1592,7 +1370,7 @@ id <- input.id
 
                     ## legend
                     set.limits = c("co","tr")
-                    set.colors = raw.color[1:2]
+                    set.colors = raw.color
                     set.linetypes = c("solid","solid")
                     set.linewidth = c(0.5, 0.5)
                     if (!is.null(legend.labs)) {
@@ -1607,6 +1385,167 @@ id <- input.id
                     }
                     labels.ncol <- 2
                 }
+                else { ## staggered 
+
+                    time.bf <- time[unique(T0)]
+                    pst <- D.tr
+
+                    for (i in 1:Ntr) {
+                        pst[T0[i], i] <- 1
+                    }
+
+                    time.pst <- c(pst[show,] * time[show])
+                    time.pst <- time.pst[which(c(pst[show,])==1)]
+                    Y.tr.pst <- c(Y.tr[show,])[which(pst[show,]==1)]
+                    
+                    id.tr.pst <- matrix(rep(1:Ntr,each=TT),TT,Ntr,byrow=FALSE)[show,]
+                    id.tr.pst <- c(id.tr.pst)[which(pst[show,]==1)]
+                    T1_0 <- c(T1)[which(T1==0)]
+                    T1_1 <- c(T1)[which(T1==1)]
+                    N_T1_1 <- sum(T1_1)
+                    N_T1_0 <- Nco*nT + Ntr*nT + length(Y.tr.pst) - N_T1_1                   
+                    
+                    data <- cbind.data.frame("time" = c(rep(time[show], N), time.pst),
+                                             "outcome" = c(c(Y.tr[show,]),
+                                                           c(Y.co[show,]),
+                                                           Y.tr.pst),
+                                             "type" = c(rep("tr",(Ntr*nT)),
+                                                        rep("co",(Nco*nT)),
+                                                        rep("tr.pst",length(Y.tr.pst))),
+                                            "last_dot" = c(rep("0",N_T1_0),
+                                                           rep("1",N_T1_1)),
+                                            "id" = c(rep(1:N,each = nT), id.tr.pst + N0)) # post seen as different groups
+                    idtimes <- sapply(1:length(data$id),function(x)sum(data$id[1:x]==data$id[x]))
+                    data <- cbind(data, idtimes)
+                    data$idtimes <- ave(data$idtimes, data$id, FUN=max)
+                    data$last_dot <- 0
+                    data$last_dot[data$idtimes == 1] <- 1
+                     ## legend 
+                    set.limits = c("co", "tr", "tr.pst")
+                    set.colors = raw.color
+                    set.linetypes = c("solid","solid","solid")
+                    set.linewidth = c(0.5, 0.5, 0.5)
+                    if (!is.null(legend.labs)) {
+                        if (length(legend.labs) != 3) {
+                             warning("Incorrect number of labels in the legend. Using default.\n")
+                            set.labels <- c("Controls","Treated (Pre)","Treated (Post)")  
+                        } else {
+                            set.labels <- legend.labs
+                        }
+                    } else {
+                        set.labels <- c("Controls","Treated (Pre)","Treated (Post)") 
+                    }
+                    labels.ncol <- 3
+                    
+                    if (by.cohort == TRUE) {
+                        # expand to balanced panel:
+                        ref <- expand.grid(id = unique(data.old[,index.id]), time = unique(data.old[,index.time]))
+                        data.old <- merge(ref, data.old, by = 1:2, all.x = TRUE)
+                        colnames(data.old)[4] <- "treatment"
+                        data.old$treatment<- ave(data.old$treatment, data.old$id, FUN=function(x) approxfun(x, method = "constant", rule=2)(seq_along(x)))
+                        #1. If a person's first follow-up data is missing, then add the value of the next row;
+                        #2. If a person's non-first follow-up data is missing, then add the value of the previous row;
+                        #3. If multiple consecutive follow-up data are missing, then add the value of the previous non-missing row.
+
+                        data.old$treatment_history <- ave(data.old[,"treatment"], data.old$id, FUN = function(x) paste(x, collapse= "_")) # data.old[,4]: treatment; data.old[,1]: id
+                        cat(paste0("Number of unique treatment histories: ", length(unique(data.old$treatment_history))))
+                        cat("\n")
+                        #print(data.old)
+                        #print(unique(data.old$treatment_history)) #sss
+
+                        if (length(unique(data.old$treatment_history)) > 20) {
+                            stop("\"by.cohort = TRUE\" ignored the number of unique treatment history is more than 20.")
+                        }
+                        else {
+                            data.old$outcomehistorymean <- ave(data.old[,3], data.old$treatment_history, data.old$time, FUN=function(x) mean(x, na.rm=TRUE)) # data.old[,3]: outcome
+
+                            data.old <- data.old[,c("time", "treatment", "treatment_history", "outcomehistorymean")]
+
+                            names(data.old)[names(data.old) == 'outcomehistorymean'] <- 'outcome'
+                            names(data.old)[names(data.old) == 'treatment_history'] <- 'id'
+                            #data.old <- data.old[!duplicated(data.old), ]
+                            N_cohort <- length(sort(unique(data.old$id))) 
+
+                            #group id and time to numeric values:
+                            data.old[,3] <- as.numeric(as.factor(data.old[,3]))
+                            data.old[,1] <- as.numeric(as.factor(data.old[,1]))
+
+                            Y <- matrix(NA, TT, N_cohort) 
+                            for (i in 1:dim(data.old)[1]) {
+                                Y[data.old[i,1],data.old[i,3]] <- data.old[i,4] # data.old[,1]: time; data.old[,3]: id; data.old[,4]: outcome
+                            }
+
+                            D <- matrix(0, TT, N_cohort)
+                            for (i in 1:dim(data.old)[1]) {
+                                D[data.old[i,1],data.old[i,3]] <- data.old[i,2] # data.old[,2]: treatment
+                            }
+
+                            tr <- D[TT,] == 1
+                            Ntr <- sum(tr)
+                            Nco <- N_cohort - Ntr
+                            Y.tr <- Y.co <- NULL
+                            Y.tr <- as.matrix(Y[,which(tr==1)])
+                            Y.co <- as.matrix(Y[,which(tr==0)])
+                            tr.pos <- which(D[TT,] == 1) ## which units are treated
+                            T1 <- apply(D == 1, 2, sum, na.rm = TRUE)[tr.pos] ## number of periods expose to treatment 
+                            T1[which(T1 > 1)] <- 0 ## indicate the last dot of treatment status change
+                            pst <- as.matrix(D[,which(tr==1)]) # treatment matrix
+                                                                              
+
+
+                            time.pst <- c(pst[show,] * time[show])
+                            time.pst <- time.pst[which(c(pst[show,])==1)]
+                            Y.tr.pst <- c(Y.tr[show,])[which(pst[show,]==1)]
+                            id.tr.pst <- matrix(rep(1:Ntr,each=TT),TT,Ntr,byrow=FALSE)[show,]
+                            id.tr.pst <- c(id.tr.pst)[which(pst[show,]==1)]
+                            T1_0 <- c(T1)[which(T1==0)] 
+                            T1_1 <- c(T1)[which(T1==1)] #last dot of treatment status change
+                            N_T1_1 <- sum(T1_1)
+                            N_T1_0 <- Nco*nT + Ntr*nT + length(Y.tr.pst) - N_T1_1                        
+                        
+                            if (pre.post == TRUE) {
+                                data <- cbind.data.frame("time" = c(rep(time[show], N_cohort), time.pst),
+                                                    "outcome" = c(c(Y.tr[show,]),
+                                                                c(Y.co[show,]),
+                                                                Y.tr.pst),
+                                                    "type" = c(rep("tr",(Ntr*nT)),
+                                                                rep("co",(Nco*nT)),
+                                                                rep("tr.pst",length(Y.tr.pst))),
+                                                    "id" = c(rep(1:N_cohort,each = nT), id.tr.pst + N0))
+                            } else {
+                                tr.vec <- rep("co", nT * N_cohort)
+                                tr.vec[which(c(pst[show,])==1)] <- "tr"
+                                data <- cbind.data.frame("time" = c(rep(time[show], N_cohort)),
+                                                    "outcome" = c(c(Y.tr[show,]), c(Y.co[show,])),
+                                                    "type" = tr.vec,
+                                                    "id" = c(rep(1:N_cohort,each = nT)))    
+                                ## legend 
+                                set.limits = c("co", "tr")
+                                set.colors = raw.color[1:2]
+                                set.linetypes = c("solid","solid")
+                                set.linewidth = c(0.5, 0.5)
+                                if (!is.null(legend.labs)) {
+                                    if (length(legend.labs) != 2) {
+                                        warning("Incorrect number of labels in the legend. Using default.\n")
+                                        set.labels <- c("Controls", "Treated")  
+                                    } else {
+                                        set.labels <- legend.labs
+                                    }
+                                } else {
+                                    set.labels <- c("Controls","Treated") 
+                                }
+                                labels.ncol <- 2                                                                        
+                            }                           
+                            # last perioed treated (show using a dot)
+                            idtimes <- sapply(1:length(data$id),function(x)sum(data$id[1:x]==data$id[x]))
+                            data <- cbind(data, idtimes)
+                            data$idtimes <- ave(data$idtimes, data$id, FUN=max)
+                            data$last_dot <- 0
+                            data$last_dot[data$idtimes == 1] <- 1                            
+                        }
+                    }
+                } 
+                
             
 
                 ## theme
@@ -1678,11 +1617,11 @@ id <- input.id
                                      aes(x = time, y = outcome, colour = type, shape = type))
 
                 ## legend
-                if (FEmode == 0) {
+                if (staggered == 1 && pre.post == TRUE) {
                     
                     time.bf <- time[unique(T0)]
                     set.limits = c("co", "tr", "tr.pst")
-                    set.colors = c(raw.color[1], raw.color[2], raw.color[3])
+                    set.colors = raw.color 
                     set.shapes = c(1, 1, 16)
                     if (!is.null(legend.labs)) {
                         if (length(legend.labs) != 3) {
@@ -1699,7 +1638,7 @@ id <- input.id
                 } else {
                     
                     set.limits = c("co", "tr")
-                    set.colors = raw.color[1:2]
+                    set.colors = raw.color
                     set.shapes = c(1, 1)
                     if (!is.null(legend.labs)) {
                         if (length(legend.labs) != 2) {
@@ -2198,7 +2137,7 @@ id <- input.id
 
         if (is.null(main)==TRUE) {
             if (collapse.history == TRUE) {
-                main <- "All Treatment Histories"
+                main <- "Unique Treatment Histories"
             } else {
                 if (ignore.treat == 0) {
                     main <- "Treatment Status"

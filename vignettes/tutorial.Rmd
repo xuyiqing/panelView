@@ -134,15 +134,30 @@ panelview(Capacity ~ demo + lnpop + lngdp,
           axis.lab.gap = c(2,10))
 ```
 
-Sorting units based on the first period a unit receives the treatment gives a more appealing visual:
-
+Sorting units based on the first period a unit receives the treatment gives a more appealing visual; `axis.lab.angle` allows users to change the look of the labels on the x-axis:
 ```{r treat2-2, fig.height = 10}
 panelview(Capacity ~ demo + lnpop + lngdp, 
           data = capacity, index = c("ccode", "year"), 
           main = "Democracy and State Capacity: Treatment Status", 
-          axis.lab.gap = 2, by.timing = TRUE, axis.lab = "time")
+          axis.lab.angle = 90, by.timing = TRUE, axis.lab = "time")
 ```
 
+***
+### Collapse units by treatment histories
+When the number of units is large, sometimes it is helpful to collapse units based on their treatment histories. We can do so by setting `collapse.history = TRUE`. See two examples below. The units are sorted by the timing of first getting the treatment if `by.timing = TRUE` or by the group size of each unique treatment history, which is shown on the y-axis.
+```{r treat2-3, fig.height = 4}
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, 
+          data = turnout, index = c("abb","year"), axis.lab.angle = 90,
+          by.timing = TRUE, collapse.history = "TRUE") 
+          # sorted by treatment timing
+```
+
+```{r treat2-4, fig.height = 8}
+panelview(Capacity ~ demo + lnpop + lngdp, data = capacity, 
+          index = c("ccode", "year"), axis.lab.gap = c(2,0), 
+          axis.lab.angle = 90, collapse.history = "TRUE") 
+          # sorted by cohort size
+```
 
 ***
 ### Plot a subset of units
@@ -273,6 +288,14 @@ panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
           ylim = c(0,100),xlab = "Year", ylab = "Turnout")
 ```
 
+To turn off the coloring for observations in the pretreatment period, set `pre.post = FALSE`.
+```{r outcome1-1a, cache = TRUE, fig.height = 5}
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, 
+          data = turnout, index = c("abb","year"), pre.post = FALSE,
+          type = "outcome", main = "EDR Reform and Turnout", 
+          ylim = c(0,100),xlab = "Year", ylab = "Turnout")
+```
+
 Similarly, we can specify the labels shown in the legend using `legend.labs`. Note that we can also turn off legends by specifying `legendOff = TRUE`.
 
 ```{r outcome1-2, cache = TRUE, fig.height = 6}
@@ -291,16 +314,24 @@ panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
           main = "EDR Reform and Turnout", theme.bw = FALSE)
 ```
 
-And we can change the colors for observations under different treatment statuses using the option `color`.
-
+And we can change the colors for observations under different treatment statuses using the option `color` and change the legend labels using `legend.labs`.
 ```{r outcome1-4, cache = TRUE, fig.height = 6}
 panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, 
           data = turnout, index = c("abb","year"), 
           type = "outcome", main = "EDR Reform and Turnout", 
-          color = c("#FC8D6280", "red", "#99999950"), 
+          color = c("lightblue", "blue", "#99999950"), 
           legend.labs = c("Control States","Treated States (before EDR)", 
-                          "Treated States (after EDR)"), theme.bw = FALSE)
+             "Treated States (after EDR)"))
 ```
+
+In cases with a staggered treatment and a continous outcome, we can collapse units based on cohort defined the timing of getting the treatment by setting `by.cohort = TRUE`. In the `turnout` data, there are five cohorts:
+```{r outcome1-4a, cache = TRUE, fig.height = 6}
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, 
+          data = turnout, index = c("abb","year"), 
+          type = "outcome", main = "EDR Reform and Turnout",
+          by.cohort = TRUE)
+```
+
 
 Again, we can specify which unit(s) we want to take a look at: 
 
@@ -449,7 +480,7 @@ Another example. Option `lwd` controls the line width (default is 0.2):
 # 1. Y: continuous; D: discrete 
 panelview(turnout ~ policy_edr + policy_mail_in + policy_motor, data = turnout, 
           index = c("abb","year"), xlab = "EDR", ylab = "Turnout", type = "bivar",
-          style = c("line","connected"), col = c(2, 3), lwd = 0.4)
+          style = c("line","connected"), color = c(2, 3), lwd = 0.4)
 ```
 
 ***

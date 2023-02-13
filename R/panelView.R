@@ -16,6 +16,7 @@ panelview <- function(data, # a data frame (long-form)
                       outcome.type = "continuous", # continuous or discrete
                       treat.type = NULL, # discrete or continuous
                       by.group = FALSE, # (color pre-treatment treated differently)
+                      by.group.side = FALSE,
                       by.timing = FALSE,
                       theme.bw = TRUE,
                       xlim = NULL, 
@@ -47,7 +48,6 @@ panelview <- function(data, # a data frame (long-form)
                       by.unit = FALSE,
                       lwd = 0.2,
                       leave.gap = FALSE,
-                      by.group.side = FALSE,
                       display.all = NULL,
                       by.cohort = FALSE,
                       collapse.history = NULL,
@@ -78,31 +78,23 @@ panelview <- function(data, # a data frame (long-form)
 
     ## number of units
     N0 <- length(unique(data[, index[1]]))
-
-    if (N0 < 500) {
-        
+    if (N0 <= 500) {        
         if (is.null(collapse.history)) {
             collapse.history <- FALSE
         } 
         if (is.null(display.all)) {
             display.all <- FALSE
         }
-
-    } else {
-
+    } else { # more than 300 units
         if (!is.null(collapse.history)) {
-            ## if (collapse.history == FALSE) {
-                if (is.null(display.all)) {
-                    display.all <- FALSE
-                }
-            ## } else {
-
-            ## }
-        } else {
             if (is.null(display.all)) {
+                display.all <- FALSE
+            }            
+        } else { # collapse.history not specified
+            if (is.null(display.all)) { # display.all not specified
                 collapse.history <- TRUE
                 display.all <- FALSE
-            } else {
+            } else { # display.all specified
                 collapse.history <- FALSE
             }
         }
@@ -1890,231 +1882,230 @@ else if (leave.gap == 1) {
                 return(p)
             }
 
-        if (by.group.side == FALSE) {
-            if (length(unique(unit.type)) == 1) {
-                
-                if (1%in%unit.type) {
-                    p1 <- subplot(data1, limits1, labels1, colors1, main1, outcome.type, theme.bw)
-                    if (legend.pos != "none") {
-                        suppressWarnings(g <- ggplotGrob(p1 + theme(legend.position="bottom"))$grobs)
-                        legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
-                        suppressWarnings(grid.arrange(arrangeGrob(p1 + theme(legend.position="none"),
-                                         legend, nrow = 2, heights = c (1, 1/5)),
-                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
-                    } else {
-                        suppressWarnings(grid.arrange(p1 + theme(legend.position="none"),
-                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
-                    }   
-                }
-                else if (2%in%unit.type) {
-                    p2 <- subplot(data2, limits2, labels2, colors2, main2, outcome.type, theme.bw)
-                    if (legend.pos != "none") {
-                        suppressWarnings(g <- ggplotGrob(p2 + theme(legend.position="bottom"))$grobs)
-                        legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
-                        suppressWarnings(grid.arrange(arrangeGrob(p2 + theme(legend.position="none"),
-                                         legend, nrow = 2, heights = c (1, 1/5)),
-                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2)))) 
-                    } else {
-                        suppressWarnings(grid.arrange(p2 + theme(legend.position="none"),
-                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
-                    }   
-                }
-                else if (3%in%unit.type) {
-                    p3 <- subplot(data3, limits3, labels3, colors3, main3, outcome.type, theme.bw)
-                    if (legend.pos != "none") {
-                        suppressWarnings(g <- ggplotGrob(p3 + theme(legend.position="bottom"))$grobs)
-                        legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
-                        suppressWarnings(grid.arrange(arrangeGrob(p3 + theme(legend.position="none"),
-                                         legend, nrow = 2, heights = c (1, 1/5)),
-                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2)))) 
-                    } else {
-                        suppressWarnings(grid.arrange(p3 + theme(legend.position="none"),
-                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
-                    }  
-                }
+            if (by.group.side == FALSE) {
+                if (length(unique(unit.type)) == 1) {
+                    
+                    if (1%in%unit.type) {
+                        p1 <- subplot(data1, limits1, labels1, colors1, main1, outcome.type, theme.bw)
+                        if (legend.pos != "none") {
+                            suppressWarnings(g <- ggplotGrob(p1 + theme(legend.position="bottom"))$grobs)
+                            legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
+                            suppressWarnings(grid.arrange(arrangeGrob(p1 + theme(legend.position="none"),
+                                            legend, nrow = 2, heights = c (1, 1/5)),
+                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                        } else {
+                            suppressWarnings(grid.arrange(p1 + theme(legend.position="none"),
+                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                        }   
+                    }
+                    else if (2%in%unit.type) {
+                        p2 <- subplot(data2, limits2, labels2, colors2, main2, outcome.type, theme.bw)
+                        if (legend.pos != "none") {
+                            suppressWarnings(g <- ggplotGrob(p2 + theme(legend.position="bottom"))$grobs)
+                            legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
+                            suppressWarnings(grid.arrange(arrangeGrob(p2 + theme(legend.position="none"),
+                                            legend, nrow = 2, heights = c (1, 1/5)),
+                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2)))) 
+                        } else {
+                            suppressWarnings(grid.arrange(p2 + theme(legend.position="none"),
+                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                        }   
+                    }
+                    else if (3%in%unit.type) {
+                        p3 <- subplot(data3, limits3, labels3, colors3, main3, outcome.type, theme.bw)
+                        if (legend.pos != "none") {
+                            suppressWarnings(g <- ggplotGrob(p3 + theme(legend.position="bottom"))$grobs)
+                            legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
+                            suppressWarnings(grid.arrange(arrangeGrob(p3 + theme(legend.position="none"),
+                                            legend, nrow = 2, heights = c (1, 1/5)),
+                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2)))) 
+                        } else {
+                            suppressWarnings(grid.arrange(p3 + theme(legend.position="none"),
+                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                        }  
+                    }
 
-            }
-            else if (length(unique(unit.type))==2) {
-                
-                if (!1%in%unit.type) {
+                }
+                else if (length(unique(unit.type))==2) {
+                    
+                    if (!1%in%unit.type) {
+                        p2 <- subplot(data2, limits2, labels2, colors2, main2, outcome.type, theme.bw)
+                        p3 <- subplot(data3, limits3, labels3, colors3, main3, outcome.type, theme.bw)
+                        if (legend.pos != "none") {
+                            suppressWarnings(g <- ggplotGrob(p2 + theme(legend.position="bottom"))$grobs)
+                            legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
+                            suppressWarnings(grid.arrange(arrangeGrob(p2 + theme(legend.position="none"), p3 + theme(legend.position="none"),
+                                            legend, nrow = 3, heights = c (1, 1, 1/5)),
+                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))  
+                        } else {
+                            suppressWarnings(grid.arrange(p2 + theme(legend.position="none"),
+                                            p3 + theme(legend.position="none"),
+                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                        }  
+                    }
+                    else if (!2%in%unit.type) {
+                        p1 <- subplot(data1, limits1, labels1, colors1, main1, outcome.type, theme.bw)
+                        p3 <- subplot(data3, limits3, labels3, colors3, main3, outcome.type, theme.bw)
+                        if (legend.pos != "none") {
+                            suppressWarnings(g <- ggplotGrob(p1 + theme(legend.position="bottom"))$grobs)
+                            legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
+                            suppressWarnings(grid.arrange(arrangeGrob(p1 + theme(legend.position="none"), p3 + theme(legend.position="none"),
+                                            legend, nrow = 3, heights = c (1, 1, 1/5)),
+                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))  
+                        } else {
+                            suppressWarnings(grid.arrange(p1 + theme(legend.position="none"),
+                                            p3 + theme(legend.position="none"),
+                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                        }  
+                    }
+                    else if (!3%in%unit.type) {
+                        p1 <- subplot(data1, limits1, labels1, colors1, main1, outcome.type, theme.bw)
+                        p2 <- subplot(data2, limits2, labels2, colors2, main2, outcome.type, theme.bw)
+                        if (legend.pos != "none") {
+                            suppressWarnings(g <- ggplotGrob(p1 + theme(legend.position="bottom"))$grobs)
+                            legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
+                            suppressWarnings(grid.arrange(arrangeGrob(p1 + theme(legend.position="none"), p2 + theme(legend.position="none"),
+                                            legend, nrow = 3, heights = c (1, 1, 1/5)),
+                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))  
+                        } else {
+                            suppressWarnings(grid.arrange(p1 + theme(legend.position="none"),
+                                            p2 + theme(legend.position="none"),
+                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                        }   
+                    }
+
+                }
+                else {
+                    
+                    p1 <- subplot(data1, limits1, labels1, colors1, main1, outcome.type, theme.bw)
                     p2 <- subplot(data2, limits2, labels2, colors2, main2, outcome.type, theme.bw)
                     p3 <- subplot(data3, limits3, labels3, colors3, main3, outcome.type, theme.bw)
-                    if (legend.pos != "none") {
-                        suppressWarnings(g <- ggplotGrob(p2 + theme(legend.position="bottom"))$grobs)
-                        legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
-                        suppressWarnings(grid.arrange(arrangeGrob(p2 + theme(legend.position="none"), p3 + theme(legend.position="none"),
-                                         legend, nrow = 3, heights = c (1, 1, 1/5)),
-                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))  
-                    } else {
-                        suppressWarnings(grid.arrange(p2 + theme(legend.position="none"),
-                                         p3 + theme(legend.position="none"),
-                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
-                    }  
-                }
-                else if (!2%in%unit.type) {
-                    p1 <- subplot(data1, limits1, labels1, colors1, main1, outcome.type, theme.bw)
-                    p3 <- subplot(data3, limits3, labels3, colors3, main3, outcome.type, theme.bw)
-                    if (legend.pos != "none") {
-                        suppressWarnings(g <- ggplotGrob(p1 + theme(legend.position="bottom"))$grobs)
-                        legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
-                        suppressWarnings(grid.arrange(arrangeGrob(p1 + theme(legend.position="none"), p3 + theme(legend.position="none"),
-                                         legend, nrow = 3, heights = c (1, 1, 1/5)),
-                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))  
-                    } else {
-                        suppressWarnings(grid.arrange(p1 + theme(legend.position="none"),
-                                         p3 + theme(legend.position="none"),
-                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
-                    }  
-                }
-                else if (!3%in%unit.type) {
-                    p1 <- subplot(data1, limits1, labels1, colors1, main1, outcome.type, theme.bw)
-                    p2 <- subplot(data2, limits2, labels2, colors2, main2, outcome.type, theme.bw)
                     if (legend.pos != "none") {
                         suppressWarnings(g <- ggplotGrob(p1 + theme(legend.position="bottom"))$grobs)
                         legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
                         suppressWarnings(grid.arrange(arrangeGrob(p1 + theme(legend.position="none"), p2 + theme(legend.position="none"),
-                                         legend, nrow = 3, heights = c (1, 1, 1/5)),
-                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))  
+                                        p3 + theme(legend.position="none"), legend, nrow = 4, heights = c (1, 1, 1, 1/5)),
+                                        top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
                     } else {
                         suppressWarnings(grid.arrange(p1 + theme(legend.position="none"),
-                                         p2 + theme(legend.position="none"),
-                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
-                    }   
-                }
+                                            p2 + theme(legend.position="none"),
+                                            p3 + theme(legend.position="none"),
+                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                    }
 
+                }
             }
-            else {
-                
-                p1 <- subplot(data1, limits1, labels1, colors1, main1, outcome.type, theme.bw)
-                p2 <- subplot(data2, limits2, labels2, colors2, main2, outcome.type, theme.bw)
-                p3 <- subplot(data3, limits3, labels3, colors3, main3, outcome.type, theme.bw)
-                if (legend.pos != "none") {
-                    suppressWarnings(g <- ggplotGrob(p1 + theme(legend.position="bottom"))$grobs)
-                    legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
-                    suppressWarnings(grid.arrange(arrangeGrob(p1 + theme(legend.position="none"), p2 + theme(legend.position="none"),
-                                     p3 + theme(legend.position="none"), legend, nrow = 4, heights = c (1, 1, 1, 1/5)),
-                                     top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
-                } else {
-                    suppressWarnings(grid.arrange(p1 + theme(legend.position="none"),
-                                         p2 + theme(legend.position="none"),
-                                         p3 + theme(legend.position="none"),
-                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
-                }
+            else if (by.group.side == TRUE) {
 
-            }
-        }
-        else if (by.group.side == TRUE) {
+                if (length(unique(unit.type)) == 1) {
+                    
+                    if (1%in%unit.type) {
+                        p1 <- subplot(data1, limits1, labels1, colors1, main1, outcome.type, theme.bw)
+                        if (legend.pos != "none") {
+                            suppressWarnings(g <- ggplotGrob(p1 + theme(legend.position="bottom"))$grobs)
+                            legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
+                            suppressWarnings(grid.arrange(arrangeGrob(p1 + theme(legend.position="none"),
+                                            nrow =1, top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))),legend,nrow=2,heights=c(1,1/8)))
+                        } else {
+                            suppressWarnings(grid.arrange(p1 + theme(legend.position="none"), nrow =1,
+                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                        }   
+                    }
+                    else if (2%in%unit.type) {
+                        p2 <- subplot(data2, limits2, labels2, colors2, main2, outcome.type, theme.bw)
+                        if (legend.pos != "none") {
+                            suppressWarnings(g <- ggplotGrob(p2 + theme(legend.position="bottom"))$grobs)
+                            legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
+                            suppressWarnings(grid.arrange(arrangeGrob(p2 + theme(legend.position="none"),
+                                            nrow =1, top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))),legend,nrow=2,heights=c(1,1/8)))
+                        } else {
+                            suppressWarnings(grid.arrange(p2 + theme(legend.position="none"), nrow =1,
+                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                        }   
+                    }
+                    else if (3%in%unit.type) {
+                        p3 <- subplot(data3, limits3, labels3, colors3, main3, outcome.type, theme.bw)
+                        if (legend.pos != "none") {
+                            suppressWarnings(g <- ggplotGrob(p3 + theme(legend.position="bottom"))$grobs)
+                            legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
+                            suppressWarnings(grid.arrange(arrangeGrob(p3 + theme(legend.position="none"),
+                                            nrow =1, top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))),legend,nrow=2,heights=c(1,1/8)))
+                        } else {
+                            suppressWarnings(grid.arrange(p3 + theme(legend.position="none"), nrow =1,
+                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                        }  
+                    }
 
-            if (length(unique(unit.type)) == 1) {
-                
-                if (1%in%unit.type) {
-                    p1 <- subplot(data1, limits1, labels1, colors1, main1, outcome.type, theme.bw)
-                    if (legend.pos != "none") {
-                        suppressWarnings(g <- ggplotGrob(p1 + theme(legend.position="bottom"))$grobs)
-                        legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
-                        suppressWarnings(grid.arrange(arrangeGrob(p1 + theme(legend.position="none"),
-                                         nrow =1, top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))),legend,nrow=2,heights=c(1,1/8)))
-                    } else {
-                        suppressWarnings(grid.arrange(p1 + theme(legend.position="none"), nrow =1,
-                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
-                    }   
                 }
-                else if (2%in%unit.type) {
-                    p2 <- subplot(data2, limits2, labels2, colors2, main2, outcome.type, theme.bw)
-                    if (legend.pos != "none") {
-                        suppressWarnings(g <- ggplotGrob(p2 + theme(legend.position="bottom"))$grobs)
-                        legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
-                        suppressWarnings(grid.arrange(arrangeGrob(p2 + theme(legend.position="none"),
-                                         nrow =1, top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))),legend,nrow=2,heights=c(1,1/8)))
-                    } else {
-                        suppressWarnings(grid.arrange(p2 + theme(legend.position="none"), nrow =1,
-                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
-                    }   
-                }
-                else if (3%in%unit.type) {
-                    p3 <- subplot(data3, limits3, labels3, colors3, main3, outcome.type, theme.bw)
-                    if (legend.pos != "none") {
-                        suppressWarnings(g <- ggplotGrob(p3 + theme(legend.position="bottom"))$grobs)
-                        legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
-                        suppressWarnings(grid.arrange(arrangeGrob(p3 + theme(legend.position="none"),
-                                         nrow =1, top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))),legend,nrow=2,heights=c(1,1/8)))
-                    } else {
-                        suppressWarnings(grid.arrange(p3 + theme(legend.position="none"), nrow =1,
-                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
-                    }  
-                }
+                else if (length(unique(unit.type))==2) {
+                    
+                    if (!1%in%unit.type) {
+                        p2 <- subplot(data2, limits2, labels2, colors2, main2, outcome.type, theme.bw)
+                        p3 <- subplot(data3, limits3, labels3, colors3, main3, outcome.type, theme.bw)
+                        if (legend.pos != "none") {
+                            suppressWarnings(g <- ggplotGrob(p2 + theme(legend.position="bottom"))$grobs)
+                            legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
+                            suppressWarnings(grid.arrange(arrangeGrob(p2 + theme(legend.position="none"), p3 + theme(legend.position="none"),
+                                            nrow =1, top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))),legend,nrow=2,heights=c(1,1/8)))
+                        } else {
+                            suppressWarnings(grid.arrange(p2 + theme(legend.position="none"),
+                                            p3 + theme(legend.position="none"), nrow =1,
+                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                        }  
+                    }
+                    else if (!2%in%unit.type) {
+                        p1 <- subplot(data1, limits1, labels1, colors1, main1, outcome.type, theme.bw)
+                        p3 <- subplot(data3, limits3, labels3, colors3, main3, outcome.type, theme.bw)
+                        if (legend.pos != "none") {
+                            suppressWarnings(g <- ggplotGrob(p1 + theme(legend.position="bottom"))$grobs)
+                            legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
+                            suppressWarnings(grid.arrange(arrangeGrob(p1 + theme(legend.position="none"), p3 + theme(legend.position="none"),
+                                            nrow =1, top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))),legend,nrow=2,heights=c(1,1/8)))
+                        } else {
+                            suppressWarnings(grid.arrange(p1 + theme(legend.position="none"),
+                                            p3 + theme(legend.position="none"), nrow =1,
+                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                        }  
+                    }
+                    else if (!3%in%unit.type) {
+                        p1 <- subplot(data1, limits1, labels1, colors1, main1, outcome.type, theme.bw)
+                        p2 <- subplot(data2, limits2, labels2, colors2, main2, outcome.type, theme.bw)
+                        if (legend.pos != "none") {
+                            suppressWarnings(g <- ggplotGrob(p1 + theme(legend.position="bottom"))$grobs)
+                            legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
+                            suppressWarnings(grid.arrange(arrangeGrob(p1 + theme(legend.position="none"), p2 + theme(legend.position="none"),
+                                            nrow =1, top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))),legend,nrow=2,heights=c(1,1/8)))
+                        } else {
+                            suppressWarnings(grid.arrange(p1 + theme(legend.position="none"),
+                                            p2 + theme(legend.position="none"), nrow =1,
+                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                        }   
+                    }
 
-            }
-            else if (length(unique(unit.type))==2) {
-                
-                if (!1%in%unit.type) {
-                    p2 <- subplot(data2, limits2, labels2, colors2, main2, outcome.type, theme.bw)
-                    p3 <- subplot(data3, limits3, labels3, colors3, main3, outcome.type, theme.bw)
-                    if (legend.pos != "none") {
-                        suppressWarnings(g <- ggplotGrob(p2 + theme(legend.position="bottom"))$grobs)
-                        legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
-                        suppressWarnings(grid.arrange(arrangeGrob(p2 + theme(legend.position="none"), p3 + theme(legend.position="none"),
-                                         nrow =1, top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))),legend,nrow=2,heights=c(1,1/8)))
-                    } else {
-                        suppressWarnings(grid.arrange(p2 + theme(legend.position="none"),
-                                         p3 + theme(legend.position="none"), nrow =1,
-                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
-                    }  
                 }
-                else if (!2%in%unit.type) {
-                    p1 <- subplot(data1, limits1, labels1, colors1, main1, outcome.type, theme.bw)
-                    p3 <- subplot(data3, limits3, labels3, colors3, main3, outcome.type, theme.bw)
-                    if (legend.pos != "none") {
-                        suppressWarnings(g <- ggplotGrob(p1 + theme(legend.position="bottom"))$grobs)
-                        legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
-                        suppressWarnings(grid.arrange(arrangeGrob(p1 + theme(legend.position="none"), p3 + theme(legend.position="none"),
-                                         nrow =1, top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))),legend,nrow=2,heights=c(1,1/8)))
-                    } else {
-                        suppressWarnings(grid.arrange(p1 + theme(legend.position="none"),
-                                         p3 + theme(legend.position="none"), nrow =1,
-                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
-                    }  
-                }
-                else if (!3%in%unit.type) {
+                else {
                     p1 <- subplot(data1, limits1, labels1, colors1, main1, outcome.type, theme.bw)
                     p2 <- subplot(data2, limits2, labels2, colors2, main2, outcome.type, theme.bw)
+                    p3 <- subplot(data3, limits3, labels3, colors3, main3, outcome.type, theme.bw)
+
                     if (legend.pos != "none") {
                         suppressWarnings(g <- ggplotGrob(p1 + theme(legend.position="bottom"))$grobs)
+
                         legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
+
                         suppressWarnings(grid.arrange(arrangeGrob(p1 + theme(legend.position="none"), p2 + theme(legend.position="none"),
-                                         nrow =1, top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))),legend,nrow=2,heights=c(1,1/8)))
+                                        p3 + theme(legend.position="none"), nrow =1,
+                                        top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))),legend,nrow=2,heights=c(1,1/8)))
                     } else {
                         suppressWarnings(grid.arrange(p1 + theme(legend.position="none"),
-                                         p2 + theme(legend.position="none"), nrow =1,
-                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
-                    }   
+                                            p2 + theme(legend.position="none"),
+                                            p3 + theme(legend.position="none"), nrow =1,
+                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                    }
+
                 }
-
             }
-            else {
-                p1 <- subplot(data1, limits1, labels1, colors1, main1, outcome.type, theme.bw)
-                p2 <- subplot(data2, limits2, labels2, colors2, main2, outcome.type, theme.bw)
-                p3 <- subplot(data3, limits3, labels3, colors3, main3, outcome.type, theme.bw)
-
-                if (legend.pos != "none") {
-                    suppressWarnings(g <- ggplotGrob(p1 + theme(legend.position="bottom"))$grobs)
-
-                    legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
-
-                    suppressWarnings(grid.arrange(arrangeGrob(p1 + theme(legend.position="none"), p2 + theme(legend.position="none"),
-                                     p3 + theme(legend.position="none"), nrow =1,
-                                     top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))),legend,nrow=2,heights=c(1,1/8)))
-                } else {
-                    suppressWarnings(grid.arrange(p1 + theme(legend.position="none"),
-                                         p2 + theme(legend.position="none"),
-                                         p3 + theme(legend.position="none"), nrow =1,
-                                         top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
-                }
-
-            }
-        }
-    }    ## end of raw plot
-    
+        }  ## end of (by.group = TRUE or by.group.side = TRUE); END of outcome plot    
 
 
     }   ############# Treatment Status ###############

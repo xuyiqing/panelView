@@ -20,7 +20,7 @@ Xu](https://yiqingxu.org/) (Stanford)
 
 **Repos:** [Github](https://github.com/xuyiqing/panelView) (1.1.16)
 [CRAN](https://cran.r-project.org/web/packages/panelView/index.html)
-(1.1.11)
+(1.1.16)
 
 **Examples:** R code used in the tutorial can be downloaded from
 [here](https://github.com/xuyiqing/panelView/blob/master/examples.R).

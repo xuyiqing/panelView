@@ -1,3 +1,7 @@
+# panelView 1.1.17
+
+Add links to the [JSS paper](https://doi.org/10.18637/jss.v107.i07).
+
 # panelView 1.1.16
 
 1. Add `collapse.history` to allow users to collapse unit by treatment history in a `treat` plot.

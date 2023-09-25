@@ -1,15 +1,15 @@
 Package: panelView
 Type: Package
 Title: Visualizing Panel Data
-Version: 1.1.16
-Date: 2023-2-10
+Version: 1.1.17
+Date: 2023-09-23
 Authors@R: 
   c(person("Hongyu", "Mou", , "hongyumou@g.ucla.edu", role = c("aut")), 
   person("Licheng", "Liu", ,"liulch@mit.edu", role = c("aut")), 
   person("Yiqing", "Xu", ,"yiqingxu@stanford.edu", role = c("aut", "cre"), 
   comment = c(ORCID = "0000-0003-2041-6671")))
 Maintainer: Yiqing Xu <yiqingxu@stanford.edu>
-Description: Visualizes panel data. It has three main functionalities: (1) it visualizes treatment status and missing values in a panel dataset; (2) it visualizes the temporal dynamics of an outcome variable (or any variable); (3) it visualizes bivariate relationships of two variables by unit or in aggregate.
+Description: Visualizes panel data. It has three main functionalities: (1) it plots the treatment status and missing values in a panel dataset; (2) it visualizes the temporal dynamics of a main variable of interest; (3) it depicts the bivariate relationships between a treatment variable and an outcome variable either by unit or in aggregate. For details, see <doi:10.18637/jss.v107.i07>.
 URL: https://yiqingxu.org/packages/panelview/index.html
 License: MIT + file LICENSE
 Imports: ggplot2 (>= 2.1.0), gridExtra, grid, dplyr (>= 1.0.0) 

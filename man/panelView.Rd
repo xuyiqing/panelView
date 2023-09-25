@@ -91,6 +91,9 @@ data(panelView)
 panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
           data = turnout, index = c("abb","year"))
 }
+\references{
+Hongyu Mou, Licheng Liu and Yiqing Xu (2023). "Panel Data Visualization in {R} ({panelView}) and {Stata} ({panelview})." Journal of Statistical Software, 107(7), pp. 1--20. <doi:10.18637/jss.v107.i07>
+}
 
 
 

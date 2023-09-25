@@ -1,0 +1,18 @@
+bibentry(bibtype = "Article",
+  title        = "Panel Data Visualization in {R} ({panelView}) and {Stata} ({panelview})",
+  author       = c(person(given = "Hongyu",
+                          family = "Mou"),
+                   person(given = "Licheng",
+                          family = "Liu"),
+                   person(given = "Yiqing",
+                          family = "Xu",
+                          email = "yiqingxu@stanford.edu")),
+  journal      = "Journal of Statistical Software",
+  year         = "2023",
+  volume       = "107",
+  number       = "7",
+  pages        = "1--20",
+  doi          = "10.18637/jss.v107.i07",
+  header       = "To cite panelView in publications use:"
+)
+

@@ -16,11 +16,11 @@ CRAN](https://cranlogs.r-pkg.org/badges/grand-total/panelView)](https://www.data
 **Authors:** Hongyu Mou (UCLA); Licheng Liu (MIT); [Yiqing
 Xu](https://yiqingxu.org/) (Stanford)
 
-**Date:** Feb 12, 2023
+**Date:** Sep 24, 2023
 
-**Repos:** [Github](https://github.com/xuyiqing/panelView) (1.1.16)
+**Repos:** [Github](https://github.com/xuyiqing/panelView) (1.1.17)
 [CRAN](https://cran.r-project.org/web/packages/panelView/index.html)
-(1.1.16)
+(1.1.17)
 
 **Examples:** R code used in the tutorial can be downloaded from
 [here](https://github.com/xuyiqing/panelView/blob/master/examples.R).
@@ -84,8 +84,8 @@ See the
 page for more details.
 
 For a paper version of the tutorial, see [Mou, Liu & Xu
-(2022)](http://ssrn.com/abstract=4202154): “panelView: Panel Data
-Visualization in R and Stata.”
+(2023)](https://www.jstatsoft.org/article/view/v107i07): “Panel Data
+Visualization in R (panelView) and Stata (panelview).”
 
 ## Report bugs
 

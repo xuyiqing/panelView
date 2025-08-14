@@ -1174,9 +1174,9 @@ else if (leave.gap == 1) {
         if (is.null(color) == TRUE) {
             if (ignore.treat == FALSE) {
                 if (outcome.type == "continuous") {
-                    raw.color <- c("#5e5e5e50", "#FC8D62", "red")
+                    raw.color <- c("#5e5e5e50", "#4469d8", "blue")
                 } else {
-                    raw.color <- c("#5e5e5e60", "#FC8D62", "red")
+                    raw.color <- c("#5e5e5e60", "#4469d8", "blue")
                 }
                 if (type == "outcome" && (staggered == 0 | by.group == TRUE | pre.post == FALSE)) { # two conditions only
                     raw.color <- raw.color[c(1,3)]

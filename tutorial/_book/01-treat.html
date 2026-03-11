@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>1&nbsp; Treatment Status &amp; Missingness – panelView -- User Manual</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./02-outcome.html" rel="next">
+<link href="./index.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-950d71faa9ec5383cefc3735863c97d1.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light"><script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script><link href="site_libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet">
+<script src="site_libs/pagedtable-1.1/js/pagedtable.js"></script>
+</head>
+<body class="nav-sidebar docked quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top"><nav class="quarto-secondary-nav"><div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./01-treat.html"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Treatment Status &amp; Missingness</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto"><div class="pt-lg-2 mt-2 text-left sidebar-header sidebar-header-stacked">
+      <a href="./index.html" class="sidebar-logo-link">
+      </a>
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">panelView – User Manual</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Welcome</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./01-treat.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Treatment Status &amp; Missingness</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02-outcome.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Outcome Trajectories</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03-bivariate.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Bivariate Relationships</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+    </ul>
+</div>
+</nav><div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+<li><a href="#binary-treatment" id="toc-binary-treatment" class="nav-link active" data-scroll-target="#binary-treatment"><span class="header-section-number">1.1</span> Binary treatment</a></li>
+  <li><a href="#switch-onswitch-off-treatment" id="toc-switch-onswitch-off-treatment" class="nav-link" data-scroll-target="#switch-onswitch-off-treatment"><span class="header-section-number">1.2</span> Switch-on/switch-off treatment</a></li>
+  <li><a href="#collapsing-units-by-treatment-history" id="toc-collapsing-units-by-treatment-history" class="nav-link" data-scroll-target="#collapsing-units-by-treatment-history"><span class="header-section-number">1.3</span> Collapsing units by treatment history</a></li>
+  <li><a href="#plotting-a-subset-of-units" id="toc-plotting-a-subset-of-units" class="nav-link" data-scroll-target="#plotting-a-subset-of-units"><span class="header-section-number">1.4</span> Plotting a subset of units</a></li>
+  <li><a href="#missingness-only" id="toc-missingness-only" class="nav-link" data-scroll-target="#missingness-only"><span class="header-section-number">1.5</span> Missingness only</a></li>
+  <li><a href="#multi-level-treatment" id="toc-multi-level-treatment" class="nav-link" data-scroll-target="#multi-level-treatment"><span class="header-section-number">1.6</span> Multi-level treatment</a></li>
+  <li><a href="#continuous-treatment" id="toc-continuous-treatment" class="nav-link" data-scroll-target="#continuous-treatment"><span class="header-section-number">1.7</span> Continuous treatment</a></li>
+  </ul></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title"><span id="sec-treat" class="quarto-section-identifier"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Treatment Status &amp; Missingness</span></span></h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header><p>This chapter shows how to visualize the treatment conditions and missing values in a panel dataset using <code>type = "treat"</code> and <code>type = "missing"</code>. The treatment indicator may be dichotomous, multi-level, or continuous.</p>
+<p>We first load the package and its built-in datasets.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://yiqingxu.org/packages/panelview/index.html">panelView</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="va">panelView</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/ls.html">ls</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "capacity" "simdata"  "turnout"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="binary-treatment" class="level2" data-number="1.1"><h2 data-number="1.1" class="anchored" data-anchor-id="binary-treatment">
+<span class="header-section-number">1.1</span> Binary treatment</h2>
+<p>Using the <code>turnout</code> dataset (a balanced panel), we visualize the treatment status of Election Day Registration (EDR) across US states (<a href="http://dx.doi.org/10.1017/pan.2016.2">Xu 2017</a>). The first variable on the right-hand side of the formula is the treatment indicator. The <code>index</code> option specifies the unit and time variables.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/panelView/man/panelView.html">panelview</a></span><span class="op">(</span><span class="va">turnout</span> <span class="op">~</span> <span class="va">policy_edr</span> <span class="op">+</span> <span class="va">policy_mail_in</span> <span class="op">+</span> <span class="va">policy_motor</span>,</span>
+<span>          data <span class="op">=</span> <span class="va">turnout</span>, index <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"abb"</span>, <span class="st">"year"</span><span class="op">)</span>,</span>
+<span>          xlab <span class="op">=</span> <span class="st">"Year"</span>, ylab <span class="op">=</span> <span class="st">"State"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="01-treat_files/figure-html/treat1-1-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Use <code>by.timing = TRUE</code> to sort units by the timing of first treatment. The <code>background</code> option sets the panel background color; <code>cex.*</code> options control font sizes.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/panelView/man/panelView.html">panelview</a></span><span class="op">(</span><span class="va">turnout</span> <span class="op">~</span> <span class="va">policy_edr</span> <span class="op">+</span> <span class="va">policy_mail_in</span> <span class="op">+</span> <span class="va">policy_motor</span>,</span>
+<span>          data <span class="op">=</span> <span class="va">turnout</span>, index <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"abb"</span>, <span class="st">"year"</span><span class="op">)</span>,</span>
+<span>          xlab <span class="op">=</span> <span class="st">"Year"</span>, ylab <span class="op">=</span> <span class="st">"State"</span>, by.timing <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>          legend.labs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"No EDR"</span>, <span class="st">"EDR"</span><span class="op">)</span>, background <span class="op">=</span> <span class="st">"white"</span>,</span>
+<span>          cex.main <span class="op">=</span> <span class="fl">20</span>, cex.axis <span class="op">=</span> <span class="fl">8</span>, cex.lab <span class="op">=</span> <span class="fl">12</span>, cex.legend <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Specified labels in the order of: Under Control, Under Treatment.</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="01-treat_files/figure-html/treat1-2-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>For staggered adoption, <code>pre.post = TRUE</code> distinguishes pre- and post-treatment periods for treated units.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/panelView/man/panelView.html">panelview</a></span><span class="op">(</span><span class="va">turnout</span> <span class="op">~</span> <span class="va">policy_edr</span> <span class="op">+</span> <span class="va">policy_mail_in</span> <span class="op">+</span> <span class="va">policy_motor</span>,</span>
+<span>          data <span class="op">=</span> <span class="va">turnout</span>, index <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"abb"</span>, <span class="st">"year"</span><span class="op">)</span>,</span>
+<span>          xlab <span class="op">=</span> <span class="st">"Year"</span>, ylab <span class="op">=</span> <span class="st">"State"</span>, pre.post <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="01-treat_files/figure-html/treat1-3-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Customise legend labels by passing a character vector to <code>legend.labs</code>. Its length must match the number of distinct treatment statuses shown.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/panelView/man/panelView.html">panelview</a></span><span class="op">(</span><span class="va">turnout</span> <span class="op">~</span> <span class="va">policy_edr</span> <span class="op">+</span> <span class="va">policy_mail_in</span> <span class="op">+</span> <span class="va">policy_motor</span>,</span>
+<span>          data <span class="op">=</span> <span class="va">turnout</span>, index <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"abb"</span>, <span class="st">"year"</span><span class="op">)</span>,</span>
+<span>          xlab <span class="op">=</span> <span class="st">"Year"</span>, ylab <span class="op">=</span> <span class="st">"State"</span>, by.timing <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>          pre.post <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>          legend.labs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Control States"</span>,</span>
+<span>                          <span class="st">"Treated States (before EDR)"</span>,</span>
+<span>                          <span class="st">"Treated States (after EDR)"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Specified labels in the order of: Controls, Treated (Pre), Treated (Post).</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="01-treat_files/figure-html/treat1-4-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Control axis label display with <code>axis.lab</code>: <code>"both"</code> (default), <code>"time"</code>, <code>"unit"</code>, or <code>"off"</code>.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/panelView/man/panelView.html">panelview</a></span><span class="op">(</span><span class="va">turnout</span> <span class="op">~</span> <span class="va">policy_edr</span> <span class="op">+</span> <span class="va">policy_mail_in</span> <span class="op">+</span> <span class="va">policy_motor</span>,</span>
+<span>          data <span class="op">=</span> <span class="va">turnout</span>, index <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"abb"</span>, <span class="st">"year"</span><span class="op">)</span>,</span>
+<span>          main <span class="op">=</span> <span class="st">"EDR Reform"</span>, axis.lab <span class="op">=</span> <span class="st">"time"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="01-treat_files/figure-html/treat1-5-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Instead of a formula, supply the treatment variable name directly via <code>D =</code>.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/panelView/man/panelView.html">panelview</a></span><span class="op">(</span>D <span class="op">=</span> <span class="st">"policy_edr"</span>, data <span class="op">=</span> <span class="va">turnout</span>, index <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"abb"</span>, <span class="st">"year"</span><span class="op">)</span>,</span>
+<span>          xlab <span class="op">=</span> <span class="st">"Year"</span>, ylab <span class="op">=</span> <span class="st">"State"</span>, pre.post <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>          main <span class="op">=</span> <span class="st">"EDR Reform"</span>, axis.lab <span class="op">=</span> <span class="st">"time"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Override brick colors with the <code>color</code> option. When <code>pre.post = FALSE</code>, colors follow the order <code>c("control", "treated")</code>; when <code>pre.post = TRUE</code>, the order is <code>c("treated-pre", "treated-post", "control")</code>.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span></span>
+<span><span class="va">turnout</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/panelView/man/panelView.html">panelview</a></span><span class="op">(</span><span class="va">turnout</span> <span class="op">~</span> <span class="va">policy_edr</span> <span class="op">+</span> <span class="va">policy_mail_in</span> <span class="op">+</span> <span class="va">policy_motor</span>,</span>
+<span>            color <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"#B0C4DE"</span>, <span class="st">"white"</span><span class="op">)</span>, by.timing <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>            index <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"abb"</span>, <span class="st">"year"</span><span class="op">)</span>, xlab <span class="op">=</span> <span class="st">"Year"</span>, ylab <span class="op">=</span> <span class="st">"State"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Specified colors in the order of: Under Control, Under Treatment.</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="01-treat_files/figure-html/treat1-7-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>When the time variable has gaps, use <code>leave.gap = TRUE</code> to display them as white bars. Without it, <strong>panelView</strong> skips the gaps and issues a warning.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">turnout2</span> <span class="op">&lt;-</span> <span class="va">turnout</span><span class="op">[</span><span class="op">!</span><span class="op">(</span><span class="va">turnout</span><span class="op">$</span><span class="va">year</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"1924"</span>, <span class="st">"1928"</span>, <span class="st">"1940"</span><span class="op">)</span><span class="op">)</span>, <span class="op">]</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/panelView/man/panelView.html">panelview</a></span><span class="op">(</span><span class="va">turnout</span> <span class="op">~</span> <span class="va">policy_edr</span> <span class="op">+</span> <span class="va">policy_mail_in</span> <span class="op">+</span> <span class="va">policy_motor</span>,</span>
+<span>          data <span class="op">=</span> <span class="va">turnout2</span>, index <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"abb"</span>, <span class="st">"year"</span><span class="op">)</span>,</span>
+<span>          type <span class="op">=</span> <span class="st">"treat"</span>, leave.gap <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="01-treat_files/figure-html/treat1-8-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</section><section id="switch-onswitch-off-treatment" class="level2" data-number="1.2"><h2 data-number="1.2" class="anchored" data-anchor-id="switch-onswitch-off-treatment">
+<span class="header-section-number">1.2</span> Switch-on/switch-off treatment</h2>
+<p>The <code>capacity</code> dataset has treatment that can turn on and off (democratic reversals). In this setting, <code>pre.post</code> is not meaningful.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/panelView/man/panelView.html">panelview</a></span><span class="op">(</span><span class="va">Capacity</span> <span class="op">~</span> <span class="va">demo</span> <span class="op">+</span> <span class="va">lnpop</span> <span class="op">+</span> <span class="va">lngdp</span>,</span>
+<span>          data <span class="op">=</span> <span class="va">capacity</span>, index <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"ccode"</span>, <span class="st">"year"</span><span class="op">)</span>,</span>
+<span>          main <span class="op">=</span> <span class="st">"Democracy and State Capacity"</span>,</span>
+<span>          axis.lab.gap <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="01-treat_files/figure-html/treat2-1-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Sorting by <code>by.timing = TRUE</code> and rotating x-axis labels with <code>axis.lab.angle = 90</code> often improves readability.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/panelView/man/panelView.html">panelview</a></span><span class="op">(</span><span class="va">Capacity</span> <span class="op">~</span> <span class="va">demo</span> <span class="op">+</span> <span class="va">lnpop</span> <span class="op">+</span> <span class="va">lngdp</span>,</span>
+<span>          data <span class="op">=</span> <span class="va">capacity</span>, index <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"ccode"</span>, <span class="st">"year"</span><span class="op">)</span>,</span>
+<span>          main <span class="op">=</span> <span class="st">"Democracy and State Capacity: Treatment Status"</span>,</span>
+<span>          axis.lab.angle <span class="op">=</span> <span class="fl">90</span>, by.timing <span class="op">=</span> <span class="cn">TRUE</span>, axis.lab <span class="op">=</span> <span class="st">"time"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="01-treat_files/figure-html/treat2-2-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</section><section id="collapsing-units-by-treatment-history" class="level2" data-number="1.3"><h2 data-number="1.3" class="anchored" data-anchor-id="collapsing-units-by-treatment-history">
+<span class="header-section-number">1.3</span> Collapsing units by treatment history</h2>
+<p>When the number of units is large, <code>collapse.history = TRUE</code> collapses units that share the same treatment history into a single row. The y-axis shows the group size.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/panelView/man/panelView.html">panelview</a></span><span class="op">(</span><span class="va">turnout</span> <span class="op">~</span> <span class="va">policy_edr</span> <span class="op">+</span> <span class="va">policy_mail_in</span> <span class="op">+</span> <span class="va">policy_motor</span>,</span>
+<span>          data <span class="op">=</span> <span class="va">turnout</span>, index <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"abb"</span>, <span class="st">"year"</span><span class="op">)</span>, axis.lab.angle <span class="op">=</span> <span class="fl">90</span>,</span>
+<span>          by.timing <span class="op">=</span> <span class="cn">TRUE</span>, collapse.history <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="01-treat_files/figure-html/treat2-3-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/panelView/man/panelView.html">panelview</a></span><span class="op">(</span><span class="va">Capacity</span> <span class="op">~</span> <span class="va">demo</span> <span class="op">+</span> <span class="va">lnpop</span> <span class="op">+</span> <span class="va">lngdp</span>, data <span class="op">=</span> <span class="va">capacity</span>,</span>
+<span>          index <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"ccode"</span>, <span class="st">"year"</span><span class="op">)</span>, axis.lab.gap <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">0</span><span class="op">)</span>,</span>
+<span>          axis.lab.angle <span class="op">=</span> <span class="fl">90</span>, collapse.history <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="01-treat_files/figure-html/treat2-4-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</section><section id="plotting-a-subset-of-units" class="level2" data-number="1.4"><h2 data-number="1.4" class="anchored" data-anchor-id="plotting-a-subset-of-units">
+<span class="header-section-number">1.4</span> Plotting a subset of units</h2>
+<p>Use <code>show.id</code> to select units by their rank (alphabetical order), or <code>id</code> to select by their original identifiers.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/panelView/man/panelView.html">panelview</a></span><span class="op">(</span><span class="va">Capacity</span> <span class="op">~</span> <span class="va">demo</span> <span class="op">+</span> <span class="va">lnpop</span> <span class="op">+</span> <span class="va">lngdp</span>, data <span class="op">=</span> <span class="va">capacity</span>,</span>
+<span>          index <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"ccode"</span>, <span class="st">"year"</span><span class="op">)</span>, axis.lab.gap <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">0</span><span class="op">)</span>,</span>
+<span>          main <span class="op">=</span> <span class="st">"Democracy and State Capacity"</span>, show.id <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">25</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="01-treat_files/figure-html/treat3-1-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/panelView/man/panelView.html">panelview</a></span><span class="op">(</span><span class="va">Capacity</span> <span class="op">~</span> <span class="va">demo</span> <span class="op">+</span> <span class="va">lnpop</span> <span class="op">+</span> <span class="va">lngdp</span>,</span>
+<span>          data <span class="op">=</span> <span class="va">capacity</span>, index <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"ccode"</span>, <span class="st">"year"</span><span class="op">)</span>,</span>
+<span>          axis.lab.gap <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">0</span><span class="op">)</span>,</span>
+<span>          main <span class="op">=</span> <span class="st">"Democracy and State Capacity"</span>,</span>
+<span>          id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">capacity</span><span class="op">$</span><span class="va">ccode</span><span class="op">)</span><span class="op">[</span><span class="fl">26</span><span class="op">:</span><span class="fl">50</span><span class="op">]</span>, by.timing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; List of units removed from dataset: 260 265 342 346 347</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="01-treat_files/figure-html/treat3-3-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</section><section id="missingness-only" class="level2" data-number="1.5"><h2 data-number="1.5" class="anchored" data-anchor-id="missingness-only">
+<span class="header-section-number">1.5</span> Missingness only</h2>
+<p>Set <code>type = "missing"</code> to plot only the pattern of missing values, ignoring treatment assignment.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">capacity</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/panelView/man/panelView.html">panelview</a></span><span class="op">(</span><span class="va">Capacity</span> <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>            index <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"ccode"</span>, <span class="st">"year"</span><span class="op">)</span>,</span>
+<span>            axis.lab <span class="op">=</span> <span class="st">"off"</span>, type <span class="op">=</span> <span class="st">"missing"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="01-treat_files/figure-html/treat3-4-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Supply a variable name instead of a formula via <code>Y =</code>.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">capacity</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/panelView/man/panelView.html">panelview</a></span><span class="op">(</span>Y <span class="op">=</span> <span class="st">"Capacity"</span>,</span>
+<span>            index <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"ccode"</span>, <span class="st">"year"</span><span class="op">)</span>,</span>
+<span>            axis.lab.gap <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">10</span><span class="op">)</span>,</span>
+<span>            type <span class="op">=</span> <span class="st">"missing"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>With <code>leave.gap = TRUE</code>, time gaps are visible even when the data has no explicit gap rows.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">capacity2</span> <span class="op">&lt;-</span> <span class="va">capacity</span></span>
+<span><span class="va">capacity2</span><span class="op">$</span><span class="va">demo</span><span class="op">[</span><span class="va">capacity2</span><span class="op">$</span><span class="va">year</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"1960"</span>, <span class="st">"1980"</span><span class="op">)</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">NA</span></span>
+<span><span class="va">capacity2</span><span class="op">$</span><span class="va">lngdp</span><span class="op">[</span><span class="va">capacity2</span><span class="op">$</span><span class="va">year</span> <span class="op">==</span> <span class="st">"1990"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">NA</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/panelView/man/panelView.html">panelview</a></span><span class="op">(</span><span class="fl">1</span> <span class="op">~</span> <span class="va">demo</span> <span class="op">+</span> <span class="va">lngdp</span>, data <span class="op">=</span> <span class="va">capacity2</span>, index <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"ccode"</span>, <span class="st">"year"</span><span class="op">)</span>,</span>
+<span>          type <span class="op">=</span> <span class="st">"missing"</span>, leave.gap <span class="op">=</span> <span class="cn">TRUE</span>, axis.lab.gap <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="01-treat_files/figure-html/treat3-7-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</section><section id="multi-level-treatment" class="level2" data-number="1.6"><h2 data-number="1.6" class="anchored" data-anchor-id="multi-level-treatment">
+<span class="header-section-number">1.6</span> Multi-level treatment</h2>
+<p><strong>panelView</strong> supports treatment variables with more than 2 levels.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">demo2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">capacity</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">demo2</span><span class="op">[</span><span class="va">capacity</span><span class="op">$</span><span class="va">polity2</span> <span class="op">&lt;</span> <span class="op">-</span><span class="fl">0.5</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="fl">1</span></span>
+<span><span class="va">demo2</span><span class="op">[</span><span class="va">capacity</span><span class="op">$</span><span class="va">polity2</span> <span class="op">&gt;</span>  <span class="fl">0.5</span><span class="op">]</span> <span class="op">&lt;-</span>  <span class="fl">1</span></span>
+<span><span class="va">capacity</span><span class="op">$</span><span class="va">demo2</span> <span class="op">&lt;-</span> <span class="va">demo2</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/panelView/man/panelView.html">panelview</a></span><span class="op">(</span><span class="va">Capacity</span> <span class="op">~</span> <span class="va">demo2</span> <span class="op">+</span> <span class="va">lngdp</span>,</span>
+<span>          data <span class="op">=</span> <span class="va">capacity</span>, index <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"ccode"</span>, <span class="st">"year"</span><span class="op">)</span>,</span>
+<span>          axis.lab.gap <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">10</span><span class="op">)</span>,</span>
+<span>          main <span class="op">=</span> <span class="st">"Regime Type"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; 3 treatment levels.</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="01-treat_files/figure-html/treat4-1-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Assign custom colors and legend labels.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">RColorBrewer</span><span class="op">)</span></span>
+<span><span class="va">mycol</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/RColorBrewer/man/ColorBrewer.html">brewer.pal</a></span><span class="op">(</span><span class="fl">3</span>, <span class="st">"Set1"</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">3</span>, <span class="fl">2</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/panelView/man/panelView.html">panelview</a></span><span class="op">(</span><span class="va">Capacity</span> <span class="op">~</span> <span class="va">demo2</span>, data <span class="op">=</span> <span class="va">capacity</span>,</span>
+<span>          index <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"ccode"</span>, <span class="st">"year"</span><span class="op">)</span>, axis.lab.gap <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>          main <span class="op">=</span> <span class="st">"Regime Type"</span>, axis.lab <span class="op">=</span> <span class="st">"time"</span>,</span>
+<span>          color <span class="op">=</span> <span class="va">mycol</span>,</span>
+<span>          legend.labs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Autocracy"</span>, <span class="st">"Hybrid"</span>, <span class="st">"Democracy"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; 3 treatment levels.</span></span>
+<span><span class="co">#&gt; Specified colors in the order of: -1, 0, 1.</span></span>
+<span><span class="co">#&gt; Specified labels in the order of: -1, 0, 1.</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="01-treat_files/figure-html/treat4-2-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</section><section id="continuous-treatment" class="level2" data-number="1.7"><h2 data-number="1.7" class="anchored" data-anchor-id="continuous-treatment">
+<span class="header-section-number">1.7</span> Continuous treatment</h2>
+<p>When the treatment has more than 5 unique values, <strong>panelView</strong> treats it as continuous and renders a gradient heatmap. Use <code>gridOff = TRUE</code> to remove grid lines.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/panelView/man/panelView.html">panelview</a></span><span class="op">(</span><span class="va">Capacity</span> <span class="op">~</span> <span class="va">polity2</span> <span class="op">+</span> <span class="va">lngdp</span>,</span>
+<span>          data <span class="op">=</span> <span class="va">capacity</span>, index <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"ccode"</span>, <span class="st">"year"</span><span class="op">)</span>,</span>
+<span>          axis.lab.gap <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">10</span><span class="op">)</span>, main <span class="op">=</span> <span class="st">"Regime Type"</span>,</span>
+<span>          gridOff <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; 21 treatment levels.</span></span>
+<span><span class="co">#&gt; Continuous treatment.</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="01-treat_files/figure-html/treat4-4-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Customise the gradient palette via <code>color</code>.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/panelView/man/panelView.html">panelview</a></span><span class="op">(</span><span class="va">Capacity</span> <span class="op">~</span> <span class="va">polity2</span> <span class="op">+</span> <span class="va">lngdp</span>,</span>
+<span>          data <span class="op">=</span> <span class="va">capacity</span>, index <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"ccode"</span>, <span class="st">"year"</span><span class="op">)</span>,</span>
+<span>          axis.lab.gap <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">10</span><span class="op">)</span>, main <span class="op">=</span> <span class="st">"Regime Type"</span>,</span>
+<span>          color <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"yellow"</span>, <span class="st">"orange"</span>, <span class="st">"red"</span>, <span class="st">"purple"</span>, <span class="st">"brown"</span><span class="op">)</span>,</span>
+<span>          background <span class="op">=</span> <span class="st">"white"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; 21 treatment levels.</span></span>
+<span><span class="co">#&gt; Continuous treatment.</span></span>
+<span><span class="co">#&gt; Specified colors in the order of: -1, -0.5, 0, 0.5, 1.</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="01-treat_files/figure-html/treat4-5-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+
+
+<!-- -->
+
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list" style="display: none">
+<div id="ref-mou2022" class="csl-entry" role="listitem">
+Mou, Hongyu, Licheng Liu, and Yiqing Xu. 2022. <span>“panelView: Visualizing Panel Data with Treatment Variations.”</span> <em>Journal of Statistical Software</em> 107 (7): 1–20. <a href="https://doi.org/10.18637/jss.v107.i07">https://doi.org/10.18637/jss.v107.i07</a>.
+</div>
+</div>
+</section></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+        for (let i=0; i<detailsSrc.length; i++) {
+          const details = detailsSrc[i].parentElement;
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script><nav class="page-navigation"><div class="nav-page nav-page-previous">
+      <a href="./index.html" class="pagination-link" aria-label="Welcome">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Welcome</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./02-outcome.html" class="pagination-link" aria-label="Outcome Trajectories">
+        <span class="nav-page-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Outcome Trajectories</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu"># Treatment Status &amp; Missingness {#sec-treat}</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="in">```{r setup, include=FALSE}</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(<span class="at">echo =</span> <span class="cn">TRUE</span>, <span class="at">message =</span> <span class="cn">FALSE</span>, <span class="at">warning =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>                      <span class="at">fig.width =</span> <span class="dv">10</span>, <span class="at">fig.height =</span> <span class="dv">7</span>)</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>This chapter shows how to visualize the treatment conditions and missing values in a panel dataset using <span class="in">`type = "treat"`</span> and <span class="in">`type = "missing"`</span>. The treatment indicator may be dichotomous, multi-level, or continuous.</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>We first load the package and its built-in datasets.</span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(panelView)</span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(panelView)</span>
+<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span>()</span>
+<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a><span class="fu">## Binary treatment</span></span>
+<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a>Using the <span class="in">`turnout`</span> dataset (a balanced panel), we visualize the treatment status of Election Day Registration (EDR) across US states (<span class="co">[</span><span class="ot">Xu 2017</span><span class="co">](http://dx.doi.org/10.1017/pan.2016.2)</span>). The first variable on the right-hand side of the formula is the treatment indicator. The <span class="in">`index`</span> option specifies the unit and time variables.</span>
+<span id="cb23-23"><a href="#cb23-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-24"><a href="#cb23-24" aria-hidden="true" tabindex="-1"></a><span class="in">```{r treat1-1}</span></span>
+<span id="cb23-25"><a href="#cb23-25" aria-hidden="true" tabindex="-1"></a><span class="fu">panelview</span>(turnout <span class="sc">~</span> policy_edr <span class="sc">+</span> policy_mail_in <span class="sc">+</span> policy_motor,</span>
+<span id="cb23-26"><a href="#cb23-26" aria-hidden="true" tabindex="-1"></a>          <span class="at">data =</span> turnout, <span class="at">index =</span> <span class="fu">c</span>(<span class="st">"abb"</span>, <span class="st">"year"</span>),</span>
+<span id="cb23-27"><a href="#cb23-27" aria-hidden="true" tabindex="-1"></a>          <span class="at">xlab =</span> <span class="st">"Year"</span>, <span class="at">ylab =</span> <span class="st">"State"</span>)</span>
+<span id="cb23-28"><a href="#cb23-28" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-29"><a href="#cb23-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-30"><a href="#cb23-30" aria-hidden="true" tabindex="-1"></a>Use <span class="in">`by.timing = TRUE`</span> to sort units by the timing of first treatment. The <span class="in">`background`</span> option sets the panel background color; <span class="in">`cex.*`</span> options control font sizes.</span>
+<span id="cb23-31"><a href="#cb23-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-32"><a href="#cb23-32" aria-hidden="true" tabindex="-1"></a><span class="in">```{r treat1-2, fig.height=10}</span></span>
+<span id="cb23-33"><a href="#cb23-33" aria-hidden="true" tabindex="-1"></a><span class="fu">panelview</span>(turnout <span class="sc">~</span> policy_edr <span class="sc">+</span> policy_mail_in <span class="sc">+</span> policy_motor,</span>
+<span id="cb23-34"><a href="#cb23-34" aria-hidden="true" tabindex="-1"></a>          <span class="at">data =</span> turnout, <span class="at">index =</span> <span class="fu">c</span>(<span class="st">"abb"</span>, <span class="st">"year"</span>),</span>
+<span id="cb23-35"><a href="#cb23-35" aria-hidden="true" tabindex="-1"></a>          <span class="at">xlab =</span> <span class="st">"Year"</span>, <span class="at">ylab =</span> <span class="st">"State"</span>, <span class="at">by.timing =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb23-36"><a href="#cb23-36" aria-hidden="true" tabindex="-1"></a>          <span class="at">legend.labs =</span> <span class="fu">c</span>(<span class="st">"No EDR"</span>, <span class="st">"EDR"</span>), <span class="at">background =</span> <span class="st">"white"</span>,</span>
+<span id="cb23-37"><a href="#cb23-37" aria-hidden="true" tabindex="-1"></a>          <span class="at">cex.main =</span> <span class="dv">20</span>, <span class="at">cex.axis =</span> <span class="dv">8</span>, <span class="at">cex.lab =</span> <span class="dv">12</span>, <span class="at">cex.legend =</span> <span class="dv">12</span>)</span>
+<span id="cb23-38"><a href="#cb23-38" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-39"><a href="#cb23-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-40"><a href="#cb23-40" aria-hidden="true" tabindex="-1"></a>For staggered adoption, <span class="in">`pre.post = TRUE`</span> distinguishes pre- and post-treatment periods for treated units.</span>
+<span id="cb23-41"><a href="#cb23-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-42"><a href="#cb23-42" aria-hidden="true" tabindex="-1"></a><span class="in">```{r treat1-3, fig.height=10}</span></span>
+<span id="cb23-43"><a href="#cb23-43" aria-hidden="true" tabindex="-1"></a><span class="fu">panelview</span>(turnout <span class="sc">~</span> policy_edr <span class="sc">+</span> policy_mail_in <span class="sc">+</span> policy_motor,</span>
+<span id="cb23-44"><a href="#cb23-44" aria-hidden="true" tabindex="-1"></a>          <span class="at">data =</span> turnout, <span class="at">index =</span> <span class="fu">c</span>(<span class="st">"abb"</span>, <span class="st">"year"</span>),</span>
+<span id="cb23-45"><a href="#cb23-45" aria-hidden="true" tabindex="-1"></a>          <span class="at">xlab =</span> <span class="st">"Year"</span>, <span class="at">ylab =</span> <span class="st">"State"</span>, <span class="at">pre.post =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb23-46"><a href="#cb23-46" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-47"><a href="#cb23-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-48"><a href="#cb23-48" aria-hidden="true" tabindex="-1"></a>Customise legend labels by passing a character vector to <span class="in">`legend.labs`</span>. Its length must match the number of distinct treatment statuses shown.</span>
+<span id="cb23-49"><a href="#cb23-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-50"><a href="#cb23-50" aria-hidden="true" tabindex="-1"></a><span class="in">```{r treat1-4, fig.height=8}</span></span>
+<span id="cb23-51"><a href="#cb23-51" aria-hidden="true" tabindex="-1"></a><span class="fu">panelview</span>(turnout <span class="sc">~</span> policy_edr <span class="sc">+</span> policy_mail_in <span class="sc">+</span> policy_motor,</span>
+<span id="cb23-52"><a href="#cb23-52" aria-hidden="true" tabindex="-1"></a>          <span class="at">data =</span> turnout, <span class="at">index =</span> <span class="fu">c</span>(<span class="st">"abb"</span>, <span class="st">"year"</span>),</span>
+<span id="cb23-53"><a href="#cb23-53" aria-hidden="true" tabindex="-1"></a>          <span class="at">xlab =</span> <span class="st">"Year"</span>, <span class="at">ylab =</span> <span class="st">"State"</span>, <span class="at">by.timing =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb23-54"><a href="#cb23-54" aria-hidden="true" tabindex="-1"></a>          <span class="at">pre.post =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb23-55"><a href="#cb23-55" aria-hidden="true" tabindex="-1"></a>          <span class="at">legend.labs =</span> <span class="fu">c</span>(<span class="st">"Control States"</span>,</span>
+<span id="cb23-56"><a href="#cb23-56" aria-hidden="true" tabindex="-1"></a>                          <span class="st">"Treated States (before EDR)"</span>,</span>
+<span id="cb23-57"><a href="#cb23-57" aria-hidden="true" tabindex="-1"></a>                          <span class="st">"Treated States (after EDR)"</span>))</span>
+<span id="cb23-58"><a href="#cb23-58" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-59"><a href="#cb23-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-60"><a href="#cb23-60" aria-hidden="true" tabindex="-1"></a>Control axis label display with <span class="in">`axis.lab`</span>: <span class="in">`"both"`</span> (default), <span class="in">`"time"`</span>, <span class="in">`"unit"`</span>, or <span class="in">`"off"`</span>.</span>
+<span id="cb23-61"><a href="#cb23-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-62"><a href="#cb23-62" aria-hidden="true" tabindex="-1"></a><span class="in">```{r treat1-5, fig.height=8}</span></span>
+<span id="cb23-63"><a href="#cb23-63" aria-hidden="true" tabindex="-1"></a><span class="fu">panelview</span>(turnout <span class="sc">~</span> policy_edr <span class="sc">+</span> policy_mail_in <span class="sc">+</span> policy_motor,</span>
+<span id="cb23-64"><a href="#cb23-64" aria-hidden="true" tabindex="-1"></a>          <span class="at">data =</span> turnout, <span class="at">index =</span> <span class="fu">c</span>(<span class="st">"abb"</span>, <span class="st">"year"</span>),</span>
+<span id="cb23-65"><a href="#cb23-65" aria-hidden="true" tabindex="-1"></a>          <span class="at">main =</span> <span class="st">"EDR Reform"</span>, <span class="at">axis.lab =</span> <span class="st">"time"</span>)</span>
+<span id="cb23-66"><a href="#cb23-66" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-67"><a href="#cb23-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-68"><a href="#cb23-68" aria-hidden="true" tabindex="-1"></a>Instead of a formula, supply the treatment variable name directly via <span class="in">`D =`</span>.</span>
+<span id="cb23-69"><a href="#cb23-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-70"><a href="#cb23-70" aria-hidden="true" tabindex="-1"></a><span class="in">```{r treat1-6, eval=FALSE}</span></span>
+<span id="cb23-71"><a href="#cb23-71" aria-hidden="true" tabindex="-1"></a><span class="fu">panelview</span>(<span class="at">D =</span> <span class="st">"policy_edr"</span>, <span class="at">data =</span> turnout, <span class="at">index =</span> <span class="fu">c</span>(<span class="st">"abb"</span>, <span class="st">"year"</span>),</span>
+<span id="cb23-72"><a href="#cb23-72" aria-hidden="true" tabindex="-1"></a>          <span class="at">xlab =</span> <span class="st">"Year"</span>, <span class="at">ylab =</span> <span class="st">"State"</span>, <span class="at">pre.post =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb23-73"><a href="#cb23-73" aria-hidden="true" tabindex="-1"></a>          <span class="at">main =</span> <span class="st">"EDR Reform"</span>, <span class="at">axis.lab =</span> <span class="st">"time"</span>)</span>
+<span id="cb23-74"><a href="#cb23-74" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-75"><a href="#cb23-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-76"><a href="#cb23-76" aria-hidden="true" tabindex="-1"></a>Override brick colors with the <span class="in">`color`</span> option. When <span class="in">`pre.post = FALSE`</span>, colors follow the order <span class="in">`c("control", "treated")`</span>; when <span class="in">`pre.post = TRUE`</span>, the order is <span class="in">`c("treated-pre", "treated-post", "control")`</span>.</span>
+<span id="cb23-77"><a href="#cb23-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-78"><a href="#cb23-78" aria-hidden="true" tabindex="-1"></a><span class="in">```{r treat1-7, fig.height=8}</span></span>
+<span id="cb23-79"><a href="#cb23-79" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb23-80"><a href="#cb23-80" aria-hidden="true" tabindex="-1"></a>turnout <span class="sc">|&gt;</span></span>
+<span id="cb23-81"><a href="#cb23-81" aria-hidden="true" tabindex="-1"></a>  <span class="fu">panelview</span>(turnout <span class="sc">~</span> policy_edr <span class="sc">+</span> policy_mail_in <span class="sc">+</span> policy_motor,</span>
+<span id="cb23-82"><a href="#cb23-82" aria-hidden="true" tabindex="-1"></a>            <span class="at">color =</span> <span class="fu">c</span>(<span class="st">"#B0C4DE"</span>, <span class="st">"white"</span>), <span class="at">by.timing =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb23-83"><a href="#cb23-83" aria-hidden="true" tabindex="-1"></a>            <span class="at">index =</span> <span class="fu">c</span>(<span class="st">"abb"</span>, <span class="st">"year"</span>), <span class="at">xlab =</span> <span class="st">"Year"</span>, <span class="at">ylab =</span> <span class="st">"State"</span>)</span>
+<span id="cb23-84"><a href="#cb23-84" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-85"><a href="#cb23-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-86"><a href="#cb23-86" aria-hidden="true" tabindex="-1"></a>When the time variable has gaps, use <span class="in">`leave.gap = TRUE`</span> to display them as white bars. Without it, **panelView** skips the gaps and issues a warning.</span>
+<span id="cb23-87"><a href="#cb23-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-88"><a href="#cb23-88" aria-hidden="true" tabindex="-1"></a><span class="in">```{r treat1-8, fig.height=8}</span></span>
+<span id="cb23-89"><a href="#cb23-89" aria-hidden="true" tabindex="-1"></a>turnout2 <span class="ot">&lt;-</span> turnout[<span class="sc">!</span>(turnout<span class="sc">$</span>year <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"1924"</span>, <span class="st">"1928"</span>, <span class="st">"1940"</span>)), ]</span>
+<span id="cb23-90"><a href="#cb23-90" aria-hidden="true" tabindex="-1"></a><span class="fu">panelview</span>(turnout <span class="sc">~</span> policy_edr <span class="sc">+</span> policy_mail_in <span class="sc">+</span> policy_motor,</span>
+<span id="cb23-91"><a href="#cb23-91" aria-hidden="true" tabindex="-1"></a>          <span class="at">data =</span> turnout2, <span class="at">index =</span> <span class="fu">c</span>(<span class="st">"abb"</span>, <span class="st">"year"</span>),</span>
+<span id="cb23-92"><a href="#cb23-92" aria-hidden="true" tabindex="-1"></a>          <span class="at">type =</span> <span class="st">"treat"</span>, <span class="at">leave.gap =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb23-93"><a href="#cb23-93" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-94"><a href="#cb23-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-95"><a href="#cb23-95" aria-hidden="true" tabindex="-1"></a><span class="fu">## Switch-on/switch-off treatment</span></span>
+<span id="cb23-96"><a href="#cb23-96" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-97"><a href="#cb23-97" aria-hidden="true" tabindex="-1"></a>The <span class="in">`capacity`</span> dataset has treatment that can turn on and off (democratic reversals). In this setting, <span class="in">`pre.post`</span> is not meaningful.</span>
+<span id="cb23-98"><a href="#cb23-98" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-99"><a href="#cb23-99" aria-hidden="true" tabindex="-1"></a><span class="in">```{r treat2-1, fig.height=10}</span></span>
+<span id="cb23-100"><a href="#cb23-100" aria-hidden="true" tabindex="-1"></a><span class="fu">panelview</span>(Capacity <span class="sc">~</span> demo <span class="sc">+</span> lnpop <span class="sc">+</span> lngdp,</span>
+<span id="cb23-101"><a href="#cb23-101" aria-hidden="true" tabindex="-1"></a>          <span class="at">data =</span> capacity, <span class="at">index =</span> <span class="fu">c</span>(<span class="st">"ccode"</span>, <span class="st">"year"</span>),</span>
+<span id="cb23-102"><a href="#cb23-102" aria-hidden="true" tabindex="-1"></a>          <span class="at">main =</span> <span class="st">"Democracy and State Capacity"</span>,</span>
+<span id="cb23-103"><a href="#cb23-103" aria-hidden="true" tabindex="-1"></a>          <span class="at">axis.lab.gap =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">10</span>))</span>
+<span id="cb23-104"><a href="#cb23-104" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-105"><a href="#cb23-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-106"><a href="#cb23-106" aria-hidden="true" tabindex="-1"></a>Sorting by <span class="in">`by.timing = TRUE`</span> and rotating x-axis labels with <span class="in">`axis.lab.angle = 90`</span> often improves readability.</span>
+<span id="cb23-107"><a href="#cb23-107" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-108"><a href="#cb23-108" aria-hidden="true" tabindex="-1"></a><span class="in">```{r treat2-2, fig.height=10}</span></span>
+<span id="cb23-109"><a href="#cb23-109" aria-hidden="true" tabindex="-1"></a><span class="fu">panelview</span>(Capacity <span class="sc">~</span> demo <span class="sc">+</span> lnpop <span class="sc">+</span> lngdp,</span>
+<span id="cb23-110"><a href="#cb23-110" aria-hidden="true" tabindex="-1"></a>          <span class="at">data =</span> capacity, <span class="at">index =</span> <span class="fu">c</span>(<span class="st">"ccode"</span>, <span class="st">"year"</span>),</span>
+<span id="cb23-111"><a href="#cb23-111" aria-hidden="true" tabindex="-1"></a>          <span class="at">main =</span> <span class="st">"Democracy and State Capacity: Treatment Status"</span>,</span>
+<span id="cb23-112"><a href="#cb23-112" aria-hidden="true" tabindex="-1"></a>          <span class="at">axis.lab.angle =</span> <span class="dv">90</span>, <span class="at">by.timing =</span> <span class="cn">TRUE</span>, <span class="at">axis.lab =</span> <span class="st">"time"</span>)</span>
+<span id="cb23-113"><a href="#cb23-113" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-114"><a href="#cb23-114" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-115"><a href="#cb23-115" aria-hidden="true" tabindex="-1"></a><span class="fu">## Collapsing units by treatment history</span></span>
+<span id="cb23-116"><a href="#cb23-116" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-117"><a href="#cb23-117" aria-hidden="true" tabindex="-1"></a>When the number of units is large, <span class="in">`collapse.history = TRUE`</span> collapses units that share the same treatment history into a single row. The y-axis shows the group size.</span>
+<span id="cb23-118"><a href="#cb23-118" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-119"><a href="#cb23-119" aria-hidden="true" tabindex="-1"></a><span class="in">```{r treat2-3, fig.height=4}</span></span>
+<span id="cb23-120"><a href="#cb23-120" aria-hidden="true" tabindex="-1"></a><span class="fu">panelview</span>(turnout <span class="sc">~</span> policy_edr <span class="sc">+</span> policy_mail_in <span class="sc">+</span> policy_motor,</span>
+<span id="cb23-121"><a href="#cb23-121" aria-hidden="true" tabindex="-1"></a>          <span class="at">data =</span> turnout, <span class="at">index =</span> <span class="fu">c</span>(<span class="st">"abb"</span>, <span class="st">"year"</span>), <span class="at">axis.lab.angle =</span> <span class="dv">90</span>,</span>
+<span id="cb23-122"><a href="#cb23-122" aria-hidden="true" tabindex="-1"></a>          <span class="at">by.timing =</span> <span class="cn">TRUE</span>, <span class="at">collapse.history =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb23-123"><a href="#cb23-123" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-124"><a href="#cb23-124" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-125"><a href="#cb23-125" aria-hidden="true" tabindex="-1"></a><span class="in">```{r treat2-4, fig.height=8}</span></span>
+<span id="cb23-126"><a href="#cb23-126" aria-hidden="true" tabindex="-1"></a><span class="fu">panelview</span>(Capacity <span class="sc">~</span> demo <span class="sc">+</span> lnpop <span class="sc">+</span> lngdp, <span class="at">data =</span> capacity,</span>
+<span id="cb23-127"><a href="#cb23-127" aria-hidden="true" tabindex="-1"></a>          <span class="at">index =</span> <span class="fu">c</span>(<span class="st">"ccode"</span>, <span class="st">"year"</span>), <span class="at">axis.lab.gap =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">0</span>),</span>
+<span id="cb23-128"><a href="#cb23-128" aria-hidden="true" tabindex="-1"></a>          <span class="at">axis.lab.angle =</span> <span class="dv">90</span>, <span class="at">collapse.history =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb23-129"><a href="#cb23-129" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-130"><a href="#cb23-130" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-131"><a href="#cb23-131" aria-hidden="true" tabindex="-1"></a><span class="fu">## Plotting a subset of units</span></span>
+<span id="cb23-132"><a href="#cb23-132" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-133"><a href="#cb23-133" aria-hidden="true" tabindex="-1"></a>Use <span class="in">`show.id`</span> to select units by their rank (alphabetical order), or <span class="in">`id`</span> to select by their original identifiers.</span>
+<span id="cb23-134"><a href="#cb23-134" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-135"><a href="#cb23-135" aria-hidden="true" tabindex="-1"></a><span class="in">```{r treat3-1, fig.height=5}</span></span>
+<span id="cb23-136"><a href="#cb23-136" aria-hidden="true" tabindex="-1"></a><span class="fu">panelview</span>(Capacity <span class="sc">~</span> demo <span class="sc">+</span> lnpop <span class="sc">+</span> lngdp, <span class="at">data =</span> capacity,</span>
+<span id="cb23-137"><a href="#cb23-137" aria-hidden="true" tabindex="-1"></a>          <span class="at">index =</span> <span class="fu">c</span>(<span class="st">"ccode"</span>, <span class="st">"year"</span>), <span class="at">axis.lab.gap =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">0</span>),</span>
+<span id="cb23-138"><a href="#cb23-138" aria-hidden="true" tabindex="-1"></a>          <span class="at">main =</span> <span class="st">"Democracy and State Capacity"</span>, <span class="at">show.id =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">25</span>)</span>
+<span id="cb23-139"><a href="#cb23-139" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-140"><a href="#cb23-140" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-141"><a href="#cb23-141" aria-hidden="true" tabindex="-1"></a><span class="in">```{r treat3-3, fig.height=5}</span></span>
+<span id="cb23-142"><a href="#cb23-142" aria-hidden="true" tabindex="-1"></a><span class="fu">panelview</span>(Capacity <span class="sc">~</span> demo <span class="sc">+</span> lnpop <span class="sc">+</span> lngdp,</span>
+<span id="cb23-143"><a href="#cb23-143" aria-hidden="true" tabindex="-1"></a>          <span class="at">data =</span> capacity, <span class="at">index =</span> <span class="fu">c</span>(<span class="st">"ccode"</span>, <span class="st">"year"</span>),</span>
+<span id="cb23-144"><a href="#cb23-144" aria-hidden="true" tabindex="-1"></a>          <span class="at">axis.lab.gap =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">0</span>),</span>
+<span id="cb23-145"><a href="#cb23-145" aria-hidden="true" tabindex="-1"></a>          <span class="at">main =</span> <span class="st">"Democracy and State Capacity"</span>,</span>
+<span id="cb23-146"><a href="#cb23-146" aria-hidden="true" tabindex="-1"></a>          <span class="at">id =</span> <span class="fu">unique</span>(capacity<span class="sc">$</span>ccode)[<span class="dv">26</span><span class="sc">:</span><span class="dv">50</span>], <span class="at">by.timing =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb23-147"><a href="#cb23-147" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-148"><a href="#cb23-148" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-149"><a href="#cb23-149" aria-hidden="true" tabindex="-1"></a><span class="fu">## Missingness only</span></span>
+<span id="cb23-150"><a href="#cb23-150" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-151"><a href="#cb23-151" aria-hidden="true" tabindex="-1"></a>Set <span class="in">`type = "missing"`</span> to plot only the pattern of missing values, ignoring treatment assignment.</span>
+<span id="cb23-152"><a href="#cb23-152" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-153"><a href="#cb23-153" aria-hidden="true" tabindex="-1"></a><span class="in">```{r treat3-4, fig.height=10}</span></span>
+<span id="cb23-154"><a href="#cb23-154" aria-hidden="true" tabindex="-1"></a>capacity <span class="sc">|&gt;</span></span>
+<span id="cb23-155"><a href="#cb23-155" aria-hidden="true" tabindex="-1"></a>  <span class="fu">panelview</span>(Capacity <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb23-156"><a href="#cb23-156" aria-hidden="true" tabindex="-1"></a>            <span class="at">index =</span> <span class="fu">c</span>(<span class="st">"ccode"</span>, <span class="st">"year"</span>),</span>
+<span id="cb23-157"><a href="#cb23-157" aria-hidden="true" tabindex="-1"></a>            <span class="at">axis.lab =</span> <span class="st">"off"</span>, <span class="at">type =</span> <span class="st">"missing"</span>)</span>
+<span id="cb23-158"><a href="#cb23-158" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-159"><a href="#cb23-159" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-160"><a href="#cb23-160" aria-hidden="true" tabindex="-1"></a>Supply a variable name instead of a formula via <span class="in">`Y =`</span>.</span>
+<span id="cb23-161"><a href="#cb23-161" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-162"><a href="#cb23-162" aria-hidden="true" tabindex="-1"></a><span class="in">```{r treat3-6, eval=FALSE}</span></span>
+<span id="cb23-163"><a href="#cb23-163" aria-hidden="true" tabindex="-1"></a>capacity <span class="sc">|&gt;</span></span>
+<span id="cb23-164"><a href="#cb23-164" aria-hidden="true" tabindex="-1"></a>  <span class="fu">panelview</span>(<span class="at">Y =</span> <span class="st">"Capacity"</span>,</span>
+<span id="cb23-165"><a href="#cb23-165" aria-hidden="true" tabindex="-1"></a>            <span class="at">index =</span> <span class="fu">c</span>(<span class="st">"ccode"</span>, <span class="st">"year"</span>),</span>
+<span id="cb23-166"><a href="#cb23-166" aria-hidden="true" tabindex="-1"></a>            <span class="at">axis.lab.gap =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">10</span>),</span>
+<span id="cb23-167"><a href="#cb23-167" aria-hidden="true" tabindex="-1"></a>            <span class="at">type =</span> <span class="st">"missing"</span>)</span>
+<span id="cb23-168"><a href="#cb23-168" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-169"><a href="#cb23-169" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-170"><a href="#cb23-170" aria-hidden="true" tabindex="-1"></a>With <span class="in">`leave.gap = TRUE`</span>, time gaps are visible even when the data has no explicit gap rows.</span>
+<span id="cb23-171"><a href="#cb23-171" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-172"><a href="#cb23-172" aria-hidden="true" tabindex="-1"></a><span class="in">```{r treat3-7, fig.height=10}</span></span>
+<span id="cb23-173"><a href="#cb23-173" aria-hidden="true" tabindex="-1"></a>capacity2 <span class="ot">&lt;-</span> capacity</span>
+<span id="cb23-174"><a href="#cb23-174" aria-hidden="true" tabindex="-1"></a>capacity2<span class="sc">$</span>demo[capacity2<span class="sc">$</span>year <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"1960"</span>, <span class="st">"1980"</span>)] <span class="ot">&lt;-</span> <span class="cn">NA</span></span>
+<span id="cb23-175"><a href="#cb23-175" aria-hidden="true" tabindex="-1"></a>capacity2<span class="sc">$</span>lngdp[capacity2<span class="sc">$</span>year <span class="sc">==</span> <span class="st">"1990"</span>] <span class="ot">&lt;-</span> <span class="cn">NA</span></span>
+<span id="cb23-176"><a href="#cb23-176" aria-hidden="true" tabindex="-1"></a><span class="fu">panelview</span>(<span class="dv">1</span> <span class="sc">~</span> demo <span class="sc">+</span> lngdp, <span class="at">data =</span> capacity2, <span class="at">index =</span> <span class="fu">c</span>(<span class="st">"ccode"</span>, <span class="st">"year"</span>),</span>
+<span id="cb23-177"><a href="#cb23-177" aria-hidden="true" tabindex="-1"></a>          <span class="at">type =</span> <span class="st">"missing"</span>, <span class="at">leave.gap =</span> <span class="cn">TRUE</span>, <span class="at">axis.lab.gap =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">10</span>))</span>
+<span id="cb23-178"><a href="#cb23-178" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-179"><a href="#cb23-179" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-180"><a href="#cb23-180" aria-hidden="true" tabindex="-1"></a><span class="fu">## Multi-level treatment</span></span>
+<span id="cb23-181"><a href="#cb23-181" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-182"><a href="#cb23-182" aria-hidden="true" tabindex="-1"></a>**panelView** supports treatment variables with more than 2 levels.</span>
+<span id="cb23-183"><a href="#cb23-183" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-184"><a href="#cb23-184" aria-hidden="true" tabindex="-1"></a><span class="in">```{r treat4-1, fig.height=10}</span></span>
+<span id="cb23-185"><a href="#cb23-185" aria-hidden="true" tabindex="-1"></a>demo2 <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, <span class="fu">nrow</span>(capacity))</span>
+<span id="cb23-186"><a href="#cb23-186" aria-hidden="true" tabindex="-1"></a>demo2[capacity<span class="sc">$</span>polity2 <span class="sc">&lt;</span> <span class="sc">-</span><span class="fl">0.5</span>] <span class="ot">&lt;-</span> <span class="sc">-</span><span class="dv">1</span></span>
+<span id="cb23-187"><a href="#cb23-187" aria-hidden="true" tabindex="-1"></a>demo2[capacity<span class="sc">$</span>polity2 <span class="sc">&gt;</span>  <span class="fl">0.5</span>] <span class="ot">&lt;-</span>  <span class="dv">1</span></span>
+<span id="cb23-188"><a href="#cb23-188" aria-hidden="true" tabindex="-1"></a>capacity<span class="sc">$</span>demo2 <span class="ot">&lt;-</span> demo2</span>
+<span id="cb23-189"><a href="#cb23-189" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-190"><a href="#cb23-190" aria-hidden="true" tabindex="-1"></a><span class="fu">panelview</span>(Capacity <span class="sc">~</span> demo2 <span class="sc">+</span> lngdp,</span>
+<span id="cb23-191"><a href="#cb23-191" aria-hidden="true" tabindex="-1"></a>          <span class="at">data =</span> capacity, <span class="at">index =</span> <span class="fu">c</span>(<span class="st">"ccode"</span>, <span class="st">"year"</span>),</span>
+<span id="cb23-192"><a href="#cb23-192" aria-hidden="true" tabindex="-1"></a>          <span class="at">axis.lab.gap =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">10</span>),</span>
+<span id="cb23-193"><a href="#cb23-193" aria-hidden="true" tabindex="-1"></a>          <span class="at">main =</span> <span class="st">"Regime Type"</span>)</span>
+<span id="cb23-194"><a href="#cb23-194" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-195"><a href="#cb23-195" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-196"><a href="#cb23-196" aria-hidden="true" tabindex="-1"></a>Assign custom colors and legend labels.</span>
+<span id="cb23-197"><a href="#cb23-197" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-198"><a href="#cb23-198" aria-hidden="true" tabindex="-1"></a><span class="in">```{r treat4-2, fig.height=10}</span></span>
+<span id="cb23-199"><a href="#cb23-199" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(RColorBrewer)</span>
+<span id="cb23-200"><a href="#cb23-200" aria-hidden="true" tabindex="-1"></a>mycol <span class="ot">&lt;-</span> <span class="fu">brewer.pal</span>(<span class="dv">3</span>, <span class="st">"Set1"</span>)[<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">2</span>)]</span>
+<span id="cb23-201"><a href="#cb23-201" aria-hidden="true" tabindex="-1"></a><span class="fu">panelview</span>(Capacity <span class="sc">~</span> demo2, <span class="at">data =</span> capacity,</span>
+<span id="cb23-202"><a href="#cb23-202" aria-hidden="true" tabindex="-1"></a>          <span class="at">index =</span> <span class="fu">c</span>(<span class="st">"ccode"</span>, <span class="st">"year"</span>), <span class="at">axis.lab.gap =</span> <span class="dv">2</span>,</span>
+<span id="cb23-203"><a href="#cb23-203" aria-hidden="true" tabindex="-1"></a>          <span class="at">main =</span> <span class="st">"Regime Type"</span>, <span class="at">axis.lab =</span> <span class="st">"time"</span>,</span>
+<span id="cb23-204"><a href="#cb23-204" aria-hidden="true" tabindex="-1"></a>          <span class="at">color =</span> mycol,</span>
+<span id="cb23-205"><a href="#cb23-205" aria-hidden="true" tabindex="-1"></a>          <span class="at">legend.labs =</span> <span class="fu">c</span>(<span class="st">"Autocracy"</span>, <span class="st">"Hybrid"</span>, <span class="st">"Democracy"</span>))</span>
+<span id="cb23-206"><a href="#cb23-206" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-207"><a href="#cb23-207" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-208"><a href="#cb23-208" aria-hidden="true" tabindex="-1"></a><span class="fu">## Continuous treatment</span></span>
+<span id="cb23-209"><a href="#cb23-209" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-210"><a href="#cb23-210" aria-hidden="true" tabindex="-1"></a>When the treatment has more than 5 unique values, **panelView** treats it as continuous and renders a gradient heatmap. Use <span class="in">`gridOff = TRUE`</span> to remove grid lines.</span>
+<span id="cb23-211"><a href="#cb23-211" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-212"><a href="#cb23-212" aria-hidden="true" tabindex="-1"></a><span class="in">```{r treat4-4, fig.height=10}</span></span>
+<span id="cb23-213"><a href="#cb23-213" aria-hidden="true" tabindex="-1"></a><span class="fu">panelview</span>(Capacity <span class="sc">~</span> polity2 <span class="sc">+</span> lngdp,</span>
+<span id="cb23-214"><a href="#cb23-214" aria-hidden="true" tabindex="-1"></a>          <span class="at">data =</span> capacity, <span class="at">index =</span> <span class="fu">c</span>(<span class="st">"ccode"</span>, <span class="st">"year"</span>),</span>
+<span id="cb23-215"><a href="#cb23-215" aria-hidden="true" tabindex="-1"></a>          <span class="at">axis.lab.gap =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">10</span>), <span class="at">main =</span> <span class="st">"Regime Type"</span>,</span>
+<span id="cb23-216"><a href="#cb23-216" aria-hidden="true" tabindex="-1"></a>          <span class="at">gridOff =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb23-217"><a href="#cb23-217" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-218"><a href="#cb23-218" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-219"><a href="#cb23-219" aria-hidden="true" tabindex="-1"></a>Customise the gradient palette via <span class="in">`color`</span>.</span>
+<span id="cb23-220"><a href="#cb23-220" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-221"><a href="#cb23-221" aria-hidden="true" tabindex="-1"></a><span class="in">```{r treat4-5, fig.height=10}</span></span>
+<span id="cb23-222"><a href="#cb23-222" aria-hidden="true" tabindex="-1"></a><span class="fu">panelview</span>(Capacity <span class="sc">~</span> polity2 <span class="sc">+</span> lngdp,</span>
+<span id="cb23-223"><a href="#cb23-223" aria-hidden="true" tabindex="-1"></a>          <span class="at">data =</span> capacity, <span class="at">index =</span> <span class="fu">c</span>(<span class="st">"ccode"</span>, <span class="st">"year"</span>),</span>
+<span id="cb23-224"><a href="#cb23-224" aria-hidden="true" tabindex="-1"></a>          <span class="at">axis.lab.gap =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">10</span>), <span class="at">main =</span> <span class="st">"Regime Type"</span>,</span>
+<span id="cb23-225"><a href="#cb23-225" aria-hidden="true" tabindex="-1"></a>          <span class="at">color =</span> <span class="fu">c</span>(<span class="st">"yellow"</span>, <span class="st">"orange"</span>, <span class="st">"red"</span>, <span class="st">"purple"</span>, <span class="st">"brown"</span>),</span>
+<span id="cb23-226"><a href="#cb23-226" aria-hidden="true" tabindex="-1"></a>          <span class="at">background =</span> <span class="st">"white"</span>)</span>
+<span id="cb23-227"><a href="#cb23-227" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+</code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+
+
+
+</body></html>

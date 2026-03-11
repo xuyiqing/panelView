@@ -5,9 +5,9 @@
 ^LICENSE\.md$
 ^\.github$
 ^docs$
-^vignettes$
 ^pkgdown$
 ^NEWS\.md$
 ^NEWS\.html$
 ^README\.md$
 ^examples\.R
+^tutorial$

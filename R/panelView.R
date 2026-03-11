@@ -105,6 +105,12 @@ panelview <- function(data, # a data frame (long-form)
     }
     
 
+    ## normalize type argument (supports partial matching and backward-compatible aliases)
+    type <- match.arg(type, c("treat", "missing", "miss", "outcome", "raw", "bivariate", "bivar"))
+    if (type == "miss")  type <- "missing"
+    if (type == "bivar") type <- "bivariate"
+    if (type == "raw")   type <- "outcome"
+
     ## remove missing values
     if (is.logical(leave.gap) == FALSE & !leave.gap%in%c(0, 1)) {
         stop("\"leave.gap\" is not a logical flag.")
@@ -180,7 +186,7 @@ panelview <- function(data, # a data frame (long-form)
     }
 
 
-    if (type == "missing" | type == "miss") {
+    if (type == "missing") {
         if (ignore.treat == 1) {
             stop("option \"type = missing\" should not be combined with \"ignoretreat = TRUE\"")
         }
@@ -247,7 +253,7 @@ panelview <- function(data, # a data frame (long-form)
                     stop("formula form not allowed")
                 }
                 # 1 ~ variable, type(miss): not allowed
-                if (type == "missing" | type == "miss") {
+                if (type == "missing") {
                     stop("formula form not allowed")
                 }
             } else if (length(varnames) == 2) { ## 1 ~ D + X
@@ -429,17 +435,9 @@ panelview <- function(data, # a data frame (long-form)
     ## Checking Other Parameters
     ##-------------------------------## 
 
-    if (!type %in% c("miss", "missing", "raw", "treat", "outcome","bivar","bivariate")) {
-        stop("\"type\" option misspecified.")
-    }
-
-    if (type == "missing" | type == "miss") {
+    if (type == "missing") {
         type <- "treat"
         ignore.treat <- 1
-    }
-
-    if (type == "raw") {
-        type <- "outcome"
     }
 
     if (by.group == TRUE || type == "outcome") {
@@ -464,7 +462,7 @@ panelview <- function(data, # a data frame (long-form)
         }
     }
 
-    if (is.null(Y) && (type == "outcome" || type == "bivar" || type == "bivariate")) {
+    if (is.null(Y) && (type == "outcome" || type == "bivariate")) {
         stop("No outcomes.\n")
     }
 
@@ -796,7 +794,7 @@ panelview <- function(data, # a data frame (long-form)
             staggered <- 1
         } else { ## FE mode, with reversals
             DID <- 0
-            if (type == "outcome" || type == "bivar" || type == "bivariate") {
+            if (type == "outcome" || type == "bivariate") {
                 message("Treatment has reversals.\n")
             if (by.cohort == TRUE) {
                 stop("option \"by.cohort = TRUE\" works only with staggered adoption.")
@@ -2464,7 +2462,7 @@ else if (leave.gap == 1) {
 
 
     }############# Treatment Status and Outcome ###############
-    else if (type == "bivar" || type == "bivariate") {
+    else if (type == "bivariate") {
 
         ## line, bar, or connedted line
         if (length(style) == 0) { 

@@ -1,0 +1,161 @@
+# Outcome Trajectories {#sec-outcome}
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      fig.width = 10, fig.height = 6)
+library(panelView)
+data(panelView)
+```
+
+This chapter shows how to plot raw outcome variables as time series, colored by treatment status, using `type = "outcome"`. The syntax is the same as for `type = "treat"` with `type = "outcome"` added.
+
+## Basic outcome plot
+
+```{r outcome1-1}
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
+          data = turnout, index = c("abb", "year"),
+          type = "outcome", main = "EDR Reform and Turnout",
+          ylim = c(0, 100), xlab = "Year", ylab = "Turnout")
+```
+
+Turn off pre/post coloring with `pre.post = FALSE`.
+
+```{r outcome1-1a}
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
+          data = turnout, index = c("abb", "year"), pre.post = FALSE,
+          type = "outcome", main = "EDR Reform and Turnout",
+          ylim = c(0, 100), xlab = "Year", ylab = "Turnout")
+```
+
+Customise the legend, or suppress it entirely with `legendOff = TRUE`.
+
+```{r outcome1-2}
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
+          data = turnout, index = c("abb", "year"),
+          type = "outcome", main = "EDR Reform and Turnout",
+          legend.labs = c("Control States",
+                          "Treated States (before EDR)",
+                          "Treated States (after EDR)"))
+```
+
+Switch off the black-and-white theme with `theme.bw = FALSE`.
+
+```{r outcome1-3}
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
+          data = turnout, index = c("abb", "year"), type = "outcome",
+          main = "EDR Reform and Turnout", theme.bw = FALSE)
+```
+
+Customise line colors and legend labels simultaneously.
+
+```{r outcome1-4}
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
+          data = turnout, index = c("abb", "year"),
+          type = "outcome", main = "EDR Reform and Turnout",
+          color = c("lightblue", "blue", "#99999950"),
+          legend.labs = c("Control States",
+                          "Treated States (before EDR)",
+                          "Treated States (after EDR)"))
+```
+
+## Plotting a subset of units
+
+Use `id` to plot only specific units.
+
+```{r outcome1-5}
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
+          data = turnout, index = c("abb", "year"),
+          type = "outcome", main = "EDR Reform and Turnout (AL, AR, CT)",
+          id = c("AL", "AR", "CT"))
+```
+
+## Splitting by treatment-status group
+
+`by.group = TRUE` separates units into groups based on whether their treatment status ever changed (e.g., always treated, always control, switchers). `cex.main` and `cex.main.sub` control title and subtitle font sizes.
+
+```{r outcome1-6}
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
+          data = turnout, index = c("abb", "year"),
+          type = "outcome", main = "EDR Reform and Turnout",
+          by.group = TRUE, cex.main = 20, cex.main.sub = 15)
+```
+
+Use `by.group.side = TRUE` to arrange the subfigures in a row rather than a column.
+
+```{r outcome1-7}
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
+          data = turnout, index = c("abb", "year"),
+          type = "outcome", main = "EDR Reform and Turnout",
+          by.group.side = TRUE, cex.main = 20, cex.main.sub = 15)
+```
+
+## Cohort-averaged trajectories
+
+`by.cohort = TRUE` collapses units with identical treatment histories into cohort-average trajectories. This helps diagnose treatment-effect heterogeneity that may bias TWFE estimates.
+
+```{r outcome1-4a}
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
+          data = turnout, index = c("abb", "year"),
+          type = "outcome", main = "EDR Reform and Turnout",
+          by.cohort = TRUE)
+```
+
+A more detailed cohort plot with custom legend labels and y-axis limits.
+
+```{r outcome4-1}
+panelview(turnout ~ policy_edr + policy_motor,
+          data = turnout, index = c("abb", "year"), type = "outcome",
+          main = "EDR Reform and Turnout", by.cohort = TRUE,
+          ylim = c(40, 80),
+          legend.labs = c("Control States",
+                          "Treated States (before EDR)",
+                          "Treated States (after EDR)"))
+```
+
+## Ignoring treatment status
+
+Since v1.0.3, omitting the treatment indicator (using `Y ~ 1`) lets **panelView** visualize any variable in a panel dataset without reference to treatment.
+
+```{r outcome2-1}
+panelview(turnout ~ 1, data = turnout, index = c("abb", "year"),
+          type = "outcome", main = "Turnout",
+          ylim = c(0, 100), xlab = "Year", ylab = "Turnout")
+```
+
+Equivalently, supply the variable name via `Y =`.
+
+```{r outcome2-2, eval=FALSE}
+panelview(Y = "turnout", data = turnout,
+          index = c("abb", "year"), type = "outcome",
+          main = "Turnout", ylim = c(0, 100),
+          xlab = "Year", ylab = "Turnout")
+```
+
+## Discrete outcomes
+
+Set `outcome.type = "discrete"` when the outcome takes a small number of integer values.
+
+```{r outcome3-1, fig.height=5}
+panelview(Y ~ D, data = simdata, index = c("id", "time"),
+          outcome.type = "discrete",
+          type = "outcome", xlim = c(8, 15))
+```
+
+Split by treatment-status group.
+
+```{r outcome3-2, fig.height=5}
+panelview(Y ~ D, data = simdata, index = c("id", "time"),
+          by.group = TRUE, outcome.type = "discrete",
+          type = "outcome", xlim = c(8, 15))
+```
+
+## Multi-level or continuous treatment
+
+When the treatment variable has more than 5 unique values (e.g., `polity2`), treatment status is not shown on the outcome plot.
+
+```{r outcome3-3, fig.height=5}
+panelview(Capacity ~ polity2 + lngdp,
+          data = capacity, index = c("ccode", "year"),
+          main = "Measuring State Capacity",
+          type = "outcome", legendOff = TRUE)
+```

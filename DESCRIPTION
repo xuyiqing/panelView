@@ -12,7 +12,7 @@ Maintainer: Yiqing Xu <yiqingxu@stanford.edu>
 Description: Visualizes panel data. It has three main functionalities: (1) it plots the treatment status and missing values in a panel dataset; (2) it visualizes the temporal dynamics of a main variable of interest; (3) it depicts the bivariate relationships between a treatment variable and an outcome variable either by unit or in aggregate. For details, see <doi:10.18637/jss.v107.i07>.
 URL: https://yiqingxu.org/packages/panelview/index.html
 License: MIT + file LICENSE
-Imports: ggplot2 (>= 2.1.0), gridExtra, grid, dplyr (>= 1.0.0) 
+Imports: ggplot2 (>= 3.4.0), gridExtra, grid, dplyr (>= 1.0.0)
 Depends: R (>= 2.10)
 Encoding: UTF-8
 Suggests: testthat (>= 3.0.0)

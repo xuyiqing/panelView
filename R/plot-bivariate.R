@@ -87,10 +87,10 @@
                 geom_D <- geom_col(aes(y=(treatment * coeff[2L]) + coeff[1L], fill=xlab),alpha=0.3)
             }
             else if (Dstyle == "line" | Dstyle == "l") {
-                geom_D <- geom_line( aes(y=(treatment * coeff[2L]) + coeff[1L], color=xlab), size=lwd)
+                geom_D <- geom_line( aes(y=(treatment * coeff[2L]) + coeff[1L], color=xlab), linewidth=lwd)
             }
             else if (Dstyle == "connected" | Dstyle == "c") {
-                geom_D <- geom_line( aes(y=(treatment * coeff[2L]) + coeff[1L], color=xlab), size=lwd)
+                geom_D <- geom_line( aes(y=(treatment * coeff[2L]) + coeff[1L], color=xlab), linewidth=lwd)
                 geom_Dc <- geom_point(aes(y=(treatment * coeff[2L]) + coeff[1L], x=time, color=xlab))
             }
 
@@ -98,10 +98,10 @@
                 geom_y <- geom_col(aes(y=outcome, fill=ylab),alpha=0.3)
             }
             else if (ystyle == "line" | ystyle == "l") {
-                geom_y <- geom_line( aes(y=outcome, color=ylab), size=lwd)
+                geom_y <- geom_line( aes(y=outcome, color=ylab), linewidth=lwd)
             }
             else if (ystyle == "connected" | ystyle == "c") {
-                geom_y <- geom_line( aes(y=outcome, color=ylab), size=lwd)
+                geom_y <- geom_line( aes(y=outcome, color=ylab), linewidth=lwd)
                 geom_yc <- geom_point(aes(y=outcome, x=time, color=ylab))
             }
 
@@ -270,10 +270,10 @@
                 geom_D <- geom_col(aes(y=(treatment * coeff[2L]) + coeff[1L], fill=xlab),alpha=0.3,width = width)
             }
             else if (Dstyle == "line" | Dstyle == "l") {
-                geom_D <- geom_line( aes(y=(treatment * coeff[2L]) + coeff[1L], color=xlab), size=lwd, alpha=0.9)
+                geom_D <- geom_line( aes(y=(treatment * coeff[2L]) + coeff[1L], color=xlab), linewidth=lwd, alpha=0.9)
             }
             else if (Dstyle == "connected" | Dstyle == "c") {
-                geom_D <- geom_line( aes(y=(treatment * coeff[2L]) + coeff[1L], color=xlab), size=lwd, alpha=0.9)
+                geom_D <- geom_line( aes(y=(treatment * coeff[2L]) + coeff[1L], color=xlab), linewidth=lwd, alpha=0.9)
                 geom_Dc <- geom_point(aes(y=(treatment * coeff[2L]) + coeff[1L], x=time, color=xlab))
             }
 
@@ -281,10 +281,10 @@
                 geom_y <- geom_col(aes(y=outcome, fill=ylab),alpha=0.3,width = width)
             }
             else if (ystyle == "line" | ystyle == "l") {
-                geom_y <- geom_line( aes(y=outcome, color=ylab), size=lwd, alpha=0.9)
+                geom_y <- geom_line( aes(y=outcome, color=ylab), linewidth=lwd, alpha=0.9)
             }
             else if (ystyle == "connected" | ystyle == "c") {
-                geom_y <- geom_line( aes(y=outcome, color=ylab), size=lwd, alpha=0.9)
+                geom_y <- geom_line( aes(y=outcome, color=ylab), linewidth=lwd, alpha=0.9)
                 geom_yc <- geom_point(aes(y=outcome, x=time, color=ylab))
             }
 
@@ -412,7 +412,7 @@
             }
             
             ## title
-            if ("main" != "") {
+            if (!is.null(main) && main != "") {
                 p <- p + ggtitle(main)
             }
 

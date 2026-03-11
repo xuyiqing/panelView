@@ -33,7 +33,7 @@
                 if (outcome.type == "continuous") {
                     p <- p + geom_line(aes(time, outcome,
                                            colour = type,
-                                           size = type,
+                                           linewidth = type,
                                            linetype = type,
                                            group = id))
 
@@ -49,12 +49,12 @@
                         scale_linetype_manual(limits = set.limits,
                                               labels = set.labels,
                                               values = set.linetypes) +
-                        scale_size_manual(limits = set.limits,
+                        scale_linewidth_manual(limits = set.limits,
                                           labels = set.labels,
                                           values = set.linewidth) +
                         guides(linetype = guide_legend(title=NULL, nrow=1),
                                colour = guide_legend(title=NULL, nrow=1),
-                               size = guide_legend(title=NULL, nrow=1))
+                               linewidth = guide_legend(title=NULL, nrow=1))
                 } else {
                     p <- p + geom_jitter(width = 0.15, height = 0.15, shape = 1,
                                      aes(x = time, y = outcome, colour = type))
@@ -64,7 +64,7 @@
                                                  values =set.colors) +
                         guides(linetype = guide_legend(title=NULL, nrow=1),
                                colour = guide_legend(title=NULL, nrow=1),
-                               size = guide_legend(title=NULL, nrow=1))
+                               linewidth = guide_legend(title=NULL, nrow=1))
 
                 } 
         
@@ -181,7 +181,7 @@
                 ## main
                 p <- p + geom_line(aes(time, outcome,
                                        colour = type,
-                                       size = type,
+                                       linewidth = type,
                                        linetype = type,
                                        group = id))
 
@@ -209,12 +209,12 @@
                     scale_linetype_manual(limits = set.limits,
                                           labels = set.labels,
                                           values = set.linetypes) +
-                    scale_size_manual(limits = set.limits,
+                    scale_linewidth_manual(limits = set.limits,
                                       labels = set.labels,
                                       values = set.linewidth) +
                     guides(linetype = guide_legend(title=NULL, ncol=labels.ncol),
                            colour = guide_legend(title=NULL, ncol=labels.ncol),
-                           size = guide_legend(title=NULL, ncol=labels.ncol))
+                           linewidth = guide_legend(title=NULL, ncol=labels.ncol))
 
             } else { ## categorical data
               
@@ -502,7 +502,7 @@
                 if (DID == TRUE && Ntr >= 1) {
                     if (exists("time.bf")) {
                         if (time.bf >= min(show) && time.bf <= max(show)) {
-                            p <- p + geom_vline(xintercept=time.bf, colour="white", size = 2)
+                            p <- p + geom_vline(xintercept=time.bf, colour="white", linewidth = 2)
                             if (shade.post == TRUE) {
                                 p <- p + annotate("rect", xmin= time.bf, xmax= Inf,
                                                 ymin=-Inf, ymax=Inf, alpha = .3) 
@@ -514,7 +514,7 @@
                 ## main
                 p <- p + geom_line(aes(time, outcome,
                                        colour = type,
-                                       size = type,
+                                       linewidth = type,
                                        linetype = type,
                                        group = id))
 
@@ -531,12 +531,12 @@
                     scale_linetype_manual(limits = set.limits,
                                           labels = set.labels,
                                           values = set.linetypes) +
-                    scale_size_manual(limits = set.limits,
+                    scale_linewidth_manual(limits = set.limits,
                                       labels = set.labels,
                                       values = set.linewidth) +
                     guides(linetype = guide_legend(title=NULL, ncol=labels.ncol),
                            colour = guide_legend(title=NULL, ncol=labels.ncol),
-                           size = guide_legend(title=NULL, ncol=labels.ncol))
+                           linewidth = guide_legend(title=NULL, ncol=labels.ncol))
             
             } else { ## categorical data
                 

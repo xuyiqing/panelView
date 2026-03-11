@@ -274,7 +274,7 @@
         
 
         if (gridOff == FALSE) {
-            p <- p + geom_tile(colour=grid.color, size=0.1, stat="identity")
+            p <- p + geom_tile(colour=grid.color, linewidth=0.1, stat="identity")
         } else {
             p <- p + geom_tile(stat="identity")
         }
@@ -293,7 +293,7 @@
         p <- p +
         theme(panel.grid.major = element_blank(),
               panel.grid.minor = element_blank(),
-              panel.border = element_rect(fill=NA,color=border.color, size=0.5, linetype="solid"),
+              panel.border = element_rect(fill=NA,color=border.color, linewidth=0.5, linetype="solid"),
               axis.line = element_blank(),
               axis.ticks = element_blank(),
               axis.title=element_text(size=cex.lab),

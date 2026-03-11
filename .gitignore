@@ -18,10 +18,6 @@
 # RStudio files
 .Rproj.user/
 
-# produced vignettes
-vignettes/*.html
-vignettes/*.pdf
-
 # OAuth2 token, see https://github.com/hadley/httr/releases/tag/v0.3
 .httr-oauth
 
@@ -35,6 +31,6 @@ vignettes/*.pdf
 .DS_Store
 
 docs
-vignettes/panelview_cache
-vignettes/tutorial_cache
-vignettes/tutorial_files
+tutorial/_book
+tutorial/_book/index.html
+

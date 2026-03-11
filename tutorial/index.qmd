@@ -65,6 +65,6 @@ Please report bugs to yiqingxu [at] stanford.edu or open an issue on [GitHub](ht
 
 <!-- badges: start -->
 
-[![CRAN](https://www.r-pkg.org/badges/version/panelView)](https://cran.r-project.org/package=panelView) [![downloads](https://cranlogs.r-pkg.org/badges/grand-total/panelView)](https://cran.r-project.org/package=panelView) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Lifecycle: stable](https://lifecycle.r-lib.org/articles/figures/lifecycle-stable.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable) [<img src="https://cranlogs.r-pkg.org/badges/grand-total/panelView" alt="downloads: CRAN"/>](https://cran.r-project.org/package=panelView) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 <!-- badges: end -->

@@ -270,13 +270,13 @@
         
         id <- rev(id)
         p <- ggplot(data, aes(x = period, y = units,
-                              fill = res), position = "identity") 
+                              fill = res))
         
 
         if (gridOff == FALSE) {
-            p <- p + geom_tile(colour=grid.color, linewidth=0.1, stat="identity")
+            p <- p + geom_tile(colour=grid.color, linewidth=0.1)
         } else {
-            p <- p + geom_tile(stat="identity")
+            p <- p + geom_tile()
         }
 
         p <- p + labs(x = xlab, y = ylab, title=main) + theme_bw() 
@@ -305,7 +305,7 @@
               plot.background = element_rect(fill = background.color),
               legend.background = element_rect(fill = legend.color),
               legend.position = legend.pos,
-              legend.margin = margin(c(0, 5, 5, 0)),
+              legend.margin = margin(0, 5, 5, 0),
               legend.text = element_text(margin = margin(r = 10, unit = "pt"), size = cex.legend),
               plot.title = element_text(size=cex.main, hjust = 0.5,face="bold",margin = margin(8, 0, 8, 0)))
                       

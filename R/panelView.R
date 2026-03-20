@@ -180,7 +180,7 @@ panelview <- function(data, # a data frame (long-form)
     }
 
     if (by.group == TRUE) {
-        if (is.null(by.cohort)==FALSE) {
+        if (isTRUE(by.cohort)) {
             warning("option \"by.cohort\" is not allowed with \"by.group = TRUE\" or \"by.group.side = TRUE\". Ignored.")
         }
     }
@@ -700,7 +700,7 @@ panelview <- function(data, # a data frame (long-form)
         }
 
         D.d <- as.data.frame(t(D.f))
-        suppressMessages(ff <- as.data.frame(summarise(group_by_all(D.d), COUNT = n())))
+        suppressMessages(ff <- as.data.frame(dplyr::summarise(dplyr::group_by(D.d, dplyr::across(dplyr::everything())), COUNT = dplyr::n())))
         
 
         D <- t(as.matrix(ff[, 1:TT]))

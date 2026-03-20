@@ -11,6 +11,7 @@
 ^README\.md$
 ^examples\.R
 ^tutorial$
+^ARCHITECTURE\.md$
 ^vignettes$
 ^docs\.zip$
 ^Rplots\.pdf$

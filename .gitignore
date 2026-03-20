@@ -31,6 +31,8 @@
 .DS_Store
 
 docs
+docs.zip
+Rplots.pdf
+NEWS.html
+examples.R
 tutorial/_book
-tutorial/_book/index.html
-

@@ -1,0 +1,86 @@
+# Changelog {#sec-changelog .unnumbered}
+
+## v1.2.1
+
+(2026-03-20)
+
+* Fixed runtime warnings: deprecated `group_by_all()`, spurious `position = "identity"` in `ggplot()`, `margin()` vector argument, false-positive `by.cohort` warning.
+* Version bump for CRAN resubmission.
+
+## v1.2.0
+
+(2026-03-17)
+
+* Refactored monolithic `panelView.R` (3700+ lines) into three focused files: `plot-treat.R`, `plot-outcome.R`, `plot-bivariate.R`.
+* Fixed ggplot2 `size` → `linewidth` deprecation in `geom_hline`/`geom_vline`.
+* Replaced `class() ==` checks with `inherits()`.
+* Fixed bivariate plot title bug.
+* Added test suite (`tests/testthat/test-panelview.R`).
+* Replaced single-file vignette with Quarto book tutorial.
+
+## v1.1.18
+
+1. Fix bugs with `collapse.history`.
+2. Set `shade.post = FALSE` by default.
+
+## v1.1.17
+
+Add links to the [JSS paper](https://doi.org/10.18637/jss.v107.i07).
+
+## v1.1.16
+
+1. Add `collapse.history` to allow users to collapse unit by treatment history in a `treat` plot.
+2. Add `show.missing` to output missing data summary statistics for the key variables.
+3. Add `axis.lab.angle` to allow users to change the angle of the axis labels on the x-axis.
+4. Allow `pre.post` to be applied to an `outcome` plot.
+5. Change the color scheme in the `outcome` plot.
+6. Fix bugs.
+
+## v1.1.11
+
+1. Add `by.cohort` to allow users to plot the average outcome trajectories of units with the same treatment history (if the number of unique treatment history is less than 20).
+
+## v1.1.10
+
+1. Add `by.group.side` to arrange subfigures of `by.group = TRUE` in a row rather than in a column.
+2. Add `display.all` to show all units if the number of units is more than 500; otherwise we randomly select 500 units to present.
+
+## v1.1.8
+
+1. Add a new option `leave.gap` to keep gaps in time using white bars when the time variable is not evenly distributed (possibly due to missing data).
+2. Add `type = "missing"` to plot the missingness in data.
+
+## v1.1.7
+
+1. Replace the function name *panelView* with *panelview* to be consistent with the Stata version.
+2. In the outcome plot, use a dot to represent the last-period observation of a unit that gets treated in the last period.
+
+## v1.1.6
+
+Plot time series of outcome and treatment in one graph (`type = "bivar"`). Options: `by.unit = TRUE` for per-unit plots, `style` for line/bar styles, `ylim` for axis limits, `lwd` for line width.
+
+## v1.1.4
+
+Add `treat.type` to control whether the treatment variable is treated as continuous or discrete.
+
+## v1.1.2
+
+1. Change plot `type`: `"treat"` (was `"missing"`) for treatment status; `"outcome"` (was `"raw"`) for outcomes.
+2. Allow >2 treatment levels.
+3. Add `pre.post` to distinguish pre- and post-treatment observations.
+4. Replace `by.treatment` with `by.timing` and `treatment` with `ignore.treat`.
+5. Add fontsize options.
+
+## v1.0.5
+
+Fix typos. CRAN release.
+
+## v1.0.4
+
+1. Allow users to plot treated units on top of control units.
+2. Streamline the `color` option for both plot types.
+
+## v1.0.3
+
+1. Allow users to change the color of bricks in the treatment plot.
+2. Allow users to leave the treatment blank in both plot types.

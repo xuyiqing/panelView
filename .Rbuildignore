@@ -11,3 +11,6 @@
 ^README\.md$
 ^examples\.R
 ^tutorial$
+^vignettes$
+^docs\.zip$
+^Rplots\.pdf$

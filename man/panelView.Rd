@@ -20,7 +20,12 @@
             cex.lab = 12, cex.legend = 12, background = NULL,
             style = NULL, by.unit = FALSE, lwd = 0.2, leave.gap = FALSE,
             display.all = NULL, by.cohort = FALSE,
-            collapse.history = NULL, report.missing = FALSE)
+            collapse.history = NULL, report.missing = FALSE,
+            show.singletons = TRUE, highlight.components = TRUE,
+            layout = "fr", node.size = 3,
+            show.labels = "auto", edge.color = "gray70",
+            edge.alpha = NULL, edge.width = NULL,
+            singleton.color = "#D7263D")
 }
 \arguments{
   \item{data}{a data frame. The panel does not have to be balanced.}
@@ -30,7 +35,7 @@
   \item{X}{variable name of the time-varying covariates. Ignored if \code{formula} is provided.}
   \item{index}{a two-element string vector specifying the unit (group) and time indicators. Must be of length 2.}
   \item{ignore.treat}{a logical flag indicating whether there is a treatment variable. Default value is \code{ignore.treat = FALSE}.}
-  \item{type}{a string that specifies the type of the plot. Must be either \code{"treat"} (default), which plots the treatment status of each unit at each time point, \code{"missing"}, which plots the missing-data, \code{"outcome"}, which plots the raw outcome data, or \code{"bivariate"}, which plots time series of outcome and treatment in one graph.}
+  \item{type}{a string that specifies the type of the plot. Must be one of \code{"treat"} (default), which plots the treatment status of each unit at each time point, \code{"missing"}, which plots the missing-data, \code{"outcome"}, which plots the raw outcome data, \code{"bivariate"}, which plots time series of outcome and treatment in one graph, or \code{"network"}, which plots a k-partite graph of the panel structure showing connected components, singletons, and weighted edges. Aliases: \code{"graph"} and \code{"singleton"} both map to \code{"network"}.}
   \item{outcome.type}{a string that specifies the type of outcome variable. Must be either \code{"continuous"}(default) or \code{"discrete"}. For a continuous variable, time series lines for specified units will be plotted, and for discrete response, jitter-ed points at each time period will be plotted.}
   \item{treat.type}{a string that specifies the type of treatment variable. Must be either \code{"continuous"} or \code{"discrete"}. The default is NULL, which means the option will be decided based on the number of unique treatment values: if the number if bigger than 10, it will be set as "continuous"; otherwise, it will be set as "discrete".}
   \item{by.group}{a logic flag indicating whether the data should be plotted in a column in separate groups based on treatment status changes for the outcome plot. }
@@ -70,6 +75,15 @@
   \item{by.cohort}{a logical flag indicating whether to plot the average outcome lines based on unique treatment histories in an "outcome" plot.}
   \item{collapse.history}{a logical flag indicating whether to collapse units by treat history in a "treat"" plot.}
   \item{report.missing}{a logical flag indicating whether to report missingness in the included variables.}
+  \item{show.singletons}{logical. If \code{TRUE} (default), singleton nodes (degree-1) are highlighted with a red outline ring. Only used when \code{type = "network"}.}
+  \item{highlight.components}{logical. If \code{TRUE} (default), connected components are shaded with convex hulls. Only used when \code{type = "network"}.}
+  \item{layout}{character. Layout algorithm for the bipartite graph. One of \code{"fr"} (Fruchterman-Reingold, default), \code{"bipartite"}, or \code{"circle"}. Only used when \code{type = "network"}.}
+  \item{node.size}{numeric. Size of nodes in the graph. Default is 3. Only used when \code{type = "network"}.}
+  \item{show.labels}{character. When to show node labels. One of \code{"auto"} (default, show if N+T <= 50), \code{"all"}, \code{"singletons"}, or \code{"none"}. Only used when \code{type = "network"}.}
+  \item{edge.color}{character. Color of edges. Default is \code{"gray70"} (auto-adjusted by density). Only used when \code{type = "network"}.}
+  \item{edge.alpha}{numeric (0--1) or \code{NULL}. Edge transparency. \code{NULL} (default) auto-scales based on edge count. Only used when \code{type = "network"}.}
+  \item{edge.width}{numeric or \code{NULL}. Edge line width in mm. \code{NULL} (default) auto-scales based on edge count. Only used when \code{type = "network"}.}
+  \item{singleton.color}{character. Color used to highlight singleton nodes (degree-1). Default is \code{"#D7263D"} (crimson). Only used when \code{type = "network"} and \code{show.singletons = TRUE}.}
 }
 
 \details{

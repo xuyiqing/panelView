@@ -51,7 +51,16 @@ panelview <- function(data, # a data frame (long-form)
                       display.all = NULL,
                       by.cohort = FALSE,
                       collapse.history = NULL,
-                      report.missing = FALSE
+                      report.missing = FALSE,
+                      show.singletons = TRUE,
+                      highlight.components = TRUE,
+                      layout = "fr",
+                      node.size = 3,
+                      show.labels = "auto",
+                      edge.color = "gray70",
+                      edge.alpha = NULL,
+                      edge.width = NULL,
+                      singleton.color = "#D7263D"
                     ) {
         
     ## ------------------------- ##
@@ -77,10 +86,11 @@ panelview <- function(data, # a data frame (long-form)
 
     ## number of units
     N0 <- length(unique(data[, index[1]]))
-    if (N0 <= 500) {        
+    if (!type %in% c("network", "graph", "singleton")) { ## "graph"/"singleton" not yet resolved
+    if (N0 <= 500) {
         if (is.null(collapse.history)) {
             collapse.history <- FALSE
-        } 
+        }
         if (is.null(display.all)) {
             display.all <- FALSE
         }
@@ -88,11 +98,11 @@ panelview <- function(data, # a data frame (long-form)
         if (!is.null(collapse.history)) {
             if (is.null(display.all)) {
                 display.all <- FALSE
-            }            
+            }
         } else { # collapse.history not specified
             if (is.null(display.all)) { # display.all not specified
                 if (type != "outcome") { # type != "outcome" sss
-                    collapse.history <- TRUE 
+                    collapse.history <- TRUE
                     display.all <- FALSE
                 } else {
                     collapse.history <- FALSE
@@ -103,13 +113,51 @@ panelview <- function(data, # a data frame (long-form)
             }
         }
     }
+    }
     
 
     ## normalize type argument (supports partial matching and backward-compatible aliases)
-    type <- match.arg(type, c("treat", "missing", "miss", "outcome", "raw", "bivariate", "bivar"))
-    if (type == "miss")  type <- "missing"
-    if (type == "bivar") type <- "bivariate"
-    if (type == "raw")   type <- "outcome"
+    type <- match.arg(type, c("treat", "missing", "miss", "outcome", "raw",
+                               "bivariate", "bivar", "network", "graph", "singleton"))
+    if (type == "miss")      type <- "missing"
+    if (type == "bivar")     type <- "bivariate"
+    if (type == "raw")       type <- "outcome"
+    ## "graph" and "singleton" are backward-compatible aliases for "network"
+    if (type == "graph")     type <- "network"
+    if (type == "singleton") type <- "network"
+
+    if (type == "network") {
+        ## igraph availability check
+        if (!requireNamespace("igraph", quietly = TRUE)) {
+            stop("Package \"igraph\" is required for type = \"network\". Install it with install.packages(\"igraph\").")
+        }
+        ## graph type only needs index columns, no Y/D/X
+        ignore.treat <- 1
+        collapse.history <- FALSE
+        display.all <- TRUE
+        leave.gap <- 0
+
+        ## validate layout
+        layout <- match.arg(layout, c("fr", "bipartite", "circle"))
+
+        ## validate show.labels
+        show.labels <- match.arg(show.labels, c("auto", "all", "singletons", "none"))
+
+        ## validate node.size
+        if (!is.numeric(node.size) || node.size <= 0) {
+            stop("\"node.size\" must be a positive number.")
+        }
+
+        ## validate show.singletons
+        if (!is.logical(show.singletons) && !show.singletons %in% c(0, 1)) {
+            stop("\"show.singletons\" is not a logical flag.")
+        }
+
+        ## validate highlight.components
+        if (!is.logical(highlight.components) && !highlight.components %in% c(0, 1)) {
+            stop("\"highlight.components\" is not a logical flag.")
+        }
+    }
 
     ## remove missing values
     if (is.logical(leave.gap) == FALSE & !leave.gap%in%c(0, 1)) {
@@ -208,10 +256,25 @@ panelview <- function(data, # a data frame (long-form)
         }
 
         varnames <- all.vars(formula)
-    
-        Y <- formula[[2]] # left hand side of the formula
 
-        if (is.numeric(Y) == FALSE) { # Y is a variable
+        ## network type: all formula variables affect missingness only
+        if (type == "network") {
+            lhs <- formula[[2]]
+            if (is.numeric(lhs)) {
+                ## ~1 or 1 ~ ... : no outcome
+                Y <- NULL
+                D <- NULL
+                X <- if (length(varnames) > 0) varnames else NULL
+            } else {
+                ## Y ~ ... or Y ~ D + X
+                Y <- varnames[1]
+                D <- NULL
+                X <- if (length(varnames) > 1) varnames[2:length(varnames)] else NULL
+            }
+        } else
+
+        if (is.numeric(formula[[2]]) == FALSE) { # Y is a variable
+            Y <- formula[[2]]
             ## outcome
             Y <- varnames[1]
             ## treatment indicator and covariates
@@ -282,17 +345,22 @@ panelview <- function(data, # a data frame (long-form)
             }
         }
     }
-    
 
     ## check Incorrect variable names
+    if (length(varnames) > 0) {
     for (i in 1:length(varnames)) {
         if(!varnames[i] %in% colnames(data)) {
             stop(paste("Variable \"", varnames[i],"\" is not in the dataset.", sep = ""))
         }
     }
+    }
 
-    ## index 
-    if (length(index) != 2 | sum(index %in% colnames(data)) != 2) {
+    ## index
+    if (type == "network") {
+        if (length(index) < 2 || sum(index %in% colnames(data)) != length(index)) {
+            stop("\"index\" must name 2 or more columns in the data for type = \"network\".")
+        }
+    } else if (length(index) != 2 | sum(index %in% colnames(data)) != 2) {
         stop("\"index\" option misspecified. Try, for example, index = c(\"unit.id\", \"time\").")
     }
         
@@ -344,17 +412,32 @@ panelview <- function(data, # a data frame (long-form)
 
     #if (na.rm == FALSE & sum(is.na(data)) > 0) {
     #    stop("Missing values in dataset. Try set na.rm = TRUE.\n")
-    #}    
-    
+    #}
+
+    ## ---- network type early exit ----
+    ## After na.omit: rows with missing Y/D/X have been dropped,
+    ## so the graph reflects only usable observations.
+    if (type == "network") {
+        s <- as.list(environment())
+        s$index_names <- index
+        s$data <- data
+        return(.pv_plot_graph(s))
+    }
+
     # sort data
     data <- data[order(data[,index.id], data[,index.time]), ]
 
 
     minmintime <- as.numeric(min(data[, 2], na.rm = TRUE))
     maxmaxtime <- as.numeric(max(data[, 2], na.rm = TRUE))
+
+    ## time-gap computation: skip for graph type (not needed, and causes
+    ## division by zero when there is only one unique time period)
+    if (type != "network") {
+
     timegap <- (maxmaxtime - minmintime)/(length(unique(data[,index.time]))-1)
-    inttimegap <- as.integer(timegap)    
-    
+    inttimegap <- as.integer(timegap)
+
     data_1 <- transform(data, differencetime = ave(as.numeric(data[, 2]), data[, 1], FUN = function(x) c(NA, diff(x))))
     mintimegap <- min(data_1$differencetime, na.rm = TRUE)
     maxtimegap <- max(data_1$differencetime, na.rm = TRUE)
@@ -380,18 +463,18 @@ panelview <- function(data, # a data frame (long-form)
             #common difference: mintimegap:
             if (mintimegap != maxtimegap & mintimegap != 1 & divide_differencetime == as.integer(divide_differencetime)) {
                 #1. Create all combinations of `id` and `year`
-                g <- with(data, expand.grid(g.id = unique(data[,index[1]]), 
-                        g.time = seq(from = minmintime, to = maxmaxtime, by = mintimegap))) 
+                g <- with(data, expand.grid(g.id = unique(data[,index[1]]),
+                        g.time = seq(from = minmintime, to = maxmaxtime, by = mintimegap)))
                 colnames(g)[1] <- colnames(data[1])
                 colnames(g)[2] <- colnames(data[2])
                 #2. Merge `g` with `data`
                 data2 <- merge(g, data, all.x = TRUE)
                 data <- data2
                 }
-        else { #commmon difference = 1 
+        else { #commmon difference = 1
                 #1. Create all combinations of `id` and `year`
-                g <- with(data, expand.grid(g.id = unique(data[,index[1]]), 
-                        g.time = seq(from = minmintime, to = maxmaxtime))) 
+                g <- with(data, expand.grid(g.id = unique(data[,index[1]]),
+                        g.time = seq(from = minmintime, to = maxmaxtime)))
                 colnames(g)[1] <- colnames(data[1])
                 colnames(g)[2] <- colnames(data[2])
                 #2. Merge `g` with `data`
@@ -401,6 +484,8 @@ panelview <- function(data, # a data frame (long-form)
         }
         data <- data[1:(length(data)-1)] #drop the differencetime column
     }
+
+    } ## end type != "network" guard
 
 
 
@@ -414,16 +499,16 @@ panelview <- function(data, # a data frame (long-form)
     #    stop("Please limit your units within 1000 for elegant presentation")
     #}
 
-    if (length(unique(data[,index[1]])) > 300 & gridOff != TRUE & type != "outcome") {
+    if (length(unique(data[,index[1]])) > 300 & gridOff != TRUE & type != "outcome" & type != "network") {
         message("If the number of units is more than 300, we set \"gridOff = TRUE\".\n")
         gridOff <- TRUE
     }
-    
+
     if (length(unique(data[,index[1]])) > 300 & gridOff != TRUE & type == "outcome") {
         gridOff <- TRUE
     }
 
-    if (display.all == FALSE & length(unique(data[,index[1]])) > 500) {
+    if (display.all == FALSE & length(unique(data[,index[1]])) > 500 & type != "network") {
         message("If the number of units is more than 500, we randomly select 500 units to present.
         You can set \"display.all = TRUE\" to show all units.\n")
         set.seed(1346)
@@ -690,6 +775,8 @@ panelview <- function(data, # a data frame (long-form)
             I[data[i,index.time], data[i,index.id]] <- 1 #I: observed(1) and missing(0)
         }
     }
+
+    ## (network type exits early, before reaching this point)
 
     if (collapse.history == TRUE) {
 

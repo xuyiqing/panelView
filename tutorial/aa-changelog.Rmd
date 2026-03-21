@@ -1,5 +1,22 @@
 # Changelog {#sec-changelog .unnumbered}
 
+## v1.3.0
+
+(2026-03-21)
+
+* Added `type = "network"` for visualizing the connectivity structure of panel data as a $k$-partite graph, following the graph-theoretic framework of @correia2016. Features:
+    - Supports 2 or more sets of fixed effects (e.g., unit $\times$ time, worker $\times$ firm $\times$ year)
+    - Identifies and highlights **singletons** (degree-1 nodes)
+    - Detects **connected components** with convex hull shading
+    - Handles **non-unique observations** via weighted (thicker) edges
+    - Three layout algorithms: Fruchterman--Reingold (`"fr"`), bipartite, circle
+    - Formula support: `Y ~ D + X` drops rows with missing values before building the graph
+    - Programmatic return: `$singletons`, `$multi_edges`, `$n_components`, `$graph`, `$plot`
+* New parameters: `show.singletons`, `highlight.components`, `layout`, `node.size`, `show.labels`, `edge.color`, `edge.alpha`, `edge.width`, `singleton.color`
+* Added **igraph** to `Suggests` (conditional dependency for `type = "network"`)
+* Added tutorial chapter: [Network Structure](#sec-network)
+* Backward-compatible aliases: `type = "graph"` and `type = "singleton"` both map to `"network"`
+
 ## v1.2.1
 
 (2026-03-20)

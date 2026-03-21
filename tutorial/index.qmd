@@ -4,31 +4,65 @@ This manual serves as a user guide for the **panelView** package in R, which vis
 
 ## Installation
 
-```{r clear-environment, eval = FALSE}
-# From CRAN
+| Source | Version | Date | Features |
+|--------|---------|------|----------|
+| CRAN | 1.2.1 | 2026-03-20 | Treatment, outcome, bivariate plots |
+| GitHub (`master`) | 1.2.1 | 2026-03-20 | Same as CRAN |
+| GitHub (`dev`) | 1.3.0 | 2026-03-21 | + `type = "network"`: k-partite graph, singletons, weighted edges |
+
+```{r install-cran, eval = FALSE}
+# From CRAN (stable release)
 install.packages("panelView")
 ```
 
-```{r install-github-dev, eval = FALSE, message = FALSE, warning = FALSE, cache = FALSE}
-# Development version
+```{r install-github-stable, eval = FALSE, message = FALSE, warning = FALSE, cache = FALSE}
+# Stable GitHub version (master branch)
 devtools::install_github("xuyiqing/panelView")
 ```
 
+```{r install-github-dev-branch, eval = FALSE, message = FALSE, warning = FALSE, cache = FALSE}
+# Development version (dev branch, includes type = "network")
+devtools::install_github("xuyiqing/panelView@dev")
+```
+
 ```{r check-version}
-# Check version
+# Check installed version
 installed.packages()["panelView", "Version"]
+```
+
+**panelView** depends on the following packages, which should be installed automatically when **panelView** is being installed. You can also install them manually.
+
+```{r install-deps, eval = FALSE}
+install_all <- function(packages) {
+  installed_pkgs <- installed.packages()[, "Package"]
+  for (pkg in packages) {
+    if (!pkg %in% installed_pkgs) {
+      install.packages(pkg)
+    }
+  }
+}
+packages <- c("ggplot2", "gridExtra", "grid", "dplyr")
+install_all(packages)
+```
+
+The `type = "network"` plot additionally requires **igraph**, which is an optional (suggested) dependency:
+
+```{r install-igraph, eval = FALSE}
+install.packages("igraph")
 ```
 
 
 ## Quick-reference
 
-**panelView** has one main function, `panelview()`, with three core capabilities:
+**panelView** has one main function, `panelview()`, with four core capabilities:
 
 1. **Treatment status & missingness** (`type = "treat"`, `type = "missing"`) — plot which units are treated in which periods, highlight missing values, and summarize treatment histories.
 
 2. **Outcome trajectories** (`type = "outcome"`) — plot the raw outcome variable as time series, colored by treatment status.
 
 3. **Bivariate relationships** (`type = "bivariate"`) — visualize the relationship between a treatment variable and an outcome variable, either in aggregate or unit by unit.
+
+4. **Network structure** (`type = "network"`) — visualize the connectivity structure of panel data as a $k$-partite graph, identifying singletons, connected components, and duplicate observations. Supports two or more sets of fixed effects. See @correia2016 for the graph-theoretic framework.
 
 
 
@@ -37,8 +71,8 @@ installed.packages()["panelView", "Version"]
 |---|---|---|
 | `formula` | formula | `Y ~ D + X1 + X2`; first RHS variable is the treatment |
 | `data` | data.frame | Long-format panel data |
-| `index` | character(2) | `c("unit_var", "time_var")` |
-| `type` | character | `"treat"` / `"missing"` / `"outcome"` / `"bivariate"` |
+| `index` | character | `c("unit_var", "time_var")`; length $\geq 2$ for `type = "network"` |
+| `type` | character | `"treat"` / `"missing"` / `"outcome"` / `"bivariate"` / `"network"` |
 | `Y`, `D` | character | Alternative to formula: variable names as strings |
 | `by.timing` | logical | Sort units by timing of first treatment |
 | `pre.post` | logical | Distinguish pre- and post-treatment periods (binary D only) |
@@ -58,17 +92,31 @@ installed.packages()["panelView", "Version"]
 
 Note that *Y*, *D*, and *X* are merely labels; they can be any variables in a panel dataset.
 
+## Shipped datasets
+
+**panelView** ships three datasets for examples and testing:
+
+| Dataset | Description | Units | Periods | Balance |
+|---------|-------------|-------|---------|---------|
+| `turnout` | US state voter turnout and election reform policies | 47 states | 24 elections (1920--2000) | Balanced |
+| `capacity` | State institutional capacity across countries | 47 countries | 44 years (1960--2003) | Balanced |
+| `simdata` | Simulated panel with staggered binary treatment | 200 units | 15 periods | Balanced |
+
+All three are balanced panels. The [network structure chapter](#sec-network) uses inline simulation code to construct unbalanced panels that showcase singletons, connected components, and multi-way fixed effects.
+
 ## Organization
 
 - [Chapter @sec-treat] — Plotting treatment status and missingness
 - [Chapter @sec-outcome] — Plotting outcome trajectories
 - [Chapter @sec-bivariate] — Plotting bivariate relationships
+- [Chapter @sec-network] — Visualizing network structure: singletons, connected components, and multi-way fixed effects
 
 ## Contributors
 
 - [Yiqing Xu](https://yiqingxu.org/){target="_blank"}
 - [Licheng Liu](https://liulch.github.io/){target="_blank"}
 - [Hongyu Mou](https://hongyumou.github.io/){target="_blank"}
+- StatsClaw (Agentic System for Statistical Software Development)
 
 ## Report bugs
 

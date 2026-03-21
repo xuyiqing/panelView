@@ -5,7 +5,6 @@
 (2026-03-20)
 
 * Fixed runtime warnings: deprecated `group_by_all()`, spurious `position = "identity"` in `ggplot()`, `margin()` vector argument, false-positive `by.cohort` warning.
-* Version bump for CRAN resubmission.
 
 ## v1.2.0
 

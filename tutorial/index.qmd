@@ -1,6 +1,26 @@
 # Welcome {.unnumbered}
 
-This manual serves as a user guide for the **panelView** package in R, which visualizes panel (time-series cross-sectional) data. For the technical details, see @mou2022.
+This manual serves as a user guide for the **panelView** package in R, which visualizes panel data. For the technical details, see @mou2022.
+
+## Installation
+
+```{r clear-environment, eval = FALSE}
+# From CRAN
+install.packages("panelView")
+```
+
+```{r install-github-dev, eval = FALSE, message = FALSE, warning = FALSE, cache = FALSE}
+# Development version
+devtools::install_github("xuyiqing/panelView")
+```
+
+```{r check-version}
+# Check version
+installed.packages()["panelView", "Version"]
+```
+
+
+## Quick-reference
 
 **panelView** has one main function, `panelview()`, with three core capabilities:
 
@@ -10,7 +30,8 @@ This manual serves as a user guide for the **panelView** package in R, which vis
 
 3. **Bivariate relationships** (`type = "bivariate"`) — visualize the relationship between a treatment variable and an outcome variable, either in aggregate or unit by unit.
 
-## Quick-reference: main arguments
+
+
 
 | Argument | Type | Description |
 |---|---|---|
@@ -43,16 +64,6 @@ Note that *Y*, *D*, and *X* are merely labels; they can be any variables in a pa
 - [Chapter @sec-outcome] — Plotting outcome trajectories
 - [Chapter @sec-bivariate] — Plotting bivariate relationships
 
-## Installation
-
-```r
-# From CRAN
-install.packages("panelView")
-
-# Development version
-devtools::install_github("xuyiqing/panelview")
-```
-
 ## Contributors
 
 - [Yiqing Xu](https://yiqingxu.org/){target="_blank"}
@@ -65,6 +76,6 @@ Please report bugs to yiqingxu [at] stanford.edu or open an issue on [GitHub](ht
 
 <!-- badges: start -->
 
-[![Lifecycle: stable](https://lifecycle.r-lib.org/articles/figures/lifecycle-stable.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable) [<img src="https://cranlogs.r-pkg.org/badges/grand-total/panelView" alt="downloads: CRAN"/>](https://cran.r-project.org/package=panelView) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Lifecycle: stable](https://lifecycle.r-lib.org/articles/figures/lifecycle-stable.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [<img src="https://www.r-pkg.org/badges/version/panelView" alt="CRAN status"/>](https://CRAN.R-project.org/package=panelView) [<img src="https://cranlogs.r-pkg.org/badges/grand-total/panelView" alt="downloads: CRAN"/>](https://cran.r-project.org/package=panelView) 
 
 <!-- badges: end -->

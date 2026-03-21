@@ -76,17 +76,17 @@ sim_unbalanced <- expand.grid(unit = paste0("U", 1:20), time = 2001:2008,
 sim_unbalanced <- sim_unbalanced[sample(nrow(sim_unbalanced),
                                         round(nrow(sim_unbalanced) * 0.6)), ]
 
-## add two singleton units (each observed in exactly one period)
+## add two units that each appear in only one period (singletons)
 sim_unbalanced <- rbind(sim_unbalanced,
-                        data.frame(unit = "Singleton_A", time = 2003))
+                        data.frame(unit = "U21", time = 2003))
 sim_unbalanced <- rbind(sim_unbalanced,
-                        data.frame(unit = "Singleton_B", time = 2007))
+                        data.frame(unit = "U22", time = 2007))
 
-## add a disconnected component
+## add two units in a separate time range (disconnected component)
 sim_unbalanced <- rbind(sim_unbalanced,
-                        data.frame(unit = "Iso_1", time = 2050),
-                        data.frame(unit = "Iso_2", time = 2050),
-                        data.frame(unit = "Iso_2", time = 2051))
+                        data.frame(unit = "U23", time = 2050),
+                        data.frame(unit = "U24", time = 2050),
+                        data.frame(unit = "U24", time = 2051))
 ```
 
 ```{r net-singleton-plot, fig.height=8}
@@ -105,7 +105,7 @@ p.network$singletons
 The `$n_components` element reports the number of connected components --- groups of units and time periods that share no observations with each other:
 
 ```{r}
-## two components: the main group and the {Iso_1, Iso_2, 2050, 2051} cluster
+## two components: the main group and the {U23, U24, 2050, 2051} cluster
 p.network$n_components
 ```
 

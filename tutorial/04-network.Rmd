@@ -7,7 +7,9 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
 
 ::: {.callout-note}
 The `type = "network"` feature is currently available only on the development branch. Install it with:
-`devtools::install_github("xuyiqing/panelView@dev")`
+```{r, eval = FALSE}
+devtools::install_github("xuyiqing/panelView@dev")
+```
 :::
 
 When estimating models with multiple sets of fixed effects, the connectivity structure of the data determines what can be identified. As @correia2016 shows, the fixed-effect estimation problem is equivalent to solving a linear system on a graph, and the structure of that graph has direct consequences for estimation and inference.
@@ -18,30 +20,32 @@ Two features of this structure are particularly important:
 
 - **Non-unique observations** --- when multiple observations share the same combination of fixed-effect indices (e.g., the same worker appears at the same firm multiple times), these duplicates create weighted edges in the graph. Understanding where and how often such duplicates occur is essential for specifying the correct model and interpreting standard errors.
 
-The `type = "network"` option in `panelview()` visualizes this structure directly. It constructs a $k$-partite graph from $k \geq 2$ sets of fixed effects, where:
-
-- **nodes** represent fixed-effect levels (units, time periods, firms, etc.); 
-- **edges** represent observed combinations. 
-
-The resulting plot reveals connected components, singletons, and duplicate observations at a glance. We first load the package.
-
-```{r}
-library(panelView)
-data(panelView)
-```
+The **panelView** package visualizes them with the `type = "network"` option, constructing a $k$-partite graph from $k \geq 2$ sets of fixed effects.
 
 
-## Graph elements
+## Network elements
 
 In the network plot, each distinct level of a fixed-effect dimension becomes a **node**. In a standard unit $\times$ time panel, there is one node for each unit and one node for each time period. Different fixed-effect dimensions are distinguished by shape: circles for the first dimension (e.g., units), squares for the second (e.g., time periods), triangles for the third, and so on.
 
 Each observation in the data creates an **edge** (link) between the nodes it connects. For example, if unit $A$ is observed at time $t$, an edge is drawn between node $A$ and node $t$. If the same combination appears multiple times (duplicate observations), the edge becomes thicker to reflect the count.
 
-The plot also identifies:
+In short,
+
+- **nodes** represent fixed-effect levels (units, time periods, firms, etc.);
+- **edges** represent observed combinations.
+
+The resulting plot reveals connected components, singletons, and duplicate observations at a glance. 
 
 - **Connected components**: groups of nodes that are linked to each other through some chain of edges. Nodes in different components share no observations and are shaded with distinct convex hulls.
 - **Singletons**: nodes with exactly one edge (degree 1), highlighted with a colored glow ring.
+- **Duplicate observations**: when the same combination of fixed-effect levels appears more than once, the edge becomes thicker to reflect the count.
 
+We first load the package.
+
+```{r}
+library(panelView)
+data(panelView)
+```
 
 ## Basic usage: Unit $\times$ Time
 
@@ -155,9 +159,11 @@ sim_small <- data.frame(
 panelview(sim_small, ~ 1, index = c("unit", "time"), type = "network",
           layout = "fr", show.labels = "all", main = "FR layout")
 panelview(sim_small, ~ 1, index = c("unit", "time"), type = "network",
-          layout = "bipartite", show.labels = "all", main = "Bipartite layout")
+          layout = "bipartite", show.labels = "all", 
+          main = "Bipartite layout")
 panelview(sim_small, ~ 1, index = c("unit", "time"), type = "network",
-          layout = "circle", show.labels = "all", main = "Circle layout")
+          layout = "circle", show.labels = "all", 
+          main = "Circle layout")
 ```
 
 
@@ -180,7 +186,8 @@ Each fixed-effect dimension is rendered with a distinct shape and color:
 ```{r net-tripartite-data}
 sim_workers <- data.frame(
   worker = c("Alice", "Alice", "Bob", "Bob", "Carol", "Carol", "Dave"),
-  firm   = c("Google", "Meta", "Google", "Apple", "Meta", "Apple", "Netflix"),
+  firm   = c("Google", "Meta", "Google", "Apple", 
+             "Meta", "Apple", "Netflix"),
   year   = c(2020, 2021, 2020, 2021, 2020, 2021, 2022)
 )
 ```

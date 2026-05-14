@@ -139,6 +139,27 @@ panelview(Capacity ~ demo + lnpop + lngdp,
           axis.lab.gap = c(2, 10), theme = "red")
 ```
 
+## Customizing with ggplot2 syntax
+
+`panelview()` returns a `ggplot` object for single-panel plots, so any
+`ggplot2` layer can be added with the usual `+`. In v1.3.1 the default
+title is left-aligned and plain; to recover a centered, bold title, add a
+`theme(plot.title = ...)` layer:
+
+```{r treat2-ggplot-center-title, fig.height=8}
+library(ggplot2)
+p <- panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
+               data = turnout, index = c("abb", "year"),
+               main = "Election-Day Registration Adoption",
+               by.timing = TRUE, theme = "red")
+p + theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+```
+
+The same pattern works for other theme elements (axis text, legend
+position, margins, etc.). Multi-panel layouts (`by.group`,
+`by.group.side`, `by.cohort`, `by.unit`) are an exception: those return a
+`gtable` produced by `grid.arrange()` and do not accept `+` composition.
+
 ## Collapsing units by treatment history
 
 When the number of units is large, `collapse.history = TRUE` collapses units that share the same treatment history into a single row. The y-axis shows the group size.

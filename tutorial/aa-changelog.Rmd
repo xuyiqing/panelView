@@ -9,6 +9,7 @@
 * New argument `theme = c("default", "red")`. The optional `"red"` theme switches the binary status palette to gray control / dark-gray treated-pre / brick-red treated-post, and the outcome onset marker to a solid black dashed line. The `"default"` palette also moves to a blue progression (gray control, medium blue treated-pre, dark navy treated-post) so red is reserved for `theme = "red"`.
 * New argument `group.mean.overlay = FALSE`. When `TRUE`, the outcome plot dims per-unit trajectories and overlays a heavy group-mean line plus a 10–90% quantile ribbon per treatment-status group. Currently scoped to the main DID continuous-outcome path.
 * `theme.bw = FALSE` is soft-deprecated. The legacy gray-panel look still works but emits a one-time warning; the tutorial no longer demonstrates it.
+* CRAN release (2026-05-13).
 
 ## v1.3.0
 

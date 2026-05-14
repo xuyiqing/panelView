@@ -43,7 +43,7 @@ panelview(lnpop ~ demo, data = capacity,
 
 ```{r bivar1-3}
 panelview(Y ~ D, data = simdata, index = c("id", "time"),
-          type = "bivariate", theme.bw = FALSE, outcome.type = "discrete")
+          type = "bivariate", outcome.type = "discrete")
 ```
 
 **Continuous Y, continuous D** — default `style = c("l", "l")`:
@@ -71,6 +71,18 @@ panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
           style = c("line", "connected"), color = c(2, 3), lwd = 0.4)
 ```
 
+Activate the high-contrast `red` theme: the treatment line picks up the
+brick-red accent and the outcome line drops to a neutral gray, so the
+treatment series visually dominates.
+
+```{r bivar1-6b}
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
+          data = turnout, index = c("abb", "year"),
+          xlab = "EDR", ylab = "Turnout", type = "bivariate",
+          style = c("c", "b"), theme = "red",
+          main = "EDR Reform and Turnout")
+```
+
 ## By unit
 
 Set `by.unit = TRUE` to plot *Y* and *D* as separate panels for each unit. Use `show.id` or `id` to select units.
@@ -96,7 +108,7 @@ panelview(lnpop ~ demo, data = capacity,
 ```{r bivar2-3}
 panelview(Y ~ D, data = simdata,
           index = c("id", "time"), type = "bivariate",
-          by.unit = TRUE, theme.bw = FALSE,
+          by.unit = TRUE,
           outcome.type = "discrete",
           id = unique(simdata$id)[1:12])
 ```
@@ -106,7 +118,7 @@ panelview(Y ~ D, data = simdata,
 ```{r bivar2-4, fig.height=4}
 panelview(lnpop ~ polity2, data = capacity,
           index = c("country", "year"), type = "bivariate",
-          by.unit = TRUE, theme.bw = FALSE,
+          by.unit = TRUE,
           color = c("blue", "red"), show.id = 1:12)
 ```
 
@@ -126,7 +138,7 @@ Use `style = "line"` to draw both *Y* and *D* as lines:
 panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
           data = turnout, index = c("abb", "year"),
           type = "bivariate", by.unit = TRUE,
-          style = "line", theme.bw = FALSE,
+          style = "line",
           lwd = 0.5, show.id = 1:12, ylab = "Turnout")
 ```
 
@@ -134,6 +146,6 @@ panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
 panelview(Y ~ D, data = simdata,
           index = c("id", "time"), type = "bivariate",
           by.unit = TRUE, outcome.type = "discrete",
-          style = "line", theme.bw = FALSE,
+          style = "line",
           lwd = 0.4, id = unique(simdata$id)[1:20])
 ```

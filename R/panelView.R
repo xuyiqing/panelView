@@ -19,6 +19,8 @@ panelview <- function(data, # a data frame (long-form)
                       by.group.side = FALSE,
                       by.timing = FALSE,
                       theme.bw = TRUE,
+                      theme = "default", ## "default" (panelView blues) or "red"
+                      group.mean.overlay = FALSE,
                       xlim = NULL, 
                       ylim = NULL,
                       xlab = NULL, 
@@ -206,6 +208,24 @@ panelview <- function(data, # a data frame (long-form)
 
     if (is.logical(theme.bw) == FALSE & !theme.bw%in%c(0, 1)) {
         stop("\"theme.bw\" is not a logical flag.")
+    }
+
+    if (isFALSE(as.logical(theme.bw))) {
+        warning(
+            "\"theme.bw = FALSE\" is deprecated and may be removed in a future ",
+            "release. The default (TRUE) renders the recommended look; set ",
+            "\"theme = 'red'\" for a high-contrast publication recipe.",
+            call. = FALSE
+        )
+    }
+
+    if (!is.character(theme) || length(theme) != 1 ||
+        !theme %in% c("default", "red")) {
+        stop("\"theme\" must be one of \"default\" or \"red\".")
+    }
+
+    if (is.logical(group.mean.overlay) == FALSE & !group.mean.overlay %in% c(0, 1)) {
+        stop("\"group.mean.overlay\" is not a logical flag.")
     }
 
     if (is.logical(by.timing) == FALSE & !by.timing%in%c(0, 1)) {

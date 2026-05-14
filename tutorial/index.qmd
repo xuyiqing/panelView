@@ -6,9 +6,9 @@ This manual serves as a user guide for the **panelView** package in R, which vis
 
 | Source | Version | Date | Features |
 |--------|---------|------|----------|
-| CRAN | 1.2.1 | 2026-03-20 | Treatment, outcome, bivariate plots |
-| GitHub (`master`) | 1.2.1 | 2026-03-20 | Same as CRAN |
-| GitHub (`dev`) | 1.3.0 | 2026-03-21 | + `type = "network"`: k-partite graph, singletons, weighted edges |
+| CRAN | 1.3.1 | 2026-05-13 | Refreshed plot defaults; `type = "network"`; `theme = "red"`; `group.mean.overlay` |
+| GitHub (`master`) | 1.3.1 | 2026-05-13 | Same as CRAN |
+| GitHub (`dev`) | 1.3.1 | 2026-05-13 | Same as CRAN |
 
 ```{r install-cran, eval = FALSE}
 # From CRAN (stable release)
@@ -89,6 +89,8 @@ install.packages("igraph")
 | `color` | character | Override fill/line colors |
 | `legendOff` | logical | Remove the legend |
 | `gridOff` | logical | Remove grid lines (continuous treatment) |
+| `theme` | character | `"default"` (blue) or `"red"` (high-contrast publication recipe) |
+| `group.mean.overlay` | logical | Overlay group-mean line + 10--90% ribbon (`type = "outcome"`) |
 
 Note that *Y*, *D*, and *X* are merely labels; they can be any variables in a panel dataset.
 
@@ -116,7 +118,7 @@ All three are balanced panels. The [network structure chapter](#sec-network) use
 - [Yiqing Xu](https://yiqingxu.org/){target="_blank"}
 - [Licheng Liu](https://liulch.github.io/){target="_blank"}
 - [Hongyu Mou](https://hongyumou.github.io/){target="_blank"}
-- StatsClaw (Agentic System for Statistical Software Development)
+- [StatsClaw](https://statsclaw.ai/){target="_blank"} (Agentic System for Statistical Software Development)
 
 ## Report bugs
 

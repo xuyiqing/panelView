@@ -1,3 +1,31 @@
+# panelView 1.3.1
+
+## Visual refresh
+
+* Plot defaults updated for a cleaner, publication-ready look across all four
+  plot types: plain left-aligned titles, base font size 11, white background
+  for status heatmaps, subtle major-x gridlines for trajectories, and a thin
+  gray dashed treatment-onset marker (replaces the prior thick white line).
+* Multi-level discrete treatment palette refreshed to a muted, perceptually
+  distinct sequence; binary and continuous palettes unchanged.
+* Control-trajectory gray lightened to `grey75` so dense overlaps no longer
+  darken into a near-black band.
+
+## New arguments
+
+* `theme = c("default", "red")`: optional theme switch. `"red"` activates a
+  high-contrast publication recipe with gray control / brick-red treated-post
+  for status and outcome plots and a solid black dashed treatment-onset line.
+* `group.mean.overlay = FALSE`: opt-in for the outcome plot. Dims per-unit
+  trajectories and overlays a heavy group-mean line plus a 10--90% quantile
+  ribbon per group. Currently scoped to the main DID continuous-outcome path.
+
+## Deprecations
+
+* `theme.bw = FALSE` is soft-deprecated and emits a one-time warning. The
+  legacy gray-panel look is no longer demonstrated in the tutorial and may
+  be removed in a future major release.
+
 # panelView 1.3.0
 
 ## New features

@@ -383,9 +383,12 @@
 
     ## title
     if (!is.null(main)) {
+        title.hjust <- if (isTRUE(theme.bw)) 0 else 0.5
+        title.face  <- if (isTRUE(theme.bw)) "plain" else "bold"
         p <- p + ggtitle(main) +
-            theme(plot.title = element_text(size = cex.main, hjust = 0.5,
-                                            color = "#333333"))
+            theme(plot.title = element_text(size = cex.main, hjust = title.hjust,
+                                            face = title.face, color = "#333333",
+                                            margin = margin(8, 0, 8, 0)))
     }
 
     ## legend

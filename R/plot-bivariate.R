@@ -50,15 +50,19 @@
 
         ## plot color setting
         raw.color <- NULL
-        ## color setting 
+        ## color setting
         if (is.null(color)==TRUE) { #not indicate color
-            if (theme.bw == FALSE) { # not theme.bw (black and white theme)
-                    raw.color <- c("dodgerblue4", "lightsalmon2") 
-            } 
+            if (identical(theme, "red")) {
+                ## cip theme: brick-red accent + gray neutral
+                raw.color <- c("#B83A4B", "grey40")
+            }
+            else if (theme.bw == FALSE) { # not theme.bw (black and white theme)
+                    raw.color <- c("dodgerblue4", "lightsalmon2")
+            }
             else { #  theme.bw
                     raw.color <- c("black","azure4")
             }
-        } 
+        }
         else { #indicate color    
                 if (length(color) != 2) {
                     stop("Length of \"color\" should be equal to 2.\n") 
@@ -112,13 +116,13 @@
             p <- ggplot(na.omit(data.means), aes(x=time))
             
             if (theme.bw == TRUE) {
-                p <- p + theme_bw()
+                p <- p + .pv_modern_theme_bw()
             }
 
 
             p <- p + theme(legend.position = legend.pos, aspect.ratio = 1/2,
                     axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
-                    plot.title = element_text(size=cex.main, hjust = 0.5, face="bold",margin = margin(8, 0, 8, 0)))
+                    plot.title = .pv_modern_title(cex.main, theme.bw))
 
                         
             if (is.null(ylim) == TRUE) {
@@ -236,12 +240,12 @@
             p <- ggplot(na.omit(data), aes(x=time))
 
             if (theme.bw == TRUE) {
-                p <- p + theme_bw()
+                p <- p + .pv_modern_theme_bw()
             }
 
             p <- p + theme(legend.position = legend.pos,
                     axis.text.x = element_text(angle = 90, hjust=x.h, vjust=0.5),
-                    plot.title = element_text(size=cex.main, hjust = 0.5, face="bold",margin = margin(8, 0, 8, 0)))
+                    plot.title = .pv_modern_title(cex.main, theme.bw))
 
             if (is.null(ylim) == TRUE) {
                 ylim <- c(min(data$outcome, na.rm = TRUE),max(data$outcome, na.rm = TRUE))

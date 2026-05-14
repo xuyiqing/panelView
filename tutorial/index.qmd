@@ -118,7 +118,7 @@ All three are balanced panels. The [network structure chapter](#sec-network) use
 - [Yiqing Xu](https://yiqingxu.org/){target="_blank"}
 - [Licheng Liu](https://liulch.github.io/){target="_blank"}
 - [Hongyu Mou](https://hongyumou.github.io/){target="_blank"}
-- StatsClaw (Agentic System for Statistical Software Development)
+- [StatsClaw](https://statsclaw.ai/){target="_blank"} (Agentic System for Statistical Software Development)
 
 ## Report bugs
 

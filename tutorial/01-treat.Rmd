@@ -25,14 +25,13 @@ panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
           xlab = "Year", ylab = "State")
 ```
 
-Use `by.timing = TRUE` to sort units by the timing of first treatment. The `background` option sets the panel background color; `cex.*` options control font sizes.
+Use `by.timing = TRUE` to sort units by the timing of first treatment.
 
 ```{r treat1-2, fig.height=10}
 panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
           data = turnout, index = c("abb", "year"),
           xlab = "Year", ylab = "State", by.timing = TRUE,
-          legend.labs = c("No EDR", "EDR"), background = "white",
-          cex.main = 20, cex.axis = 8, cex.lab = 12, cex.legend = 12)
+          legend.labs = c("No EDR", "EDR"))
 ```
 
 For staggered adoption, `pre.post = TRUE` distinguishes pre- and post-treatment periods for treated units.
@@ -108,6 +107,36 @@ panelview(Capacity ~ demo + lnpop + lngdp,
           data = capacity, index = c("ccode", "year"),
           main = "Democracy and State Capacity: Treatment Status",
           axis.lab.angle = 90, by.timing = TRUE, axis.lab = "time")
+```
+
+## Themes
+
+The `theme` argument selects the color recipe. The default (`"default"`)
+uses panelView's classic blue progression. Setting `theme = "red"`
+activates a high-contrast publication-paper recipe: control units fade to
+a light gray and treated post-period cells pick up a brick-red accent.
+
+```{r treat2-theme-red, fig.height=8}
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
+          data = turnout, index = c("abb", "year"),
+          xlab = "Year", ylab = "State", by.timing = TRUE,
+          pre.post = TRUE, theme = "red",
+          legend.labs = c("Control States",
+                          "Treated States (before EDR)",
+                          "Treated States (after EDR)"))
+```
+
+The `red` theme also handles panels with missing observations. On
+`capacity` (treatment turns on and off; some unit-year cells are
+unobserved), the heatmap reads as three layers --- gray untreated cells,
+brick-red treated cells, and white missing cells --- with all three shown
+in the legend.
+
+```{r treat2-theme-red-missing, fig.height=10}
+panelview(Capacity ~ demo + lnpop + lngdp,
+          data = capacity, index = c("ccode", "year"),
+          main = "Democracy and State Capacity",
+          axis.lab.gap = c(2, 10), theme = "red")
 ```
 
 ## Collapsing units by treatment history

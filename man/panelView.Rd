@@ -8,6 +8,7 @@
             outcome.type = "continuous",
             treat.type = NULL, by.group = FALSE, by.group.side = FALSE, 
             by.timing = FALSE, theme.bw = TRUE,
+            theme = "default", group.mean.overlay = FALSE,
             xlim = NULL, ylim = NULL,
             xlab = NULL, ylab = NULL,
             gridOff = FALSE, legendOff = FALSE,
@@ -42,6 +43,8 @@
   \item{by.group.side}{a logical flag indicating whether to arrange subfigures of \code{by.group = TRUE} in a row rather than in a column.}
   \item{by.timing}{a logic flag indicating whether the units should be sorted based on the timing of receiving the treatment for the treat plot.}
   \item{theme.bw}{a logical flag specifying whether to use a black-and-white theme.}
+  \item{theme}{a string specifying an optional named theme; one of \code{"default"} (the original panelView palette and onset-line style) or \code{"red"} (a high-contrast publication-paper recipe: gray control / brick-red treated-post for the binary status palette and outcome lines, with a solid-black dashed treatment-onset marker). Default \code{"default"}.}
+  \item{group.mean.overlay}{a logical flag for the outcome plot. When \code{TRUE}, per-unit trajectories are dimmed and a heavy group-mean line plus a 10--90\% quantile ribbon are overlaid per treatment-status group. Currently implemented for the main DID continuous-outcome path (\code{type = "outcome"}, \code{outcome.type = "continuous"}, \code{by.group = FALSE}); other variants ignore the argument. Default \code{FALSE}.}
   \item{xlim}{a two-element numeric vector specifying the range of x-axis. When the class of time variable is string, must specify the range of strings to be shown, e.g. \code{xlim=c(1,30)}.}
   \item{ylim}{a two-element numeric vector specifying the range of y-axis.}
   \item{xlab}{a string indicating the label of the x-axis.}

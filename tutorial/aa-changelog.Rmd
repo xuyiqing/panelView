@@ -1,5 +1,15 @@
 # Changelog {#sec-changelog .unnumbered}
 
+## v1.3.1
+
+(2026-05-13)
+
+* Plot defaults refreshed for a cleaner, publication-ready look: plain left-aligned titles at base size 11, white background for status heatmaps, subtle major-x gridlines for trajectories, and a thin gray dashed treatment-onset marker (replaces the prior thick white separator).
+* Outcome-plot draw order fixed: control trajectories are now drawn first, treated-pre next, treated-post on top, so treated lines are no longer covered by the control band.
+* New argument `theme = c("default", "red")`. The optional `"red"` theme switches the binary status palette to gray control / dark-gray treated-pre / brick-red treated-post, and the outcome onset marker to a solid black dashed line. The `"default"` palette also moves to a blue progression (gray control, medium blue treated-pre, dark navy treated-post) so red is reserved for `theme = "red"`.
+* New argument `group.mean.overlay = FALSE`. When `TRUE`, the outcome plot dims per-unit trajectories and overlays a heavy group-mean line plus a 10–90% quantile ribbon per treatment-status group. Currently scoped to the main DID continuous-outcome path.
+* `theme.bw = FALSE` is soft-deprecated. The legacy gray-panel look still works but emits a one-time warning; the tutorial no longer demonstrates it.
+
 ## v1.3.0
 
 (2026-03-21)

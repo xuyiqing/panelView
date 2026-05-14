@@ -1,6 +1,7 @@
 ##useDynLib(panelView)
 ##exportPattern("^[[:alpha:]]+")
-importFrom("stats", "na.omit", "sd", "var", "ave", "aggregate", "approxfun")
+importFrom("stats", "na.omit", "sd", "var", "ave", "aggregate", "approxfun",
+           "setNames")
 importFrom("ggplot2", "geom_boxplot", "geom_density", "geom_tile",
            "geom_point","geom_col", "labs", "theme_bw", "scale_fill_manual",
            "geom_hline", "geom_line", "geom_ribbon", "geom_vline",
@@ -12,6 +13,8 @@ importFrom("ggplot2", "geom_boxplot", "geom_density", "geom_tile",
            "guide_legend", "margin", "guides","xlab","ylab", "unit",
            "element_rect", "geom_jitter", "scale_shape_manual", "geom_bar",
            "scale_fill_gradient", "sec_axis", "facet_wrap")
+importFrom("ggplot2", "geom_segment", "geom_polygon", "geom_text")
+importFrom("grDevices", "chull")
 importFrom("gridExtra", "grid.arrange", "arrangeGrob")
 importFrom("grid", "textGrob", "gpar")
 importFrom("dplyr", "coalesce", "summarise", "group_by_all", "n")

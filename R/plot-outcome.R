@@ -7,6 +7,12 @@
                     data <- na.omit(data)
                 }
 
+                ## draw order: controls bottom, treated on top
+                if ("type" %in% names(data)) {
+                    data <- data[order(match(data$type, c("co", "tr", "tr.pst"))), ,
+                                 drop = FALSE]
+                }
+
                 ## theme
                 p <- ggplot(data) + xlab(xlab) +  ylab(ylab)
 
@@ -17,27 +23,31 @@
                 set.linewidth = rep(0.5, length(limits))
 
                 if (theme.bw == TRUE) {
-                    p <- p + theme_bw() + 
-                             theme(panel.grid.major = element_blank(),
-                                   panel.grid.minor = element_blank(),
-                                   axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
-                                   plot.title = element_text(size=cex.main, hjust = 0.5, face="bold",margin = margin(8, 0, 8, 0)))
+                    p <- p + .pv_modern_theme_bw() +
+                             theme(axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
+                                   plot.title = .pv_modern_title(cex.main, theme.bw))
                 }
                 else {
                     p <- p + theme(axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
-                                   plot.title = element_text(size=cex.main, hjust = 0.5, face="bold",margin = margin(8, 0, 8, 0)))
+                                   plot.title = .pv_modern_title(cex.main, theme.bw))
                 }
                 
 
                 ## main
                 if (outcome.type == "continuous") {
-                    p <- p + geom_line(aes(time, outcome,
-                                           colour = type,
-                                           linewidth = type,
-                                           linetype = type,
-                                           group = id))
+                    line.aes <- aes(time, outcome,
+                                    colour = type,
+                                    linewidth = type,
+                                    linetype = type,
+                                    group = id)
+                    for (.t in c("co", "tr", "tr.pst")) {
+                        d.t <- data[data$type == .t, , drop = FALSE]
+                        if (nrow(d.t) > 0) {
+                            p <- p + geom_line(data = d.t, mapping = line.aes)
+                        }
+                    }
 
-                data1 <- subset(data, data$last_dot==1)                       
+                data1 <- subset(data, data$last_dot==1)
                 p <- p + geom_point(data = data1,
                                     aes(time, outcome),
                                     colour = raw.color[2],
@@ -108,10 +118,15 @@
         ## color setting
         if (is.null(color) == TRUE) {
             if (ignore.treat == FALSE) {
-                if (outcome.type == "continuous") {
-                    raw.color <- c("#5e5e5e50", "#FC8D62", "red")
+                if (identical(theme, "red")) {
+                    ## red theme: light gray control, darker gray treated-pre
+                    ## (drawn on top of controls), brick-red treated-post.
+                    raw.color <- c("grey75", "grey30", "#B83A4B")
                 } else {
-                    raw.color <- c("#5e5e5e60", "#FC8D62", "red")
+                    ## default theme: light gray control (so dense overlapping
+                    ## lines don't darken into a band), medium blue treated-pre,
+                    ## dark navy treated-post. Matches the binary status palette.
+                    raw.color <- c("grey75", "#4671D5", "#06266F")
                 }
                 if (type == "outcome" && (staggered == 0 | by.group == TRUE | pre.post == FALSE)) { # two conditions only
                     raw.color <- raw.color[c(1,3)]
@@ -119,7 +134,7 @@
             } else { # ignore treat
                 raw.color <- "#5e5e5e50"
             }
-        } else {    # color is specified  
+        } else {    # color is specified
             if (ignore.treat == FALSE) {
                 if (staggered == 0 | pre.post == FALSE) { # with reversals or two groups only
                     if (length(color) != 2) {
@@ -171,11 +186,11 @@
             p <- ggplot(data) + xlab(xlab) +  ylab(ylab)
             
             if (theme.bw == TRUE) {
-                p <- p + theme_bw()
+                p <- p + .pv_modern_theme_bw()
             }
             p <- p + theme(legend.position = legend.pos,
              axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
-             plot.title = element_text(size=cex.main, hjust = 0.5, face="bold",margin = margin(8, 0, 8, 0)))
+             plot.title = .pv_modern_title(cex.main, theme.bw))
 
             if (outcome.type == "continuous") {
                 ## main
@@ -490,41 +505,92 @@
                 
             
 
+                ## draw order: controls first (bottom), treated-pre on top,
+                ## treated-post on very top, so treated trajectories cover
+                ## the dense control band rather than vice versa.
+                if ("type" %in% names(data)) {
+                    data <- data[order(match(data$type, c("co", "tr", "tr.pst"))), ,
+                                 drop = FALSE]
+                }
+
                 ## theme
                 p <- ggplot(data) + xlab(xlab) +  ylab(ylab)
                 if (theme.bw == TRUE) {
-                    p <- p + theme_bw()
+                    p <- p + .pv_modern_theme_bw()
                 }
                 p <- p + theme(legend.position = legend.pos,
                     axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
-                    plot.title = element_text(size=cex.main, hjust = 0.5, face="bold",margin = margin(8, 0, 8, 0)))
-            
+                    plot.title = .pv_modern_title(cex.main, theme.bw))
+
                 if (DID == TRUE && Ntr >= 1) {
                     if (exists("time.bf")) {
                         if (time.bf >= min(show) && time.bf <= max(show)) {
-                            p <- p + geom_vline(xintercept=time.bf, colour="white", linewidth = 2)
+                            if (theme.bw == TRUE) {
+                                onset.col <- if (identical(theme, "red")) "black" else "grey50"
+                                onset.lw  <- if (identical(theme, "red")) 0.6 else 0.4
+                                p <- p + geom_vline(xintercept=time.bf, colour=onset.col,
+                                                    linewidth=onset.lw, linetype="dashed")
+                            } else {
+                                p <- p + geom_vline(xintercept=time.bf, colour="white", linewidth = 2)
+                            }
                             if (shade.post == TRUE) {
                                 p <- p + annotate("rect", xmin= time.bf, xmax= Inf,
-                                                ymin=-Inf, ymax=Inf, alpha = .3) 
-                            }                            
+                                                ymin=-Inf, ymax=Inf, alpha = .3)
+                            }
                         }
                     }
                 }
         
-                ## main
-                p <- p + geom_line(aes(time, outcome,
-                                       colour = type,
-                                       linewidth = type,
-                                       linetype = type,
-                                       group = id))
+                ## main: draw controls first (bottom), then treated-pre, then
+                ## treated-post -- three separate layers because geom_line draws
+                ## polylines in group-value order, not row order.
+                spaghetti.alpha <- if (isTRUE(group.mean.overlay)) 0.18 else 1
+                line.aes <- aes(time, outcome,
+                                colour = type,
+                                linewidth = type,
+                                linetype = type,
+                                group = id)
+                for (.t in c("co", "tr", "tr.pst")) {
+                    d.t <- data[data$type == .t, , drop = FALSE]
+                    if (nrow(d.t) > 0) {
+                        p <- p + geom_line(data = d.t, mapping = line.aes,
+                                           alpha = spaghetti.alpha)
+                    }
+                }
 
-                data1 <- subset(data, data$last_dot==1)                       
+                data1 <- subset(data, data$last_dot==1)
                 p <- p + geom_point(data = data1,
                                     aes(time, outcome),
                                     colour = raw.color[3],
-                                    size = 0.5)
-          
-            
+                                    size = 0.5,
+                                    alpha = spaghetti.alpha)
+
+                ## opt-in: heavy group-mean overlay + 10-90% band
+                if (isTRUE(group.mean.overlay)) {
+                    data.no.na <- data[!is.na(data$outcome), , drop = FALSE]
+                    grp <- do.call(rbind, lapply(split(data.no.na, list(data.no.na$time,
+                                                                       data.no.na$type),
+                                                       drop = TRUE),
+                        function(d) data.frame(time = d$time[1], type = d$type[1],
+                                               mean = mean(d$outcome),
+                                               lo   = stats::quantile(d$outcome, 0.10, names = FALSE),
+                                               hi   = stats::quantile(d$outcome, 0.90, names = FALSE))))
+                    p <- p + geom_ribbon(data = grp,
+                                         aes(x = time, ymin = lo, ymax = hi,
+                                             fill = type, group = type),
+                                         alpha = 0.18, colour = NA,
+                                         inherit.aes = FALSE) +
+                             geom_line(data = grp,
+                                       aes(x = time, y = mean, colour = type,
+                                           group = type),
+                                       linewidth = 1.0,
+                                       inherit.aes = FALSE) +
+                             scale_fill_manual(limits = set.limits,
+                                               labels = set.labels,
+                                               values = set.colors,
+                                               guide = "none")
+                }
+
                 p <- p + scale_colour_manual(limits = set.limits,
                                              labels = set.labels,
                                              values =set.colors) +
@@ -547,15 +613,18 @@
                 data <- na.omit(data)
                 data$type <- factor(data$type, levels = c(-1, 0, 1), labels = c("co","tr","tr.pst"))
 
+                ## draw order: controls bottom, treated on top
+                data <- data[order(data$type), , drop = FALSE]
+
                 ## theme
                 p <- ggplot(data) + xlab(xlab) +  ylab(ylab)
                 if (theme.bw == TRUE) {
-                    p <- p + theme_bw()
+                    p <- p + .pv_modern_theme_bw()
                 }
                 p <- p + theme(legend.position = legend.pos,
                     axis.text.x = element_text(angle = angle, hjust=x.h, vjust=x.h),
-                    plot.title = element_text(size=cex.main, hjust = 0.5, face="bold",margin = margin(8, 0, 8, 0)))
-                
+                    plot.title = .pv_modern_title(cex.main, theme.bw))
+
                 ## main plot
                 p <- p + geom_jitter(width = 0.15, height = 0.15,
                                      aes(x = time, y = outcome, colour = type, shape = type))
@@ -759,10 +828,10 @@
                             legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
                             suppressWarnings(grid.arrange(arrangeGrob(p1 + theme(legend.position="none"),
                                             legend, nrow = 2, heights = c (1, 1/5)),
-                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                                            top = .pv_modern_top_grob(main, cex.main.top, theme.bw)))
                         } else {
                             suppressWarnings(grid.arrange(p1 + theme(legend.position="none"),
-                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                                            top = .pv_modern_top_grob(main, cex.main.top, theme.bw)))
                         }   
                     }
                     else if (2%in%unit.type) {
@@ -773,10 +842,10 @@
                             legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
                             suppressWarnings(grid.arrange(arrangeGrob(p2 + theme(legend.position="none"),
                                             legend, nrow = 2, heights = c (1, 1/5)),
-                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2)))) 
+                                            top = .pv_modern_top_grob(main, cex.main.top, theme.bw))) 
                         } else {
                             suppressWarnings(grid.arrange(p2 + theme(legend.position="none"),
-                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                                            top = .pv_modern_top_grob(main, cex.main.top, theme.bw)))
                         }   
                     }
                     else if (3%in%unit.type) {
@@ -787,10 +856,10 @@
                             legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
                             suppressWarnings(grid.arrange(arrangeGrob(p3 + theme(legend.position="none"),
                                             legend, nrow = 2, heights = c (1, 1/5)),
-                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2)))) 
+                                            top = .pv_modern_top_grob(main, cex.main.top, theme.bw))) 
                         } else {
                             suppressWarnings(grid.arrange(p3 + theme(legend.position="none"),
-                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                                            top = .pv_modern_top_grob(main, cex.main.top, theme.bw)))
                         }  
                     }
 
@@ -807,11 +876,11 @@
                             legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
                             suppressWarnings(grid.arrange(arrangeGrob(p2 + theme(legend.position="none"), p3 + theme(legend.position="none"),
                                             legend, nrow = 3, heights = c (1, 1, 1/5)),
-                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))  
+                                            top = .pv_modern_top_grob(main, cex.main.top, theme.bw)))  
                         } else {
                             suppressWarnings(grid.arrange(p2 + theme(legend.position="none"),
                                             p3 + theme(legend.position="none"),
-                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                                            top = .pv_modern_top_grob(main, cex.main.top, theme.bw)))
                         }  
                     }
                     else if (!2%in%unit.type) {
@@ -824,11 +893,11 @@
                             legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
                             suppressWarnings(grid.arrange(arrangeGrob(p1 + theme(legend.position="none"), p3 + theme(legend.position="none"),
                                             legend, nrow = 3, heights = c (1, 1, 1/5)),
-                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))  
+                                            top = .pv_modern_top_grob(main, cex.main.top, theme.bw)))  
                         } else {
                             suppressWarnings(grid.arrange(p1 + theme(legend.position="none"),
                                             p3 + theme(legend.position="none"),
-                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                                            top = .pv_modern_top_grob(main, cex.main.top, theme.bw)))
                         }  
                     }
                     else if (!3%in%unit.type) {
@@ -841,11 +910,11 @@
                             legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
                             suppressWarnings(grid.arrange(arrangeGrob(p1 + theme(legend.position="none"), p2 + theme(legend.position="none"),
                                             legend, nrow = 3, heights = c (1, 1, 1/5)),
-                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))  
+                                            top = .pv_modern_top_grob(main, cex.main.top, theme.bw)))  
                         } else {
                             suppressWarnings(grid.arrange(p1 + theme(legend.position="none"),
                                             p2 + theme(legend.position="none"),
-                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                                            top = .pv_modern_top_grob(main, cex.main.top, theme.bw)))
                         }   
                     }
 
@@ -863,12 +932,12 @@
                         legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
                         suppressWarnings(grid.arrange(arrangeGrob(p1 + theme(legend.position="none"), p2 + theme(legend.position="none"),
                                         p3 + theme(legend.position="none"), legend, nrow = 4, heights = c (1, 1, 1, 1/5)),
-                                        top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                                        top = .pv_modern_top_grob(main, cex.main.top, theme.bw)))
                     } else {
                         suppressWarnings(grid.arrange(p1 + theme(legend.position="none"),
                                             p2 + theme(legend.position="none"),
                                             p3 + theme(legend.position="none"),
-                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                                            top = .pv_modern_top_grob(main, cex.main.top, theme.bw)))
                     }
 
                 }
@@ -884,10 +953,10 @@
                             suppressWarnings(g <- ggplotGrob(p1 + theme(legend.position="bottom"))$grobs)
                             legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
                             suppressWarnings(grid.arrange(arrangeGrob(p1 + theme(legend.position="none"),
-                                            nrow =1, top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))),legend,nrow=2,heights=c(1,1/8)))
+                                            nrow =1, top = .pv_modern_top_grob(main, cex.main.top, theme.bw)),legend,nrow=2,heights=c(1,1/8)))
                         } else {
                             suppressWarnings(grid.arrange(p1 + theme(legend.position="none"), nrow =1,
-                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                                            top = .pv_modern_top_grob(main, cex.main.top, theme.bw)))
                         }   
                     }
                     else if (2%in%unit.type) {
@@ -897,10 +966,10 @@
                             suppressWarnings(g <- ggplotGrob(p2 + theme(legend.position="bottom"))$grobs)
                             legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
                             suppressWarnings(grid.arrange(arrangeGrob(p2 + theme(legend.position="none"),
-                                            nrow =1, top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))),legend,nrow=2,heights=c(1,1/8)))
+                                            nrow =1, top = .pv_modern_top_grob(main, cex.main.top, theme.bw)),legend,nrow=2,heights=c(1,1/8)))
                         } else {
                             suppressWarnings(grid.arrange(p2 + theme(legend.position="none"), nrow =1,
-                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                                            top = .pv_modern_top_grob(main, cex.main.top, theme.bw)))
                         }   
                     }
                     else if (3%in%unit.type) {
@@ -910,10 +979,10 @@
                             suppressWarnings(g <- ggplotGrob(p3 + theme(legend.position="bottom"))$grobs)
                             legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
                             suppressWarnings(grid.arrange(arrangeGrob(p3 + theme(legend.position="none"),
-                                            nrow =1, top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))),legend,nrow=2,heights=c(1,1/8)))
+                                            nrow =1, top = .pv_modern_top_grob(main, cex.main.top, theme.bw)),legend,nrow=2,heights=c(1,1/8)))
                         } else {
                             suppressWarnings(grid.arrange(p3 + theme(legend.position="none"), nrow =1,
-                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                                            top = .pv_modern_top_grob(main, cex.main.top, theme.bw)))
                         }  
                     }
 
@@ -929,11 +998,11 @@
                             suppressWarnings(g <- ggplotGrob(p2 + theme(legend.position="bottom"))$grobs)
                             legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
                             suppressWarnings(grid.arrange(arrangeGrob(p2 + theme(legend.position="none"), p3 + theme(legend.position="none"),
-                                            nrow =1, top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))),legend,nrow=2,heights=c(1,1/8)))
+                                            nrow =1, top = .pv_modern_top_grob(main, cex.main.top, theme.bw)),legend,nrow=2,heights=c(1,1/8)))
                         } else {
                             suppressWarnings(grid.arrange(p2 + theme(legend.position="none"),
                                             p3 + theme(legend.position="none"), nrow =1,
-                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                                            top = .pv_modern_top_grob(main, cex.main.top, theme.bw)))
                         }  
                     }
                     else if (!2%in%unit.type) {
@@ -945,11 +1014,11 @@
                             suppressWarnings(g <- ggplotGrob(p1 + theme(legend.position="bottom"))$grobs)
                             legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
                             suppressWarnings(grid.arrange(arrangeGrob(p1 + theme(legend.position="none"), p3 + theme(legend.position="none"),
-                                            nrow =1, top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))),legend,nrow=2,heights=c(1,1/8)))
+                                            nrow =1, top = .pv_modern_top_grob(main, cex.main.top, theme.bw)),legend,nrow=2,heights=c(1,1/8)))
                         } else {
                             suppressWarnings(grid.arrange(p1 + theme(legend.position="none"),
                                             p3 + theme(legend.position="none"), nrow =1,
-                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                                            top = .pv_modern_top_grob(main, cex.main.top, theme.bw)))
                         }  
                     }
                     else if (!3%in%unit.type) {
@@ -961,11 +1030,11 @@
                             suppressWarnings(g <- ggplotGrob(p1 + theme(legend.position="bottom"))$grobs)
                             legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
                             suppressWarnings(grid.arrange(arrangeGrob(p1 + theme(legend.position="none"), p2 + theme(legend.position="none"),
-                                            nrow =1, top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))),legend,nrow=2,heights=c(1,1/8)))
+                                            nrow =1, top = .pv_modern_top_grob(main, cex.main.top, theme.bw)),legend,nrow=2,heights=c(1,1/8)))
                         } else {
                             suppressWarnings(grid.arrange(p1 + theme(legend.position="none"),
                                             p2 + theme(legend.position="none"), nrow =1,
-                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                                            top = .pv_modern_top_grob(main, cex.main.top, theme.bw)))
                         }   
                     }
 
@@ -985,12 +1054,12 @@
 
                         suppressWarnings(grid.arrange(arrangeGrob(p1 + theme(legend.position="none"), p2 + theme(legend.position="none"),
                                         p3 + theme(legend.position="none"), nrow =1,
-                                        top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))),legend,nrow=2,heights=c(1,1/8)))
+                                        top = .pv_modern_top_grob(main, cex.main.top, theme.bw)),legend,nrow=2,heights=c(1,1/8)))
                     } else {
                         suppressWarnings(grid.arrange(p1 + theme(legend.position="none"),
                                             p2 + theme(legend.position="none"),
                                             p3 + theme(legend.position="none"), nrow =1,
-                                            top = textGrob(main, gp = gpar(fontsize = cex.main.top,font=2))))
+                                            top = .pv_modern_top_grob(main, cex.main.top, theme.bw)))
                     }
 
                 }

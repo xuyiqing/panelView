@@ -46,8 +46,8 @@
         
         if (d.bi == FALSE && ignore.treat == 0) { ## >2 treatment level
 
-            tr.col <- c("#66C2A5","#FC8D62","#8DA0CB","#E78AC3","#A6D854","#FFD92F","#E5C494",
-                "#FAFAD2", "#ADFF2F", "#87CEFA", "#1874CD", "#00008B")
+            tr.col <- c("#5B8AA6","#C66B5A","#6B7A99","#B07AA1","#BE8C3F","#7A8C5A",
+                "#4A6FA5","#A6573F","#506683","#8F5B7A","#A07733","#5E6E45")
 
             if (treat.type == "discrete") {
                 for (i in 1:n.levels) {
@@ -85,23 +85,34 @@
 
         } else { ## binary treatment indicator
 
+            ## theme-dependent binary palette (control / treated-pre / treated-post)
+            if (identical(theme, "red")) {
+                pv.ctl  <- "grey85"
+                pv.tpre <- "grey50"
+                pv.tpst <- "#B83A4B"
+            } else {
+                pv.ctl  <- "#B0C4DE"
+                pv.tpre <- "#4671D5"
+                pv.tpst <- "#06266F"
+            }
+
             if (0 %in% all) { ## have pre and post: general DID type data
-                
+
                 ## control
                 if (-1 %in% all) {
-                    col <- c(col,"#B0C4DE")
+                    col <- c(col, pv.ctl)
                     breaks <- c(breaks, -1)
                     label <- c(label,"Controls")
                 }
-                
+
                 ## treated pre
-                col <- c(col,"#4671D5")
+                col <- c(col, pv.tpre)
                 breaks <- c(breaks, 0)
                 label <- c(label,"Treated (Pre)")
-                
+
                 ## treated post
                 if (1 %in% all) {
-                    col <- c(col,"#06266F")
+                    col <- c(col, pv.tpst)
                     breaks <- c(breaks, 1)
                     label <- c(label,"Treated (Post)")
                 }
@@ -110,7 +121,7 @@
 
                 ## control
                 if (-1 %in% all) {
-                    col <- c(col,"#B0C4DE")
+                    col <- c(col, pv.ctl)
                     breaks <- c(breaks, -1)
                     if (ignore.treat == 0) {
                         ## if (pre.post == TRUE) {
@@ -121,12 +132,12 @@
                     } else {
                         label <- c(label, "Observed")
                     }
-                    
+
                 }
 
-                ## treated 
+                ## treated
                 if (1 %in% all) {
-                    col <- c(col,"#06266F")
+                    col <- c(col, pv.tpst)
                     breaks <- c(breaks, 1)
                     ## if (pre.post == TRUE) {
                         label <- c(label,"Under Treatment")
@@ -262,8 +273,12 @@
         ## background color
         if (is.null(background)==FALSE) {
             grid.color <- border.color <- background.color <- legend.color <- background
+        } else if (theme.bw == TRUE) {
+            ## modern look: white plot/legend background; tile borders stay subtle grey
+            grid.color <- border.color <- "grey90"
+            background.color <- legend.color <- "white"
         } else {
-            grid.color <- border.color <- background.color <- legend.color <- "grey90"       
+            grid.color <- border.color <- background.color <- legend.color <- "grey90"
         }
 
 
@@ -279,7 +294,12 @@
             p <- p + geom_tile()
         }
 
-        p <- p + labs(x = xlab, y = ylab, title=main) + theme_bw() 
+        p <- p + labs(x = xlab, y = ylab, title=main)
+        if (theme.bw == TRUE) {
+            p <- p + theme_bw(base_size = 11)
+        } else {
+            p <- p + theme_bw()
+        }
 
         #if (treat.type == "discrete") {
             p <- p + scale_fill_manual("Treatment level: ", breaks = breaks, values = col, labels=label)
@@ -289,6 +309,14 @@
         #} else {
             #p <- p + scale_fill_gradient(low = col[1], high = col[2], na.value="white") + guides(fill=guide_legend(title= label))
         #}
+
+        if (theme.bw == TRUE) {
+            title.style <- element_text(size=cex.main, hjust = 0, face="plain",
+                                        margin = margin(8, 0, 8, 0))
+        } else {
+            title.style <- element_text(size=cex.main, hjust = 0.5, face="bold",
+                                        margin = margin(8, 0, 8, 0))
+        }
 
         p <- p +
         theme(panel.grid.major = element_blank(),
@@ -307,7 +335,7 @@
               legend.position = legend.pos,
               legend.margin = margin(0, 5, 5, 0),
               legend.text = element_text(margin = margin(r = 10, unit = "pt"), size = cex.legend),
-              plot.title = element_text(size=cex.main, hjust = 0.5,face="bold",margin = margin(8, 0, 8, 0)))
+              plot.title = title.style)
                       
 
         if (axis.lab == "both") {

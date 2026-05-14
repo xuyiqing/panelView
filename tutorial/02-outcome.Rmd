@@ -38,24 +38,42 @@ panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
                           "Treated States (after EDR)"))
 ```
 
-Switch off the black-and-white theme with `theme.bw = FALSE`.
-
-```{r outcome1-3}
-panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
-          data = turnout, index = c("abb", "year"), type = "outcome",
-          main = "EDR Reform and Turnout", theme.bw = FALSE)
-```
-
 Customise line colors and legend labels simultaneously.
 
 ```{r outcome1-4}
 panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
           data = turnout, index = c("abb", "year"),
           type = "outcome", main = "EDR Reform and Turnout",
-          color = c("lightblue", "blue", "#99999950"),
+          color = c("lightblue", "blue", "grey75"),
           legend.labs = c("Control States",
                           "Treated States (before EDR)",
                           "Treated States (after EDR)"))
+```
+
+## Themes and overlays
+
+Activate the high-contrast `red` theme for a publication-paper look. Under
+`theme = "red"`, controls fade to a light gray, treated trajectories pick
+up a brick-red accent, and the treatment-onset marker becomes a solid
+black dashed line.
+
+```{r outcome1-3}
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
+          data = turnout, index = c("abb", "year"), type = "outcome",
+          main = "EDR Reform and Turnout", theme = "red")
+```
+
+Overlay heavy group-mean trajectories and a 10--90% quantile ribbon with
+`group.mean.overlay = TRUE`. Useful when there are many units per group
+and you want the audience to see both individual variation and the group
+average at a glance. (Currently implemented for the main DID continuous-
+outcome path; combine with `theme = "red"` for the cleanest read.)
+
+```{r outcome1-3b}
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
+          data = turnout, index = c("abb", "year"), type = "outcome",
+          main = "EDR Reform and Turnout",
+          theme = "red", group.mean.overlay = TRUE)
 ```
 
 ## Plotting a subset of units
@@ -71,13 +89,13 @@ panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
 
 ## Splitting by treatment-status group
 
-`by.group = TRUE` separates units into groups based on whether their treatment status ever changed (e.g., always treated, always control, switchers). `cex.main` and `cex.main.sub` control title and subtitle font sizes.
+`by.group = TRUE` separates units into groups based on whether their treatment status ever changed (e.g., always treated, always control, switchers).
 
 ```{r outcome1-6}
 panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
           data = turnout, index = c("abb", "year"),
           type = "outcome", main = "EDR Reform and Turnout",
-          by.group = TRUE, cex.main = 20, cex.main.sub = 15)
+          by.group = TRUE)
 ```
 
 Use `by.group.side = TRUE` to arrange the subfigures in a row rather than a column.
@@ -86,7 +104,7 @@ Use `by.group.side = TRUE` to arrange the subfigures in a row rather than a colu
 panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
           data = turnout, index = c("abb", "year"),
           type = "outcome", main = "EDR Reform and Turnout",
-          by.group.side = TRUE, cex.main = 20, cex.main.sub = 15)
+          by.group.side = TRUE)
 ```
 
 ## Cohort-averaged trajectories

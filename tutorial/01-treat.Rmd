@@ -1,4 +1,4 @@
-# Treatment Status & Missingness {#sec-treat}
+# Treatment Status {#sec-treat}
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
@@ -25,14 +25,13 @@ panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
           xlab = "Year", ylab = "State")
 ```
 
-Use `by.timing = TRUE` to sort units by the timing of first treatment. The `background` option sets the panel background color; `cex.*` options control font sizes.
+Use `by.timing = TRUE` to sort units by the timing of first treatment.
 
 ```{r treat1-2, fig.height=10}
 panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
           data = turnout, index = c("abb", "year"),
           xlab = "Year", ylab = "State", by.timing = TRUE,
-          legend.labs = c("No EDR", "EDR"), background = "white",
-          cex.main = 20, cex.axis = 8, cex.lab = 12, cex.legend = 12)
+          legend.labs = c("No EDR", "EDR"))
 ```
 
 For staggered adoption, `pre.post = TRUE` distinguishes pre- and post-treatment periods for treated units.
@@ -109,6 +108,57 @@ panelview(Capacity ~ demo + lnpop + lngdp,
           main = "Democracy and State Capacity: Treatment Status",
           axis.lab.angle = 90, by.timing = TRUE, axis.lab = "time")
 ```
+
+## Themes
+
+The `theme` argument selects the color recipe. The default (`"default"`)
+uses panelView's classic blue progression. Setting `theme = "red"`
+activates a high-contrast publication-paper recipe: control units fade to
+a light gray and treated post-period cells pick up a brick-red accent.
+
+```{r treat2-theme-red, fig.height=8}
+panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
+          data = turnout, index = c("abb", "year"),
+          xlab = "Year", ylab = "State", by.timing = TRUE,
+          pre.post = TRUE, theme = "red",
+          legend.labs = c("Control States",
+                          "Treated States (before EDR)",
+                          "Treated States (after EDR)"))
+```
+
+The `red` theme also handles panels with missing observations. On
+`capacity` (treatment turns on and off; some unit-year cells are
+unobserved), the heatmap reads as three layers --- gray untreated cells,
+brick-red treated cells, and white missing cells --- with all three shown
+in the legend.
+
+```{r treat2-theme-red-missing, fig.height=10}
+panelview(Capacity ~ demo + lnpop + lngdp,
+          data = capacity, index = c("ccode", "year"),
+          main = "Democracy and State Capacity",
+          axis.lab.gap = c(2, 10), theme = "red")
+```
+
+## Customizing with ggplot2 syntax
+
+`panelview()` returns a `ggplot` object for single-panel plots, so any
+`ggplot2` layer can be added with the usual `+`. In v1.3.1 the default
+title is left-aligned and plain; to recover a centered, bold title, add a
+`theme(plot.title = ...)` layer:
+
+```{r treat2-ggplot-center-title, fig.height=8}
+library(ggplot2)
+p <- panelview(turnout ~ policy_edr + policy_mail_in + policy_motor,
+               data = turnout, index = c("abb", "year"),
+               main = "Election-Day Registration Adoption",
+               by.timing = TRUE, theme = "red")
+p + theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+```
+
+The same pattern works for other theme elements (axis text, legend
+position, margins, etc.). Multi-panel layouts (`by.group`,
+`by.group.side`, `by.cohort`, `by.unit`) are an exception: those return a
+`gtable` produced by `grid.arrange()` and do not accept `+` composition.
 
 ## Collapsing units by treatment history
 

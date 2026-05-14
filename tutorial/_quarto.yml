@@ -11,6 +11,7 @@ book:
     - 01-treat.Rmd
     - 02-outcome.Rmd
     - 03-bivariate.Rmd
+    - 04-network.Rmd
     - aa-changelog.Rmd
     - references.qmd
 

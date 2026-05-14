@@ -1,12 +1,13 @@
 # Workflow derived from https://github.com/r-lib/actions/tree/v2/examples
 # Runs R CMD check --as-cran across the standard CRAN platform matrix on every
-# push and PR targeting dev/master.
+# push and PR targeting main/master only. Dev-side checks are run manually
+# by the maintainer; CI gates only the final mile into master.
 
 on:
   push:
-    branches: [main, master, dev]
+    branches: [main, master]
   pull_request:
-    branches: [main, master, dev]
+    branches: [main, master]
 
 name: R-CMD-check.yaml
 

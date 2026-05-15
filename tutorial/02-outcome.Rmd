@@ -149,6 +149,111 @@ panelview(Y = "turnout", data = turnout,
           xlab = "Year", ylab = "Turnout")
 ```
 
+## Treatment reversal and missing data {#sec-outcome-reversal}
+
+How **panelView** handles two common discontinuities in the outcome
+trajectory:
+
+- **Treatment reversal** (unit goes on then off, or off then on). The
+  treated overlay is drawn only at periods the unit is treated, so each
+  treated spell is a separate line segment.
+- **Missing outcome**. Under the default `leave.gap = FALSE`, rows with
+  missing `Y` are dropped and the bracketing observed points are joined
+  by a **dotted** segment so the gap is visible. Under `leave.gap = TRUE`
+  the panel is expanded and the line breaks cleanly at every NA cell.
+
+Topology classification (reversal vs. staggered) follows the observed
+data: if a unit's leading treated rows are missing and the surviving
+`D` pattern is monotonic, the unit is plotted in the staggered palette.
+
+Examples below use `fect::sim_base`. Unit 102 is treated at $t=1\!-\!3$,
+control at $t=4\!-\!26$, then treated at $t=27\!-\!35$.
+
+### Reversal alone
+
+```{r outcome-reversal, fig.height=4.2}
+if (requireNamespace("fect", quietly = TRUE)) {
+  data("sim_base", package = "fect")
+  panelview(Y ~ D, data = subset(sim_base, id == 102),
+            index = c("id", "time"), type = "outcome",
+            main = "Unit 102: treated 1-3, control 4-26, treated 27-35")
+}
+```
+
+### Interior gap: dotted bridge under `leave.gap = FALSE`
+
+Set $Y$ to `NA` at $t=10\!-\!12$ and $t=30\!-\!31$. The control line
+shows a dotted bridge between $t=9$ and $t=13$; the treated line shows
+one between $t=29$ and $t=32$.
+
+```{r outcome-missing-default, fig.height=4.2}
+if (requireNamespace("fect", quietly = TRUE)) {
+  d <- subset(sim_base, id == 102)
+  d$Y[d$time %in% c(10, 11, 12)] <- NA
+  d$Y[d$time %in% c(30, 31)]     <- NA
+  panelview(Y ~ D, data = d, index = c("id", "time"),
+            type = "outcome",
+            main = "leave.gap = FALSE: dotted bridge across missing periods")
+}
+```
+
+### Interior gap: clean break under `leave.gap = TRUE`
+
+Same data, but `leave.gap = TRUE` keeps the NA rows, so the line breaks
+at every gap with no bridge.
+
+```{r outcome-missing-leave-gap, fig.height=4.2}
+if (requireNamespace("fect", quietly = TRUE)) {
+  d <- subset(sim_base, id == 102)
+  d$Y[d$time %in% c(10, 11, 12)] <- NA
+  d$Y[d$time %in% c(30, 31)]     <- NA
+  panelview(Y ~ D, data = d, index = c("id", "time"),
+            type = "outcome", leave.gap = TRUE,
+            main = "leave.gap = TRUE: line breaks at gaps, no bridge")
+}
+```
+
+### Missing at the boundary
+
+Drop unit 102's $Y$ at $t=1\!-\!3$ (the start of its series) and pass
+`leave.gap = TRUE` so the row is retained, the x-axis stays at
+$t=1\!-\!35$, and the topology classifier still sees the early
+treated $D$ values. The line is empty at $t=1\!-\!3$; everything else
+is unchanged.
+
+```{r outcome-missing-boundary, fig.height=4.2}
+if (requireNamespace("fect", quietly = TRUE)) {
+  d <- subset(sim_base, id == 102)
+  d$Y[d$time %in% 1:3] <- NA
+  panelview(Y ~ D, data = d, index = c("id", "time"),
+            type = "outcome", leave.gap = TRUE,
+            main = "Drop Y at t=1-3 (leave.gap = TRUE keeps x-axis and classification)")
+}
+```
+
+Under the default `leave.gap = FALSE`, the same NA injection drops
+those rows entirely. The panel for this unit shrinks to $t=4\!-\!35$,
+its surviving $D$ pattern becomes monotonic, and the classifier
+re-types it as staggered. Use `leave.gap = TRUE` whenever you need
+the boundary intact.
+
+### `by.group = TRUE` with all three subpanels
+
+`by.group = TRUE` splits units by their treatment history: always under
+control, always under treatment, and treatment status changed. To
+exercise all three subpanels we promote one `sim_base` unit to
+always-treated.
+
+```{r outcome-bygroup-full, fig.height=8}
+if (requireNamespace("fect", quietly = TRUE)) {
+  d <- sim_base
+  d$D[d$id == 101] <- 1    ## promote unit 101 to always-treated
+  panelview(Y ~ D, data = d, index = c("id", "time"),
+            type = "outcome", by.group = TRUE,
+            main = "by.group = TRUE: always control / always treated / status changed")
+}
+```
+
 ## Discrete outcomes
 
 Set `outcome.type = "discrete"` when the outcome takes a small number of integer values.

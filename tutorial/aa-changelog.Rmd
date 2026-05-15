@@ -1,5 +1,13 @@
 # Changelog {#sec-changelog .unnumbered}
 
+## v1.3.2
+
+(2026-05-14)
+
+* Outcome plots: treated overlay no longer spans control intervals within a reversal unit (each treated spell renders as its own segment).
+* Outcome plots under `leave.gap = FALSE`: gaps from dropped rows are now drawn as a dotted bridge instead of a solid interpolated line.
+* New tutorial section "Treatment reversal and missing data" with worked examples on `fect::sim_base`.
+
 ## v1.3.1
 
 (2026-05-13)

@@ -1,3 +1,9 @@
+# panelView 1.3.2
+
+* Outcome plots: treated overlay no longer spans control intervals within a reversal unit.
+* Outcome plots under `leave.gap = FALSE`: gaps from dropped rows render as a dotted bridge instead of a solid interpolated line.
+* New tutorial section "Treatment reversal and missing data" with worked examples on `fect::sim_base`.
+
 # panelView 1.3.1
 
 ## Visual refresh

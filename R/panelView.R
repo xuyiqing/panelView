@@ -896,7 +896,9 @@ panelview <- function(data, # a data frame (long-form)
         #     }
         # }
 
-        ## check DID mode
+        ## check DID mode -- classification is based on the OBSERVED rows
+        ## (cells with I == 1), so a unit whose early treated rows have
+        ## been dropped by na.omit is classified by its surviving pattern.
         if (sum(abs(D.old[which(I==1)] - D[which(I==1)]), na.rm = TRUE) == 0) {
             staggered <- 1
         } else { ## FE mode, with reversals
@@ -906,7 +908,7 @@ panelview <- function(data, # a data frame (long-form)
             if (by.cohort == TRUE) {
                 stop("option \"by.cohort = TRUE\" works only with staggered adoption.")
             }
-            }            
+            }
             staggered <- 0
         }
 

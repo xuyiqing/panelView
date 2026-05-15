@@ -1,7 +1,49 @@
+## Internal helper. Splits each (id, type) group of `data` into contiguous
+## "segments" of observed time and returns the bridge pairs that connect
+## consecutive non-adjacent observations. Used by the outcome plot to draw
+## a dotted bridge across interior gaps under `leave.gap = FALSE`, where
+## the missing rows have been dropped and `geom_line` would otherwise
+## interpolate a solid line across the gap.
+##
+## A "bridge" is a pair (prev_obs, this_obs) within the same (id, type)
+## group whose time difference exceeds `expected_step`. The returned
+## `data` carries a new `seg_id` column (constant within a contiguous
+## run, incrementing at each bridge) so callers can pass
+## `group = interaction(id, seg_id)` to `geom_line` and have the polyline
+## break at gaps; `bridges` is the per-pair data frame for `geom_segment`.
+.pv_segment_gaps <- function(data, expected_step) {
+    data <- data[order(data$id, data$type, data$time), , drop = FALSE]
+    grp <- paste(data$id, data$type, sep = "__")
+
+    prev_time    <- ave(data$time,    grp, FUN = function(t) c(NA, utils::head(t, -1)))
+    prev_outcome <- ave(data$outcome, grp, FUN = function(y) c(NA, utils::head(y, -1)))
+
+    bridge_mask <- !is.na(prev_time) &
+                   !is.na(data$outcome) &
+                   !is.na(prev_outcome) &
+                   (data$time - prev_time) > (expected_step + .Machine$double.eps)
+
+    data$seg_id <- ave(as.integer(bridge_mask), grp,
+                       FUN = function(x) cumsum(x) + 1L)
+
+    bridges <- if (any(bridge_mask)) {
+        data.frame(id   = data$id[bridge_mask],
+                   type = data$type[bridge_mask],
+                   x    = prev_time[bridge_mask],
+                   y    = prev_outcome[bridge_mask],
+                   xend = data$time[bridge_mask],
+                   yend = data$outcome[bridge_mask],
+                   stringsAsFactors = FALSE)
+    } else NULL
+
+    list(data = data, bridges = bridges)
+}
+
 .pv_subplot <- function(data, limits, colors, main, outcome.type, theme.bw,
                         xlab, ylab, angle, x.h, cex.main, raw.color,
                         show, T.b, time.label, ylim, set.labels) {
-                time <- outcome <- type <- id <- NULL  # suppress R CMD check note
+                time <- outcome <- type <- id <- seg_id <- NULL  # suppress R CMD check note
+                x <- y <- xend <- yend <- NULL  # geom_segment aesthetics
                 if (outcome.type == "discrete") {
                     data$outcome <- factor(data$outcome)
                     data <- na.omit(data)
@@ -35,15 +77,40 @@
 
                 ## main
                 if (outcome.type == "continuous") {
+                    ## Segment each (id, type) trajectory at gaps and overlay
+                    ## a dotted bridge across each gap. See the main reversal
+                    ## branch for rationale. Under leave.gap = TRUE this is a
+                    ## no-op (no bridges produced).
+                    expected.step <- {
+                        .ut <- sort(unique(data$time))
+                        if (length(.ut) >= 2) min(diff(.ut)) else 1
+                    }
+                    seg.out <- .pv_segment_gaps(data, expected.step)
+                    data    <- seg.out$data
+                    bridges <- seg.out$bridges
+
                     line.aes <- aes(time, outcome,
                                     colour = type,
                                     linewidth = type,
                                     linetype = type,
-                                    group = id)
+                                    group = interaction(id, seg_id))
                     for (.t in c("co", "tr", "tr.pst")) {
                         d.t <- data[data$type == .t, , drop = FALSE]
                         if (nrow(d.t) > 0) {
                             p <- p + geom_line(data = d.t, mapping = line.aes)
+                        }
+                        if (!is.null(bridges)) {
+                            b.t <- bridges[bridges$type == .t, , drop = FALSE]
+                            if (nrow(b.t) > 0) {
+                                p <- p + geom_segment(data = b.t,
+                                                      mapping = aes(x = x, y = y,
+                                                                    xend = xend,
+                                                                    yend = yend,
+                                                                    colour = type),
+                                                      linetype = "dotted",
+                                                      show.legend = FALSE,
+                                                      inherit.aes = FALSE)
+                            }
                         }
                     }
 
@@ -290,7 +357,7 @@
             if (outcome.type == "continuous") { ## continuous outcome
                 
                 if (staggered == 0 || (by.cohort == FALSE && pre.post == FALSE)) { ## with reversals
-                
+
                     D.plot <- D.old
                     D.plot[which(D.plot == 0)] <- NA
                     D.plot[which(I == 0)] <- NA
@@ -298,26 +365,24 @@
                     Y.trt <- Y * D.plot
                     Y.trt.show <- as.matrix(Y.trt[show,])
                     time.trt.show <- time[show]
-                    ut.time <- ut.id <- NULL
-                    for (i in 1:N) {
-                        if (sum(is.na(Y.trt.show[,i])) != nT) {
-                            ut.id <- c(ut.id, rep(i, nT - sum(is.na(Y.trt.show[,i]))))
-                            ut.time <- c(ut.time, time.trt.show[which(!is.na(Y.trt.show[,i]))])
-                        }
-                    }
-                    T1_0 <- c(T1)[which(T1==0)]
-                    T1_1 <- c(T1)[which(T1==1)]
-                    N_T1_1 <- sum(T1_1)
-                    N_T1_0 <- N*nT + length(ut.id) - N_T1_1
 
-                    data <- cbind.data.frame("time" = c(rep(time[show], N), ut.time),
-                                             "outcome" = c(c(Y[show,]),
-                                                         c(Y.trt.show[which(!is.na(Y.trt.show))])),
+                    ## Build the "tr" overlay on the FULL balanced panel for any
+                    ## unit with >=1 treated period, keeping NA at non-treated
+                    ## periods. geom_line breaks polylines at NA, so a unit
+                    ## with reversal (treated -> control -> treated) renders as
+                    ## two separate segments instead of one straight line that
+                    ## spans the control gap.
+                    treated.units <- which(colSums(!is.na(Y.trt.show)) > 0)
+                    n.tr.u  <- length(treated.units)
+                    tr.time    <- rep(time.trt.show, n.tr.u)
+                    tr.outcome <- c(Y.trt.show[, treated.units, drop = FALSE])
+                    tr.id      <- rep(treated.units, each = nT)
+
+                    data <- cbind.data.frame("time" = c(rep(time[show], N), tr.time),
+                                             "outcome" = c(c(Y[show,]), tr.outcome),
                                              "type" = c(rep("co",(N*nT)),
-                                                        rep("tr",length(ut.id))),
-                                            "last_dot" = c(rep("0",N_T1_0),
-                                                           rep("1",N_T1_1)),
-                                             "id" = c(rep(1:N,each = nT), ut.id))
+                                                        rep("tr", n.tr.u * nT)),
+                                             "id" = c(rep(1:N,each = nT), tr.id))
 
                     idtimes <- sapply(1:length(data$id),function(x)sum(data$id[1:x]==data$id[x]))
                     data <- cbind(data, idtimes)
@@ -544,17 +609,51 @@
                 ## main: draw controls first (bottom), then treated-pre, then
                 ## treated-post -- three separate layers because geom_line draws
                 ## polylines in group-value order, not row order.
+                ##
+                ## Under leave.gap = FALSE, the input is na.omit'd before the Y
+                ## matrix is built, so missing observations show up as time
+                ## gaps in `data` rather than NA outcome cells. The default
+                ## geom_line would then interpolate a solid line across those
+                ## gaps. We segment each (id, type) group at any gap larger
+                ## than the expected step, break the polyline there (via
+                ## group = interaction(id, seg_id)), and overlay a dotted
+                ## geom_segment as a visual marker that the bridge crosses
+                ## unobserved periods. Under leave.gap = TRUE, missing periods
+                ## are already NA cells, the polyline already breaks, and
+                ## bridges is empty so no segments are drawn.
+                expected.step <- {
+                    .ut <- sort(unique(time[show]))
+                    if (length(.ut) >= 2) min(diff(.ut)) else 1
+                }
+                seg.out <- .pv_segment_gaps(data, expected.step)
+                data    <- seg.out$data
+                bridges <- seg.out$bridges
+
                 spaghetti.alpha <- if (isTRUE(group.mean.overlay)) 0.18 else 1
                 line.aes <- aes(time, outcome,
                                 colour = type,
                                 linewidth = type,
                                 linetype = type,
-                                group = id)
+                                group = interaction(id, seg_id))
                 for (.t in c("co", "tr", "tr.pst")) {
                     d.t <- data[data$type == .t, , drop = FALSE]
                     if (nrow(d.t) > 0) {
                         p <- p + geom_line(data = d.t, mapping = line.aes,
                                            alpha = spaghetti.alpha)
+                    }
+                    if (!is.null(bridges)) {
+                        b.t <- bridges[bridges$type == .t, , drop = FALSE]
+                        if (nrow(b.t) > 0) {
+                            p <- p + geom_segment(data = b.t,
+                                                  mapping = aes(x = x, y = y,
+                                                                xend = xend,
+                                                                yend = yend,
+                                                                colour = type),
+                                                  linetype = "dotted",
+                                                  alpha = spaghetti.alpha,
+                                                  show.legend = FALSE,
+                                                  inherit.aes = FALSE)
+                        }
                     }
                 }
 
@@ -760,27 +859,21 @@
                     Y.trt <- Y.rv * D.rv
                     Y.trt.show <- as.matrix(Y.trt[show,])
                     time.trt.show <- time[show]
-                    ut.time <- ut.id <- NULL
-                    for (i in 1:Nrv) {
-                        if (sum(is.na(Y.trt.show[,i])) != nT) {
-                            ut.id <- c(ut.id, rep(i, nT - sum(is.na(Y.trt.show[,i]))))
-                            ut.time <- c(ut.time, time.trt.show[which(!is.na(Y.trt.show[,i]))])
-                        }
-                    }
 
-                    T1_0 <- c(T1)[which(T1==0)]
-                    T1_1 <- c(T1)[which(T1==1)]
-                    N_T1_1 <- sum(T1_1)
-                    N_T1_0 <- Nrv*nT + length(ut.id) - N_T1_1
+                    ## See "with reversals" branch above: keep the balanced
+                    ## panel with NA at non-treated periods so geom_line breaks
+                    ## the polyline at control gaps within a reversal unit.
+                    treated.units <- which(colSums(!is.na(Y.trt.show)) > 0)
+                    n.tr.u  <- length(treated.units)
+                    tr.time    <- rep(time.trt.show, n.tr.u)
+                    tr.outcome <- c(Y.trt.show[, treated.units, drop = FALSE])
+                    tr.id      <- rep(treated.units, each = nT)
 
-                    data3 <- cbind.data.frame("time" = c(rep(time[show], Nrv), ut.time),
-                                              "outcome" = c(c(Y[show, rv.pos]),
-                                                          c(Y.trt.show[which(!is.na(Y.trt.show))])),
+                    data3 <- cbind.data.frame("time" = c(rep(time[show], Nrv), tr.time),
+                                              "outcome" = c(c(Y[show, rv.pos]), tr.outcome),
                                               "type" = c(rep("co",(Nrv*nT)),
-                                                       rep("tr",length(ut.id))),
-                                              "last_dot" = c(rep("0",N_T1_0),
-                                                             rep("1",N_T1_1)),
-                                              "id" = c(rep(1:Nrv,each = nT), ut.id))
+                                                       rep("tr", n.tr.u * nT)),
+                                              "id" = c(rep(1:Nrv,each = nT), tr.id))
 
                     data3_tr <- subset(data3, data3$type=="tr")  
                     data3_co <- subset(data3, data3$type=="co") 
@@ -794,6 +887,7 @@
                     idtimes <- sapply(1:length(data3_co$id),function(x)sum(data3_co$id[1:x]==data3_co$id[x]))
                     data3_co <- cbind(data3_co, idtimes)
                     data3_co$idtimes <- ave(data3_co$idtimes, data3_co$id, FUN=max)
+                    data3_co$last_dot <- 0
 
                     data3 <- rbind(data3_co,data3_tr)
 

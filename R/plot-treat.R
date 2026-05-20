@@ -87,8 +87,14 @@
 
             ## theme-dependent binary palette (control / treated-pre / treated-post)
             if (identical(theme, "red")) {
-                pv.ctl  <- "grey85"
-                pv.tpre <- "grey50"
+                ## Under Control = dusty pink in the same hue family as the
+                ## "#B83A4B" treatment, so the two cohort-window colors
+                ## share a story (cohort = warm) while the unused / faded
+                ## cells stay grey. Earlier shades of grey collided with
+                ## the unused-cell default grey85, making the two control
+                ## bands indistinguishable.
+                pv.ctl  <- "#E8B5BC"
+                pv.tpre <- "grey45"
                 pv.tpst <- "#B83A4B"
             } else {
                 pv.ctl  <- "#B0C4DE"
@@ -184,7 +190,7 @@
                 if (by.timing == TRUE) {
                     co.seq <- which(unit.type == 1) ## unit.type: 1 for control; 2 for treated; 3 for reversal
                     tr.seq <- setdiff(1:N, co.seq)
-                    dataT0 <- cbind.data.frame(tr.seq, T0, co.total) 
+                    dataT0 <- cbind.data.frame(tr.seq, T0, co.total)
                     names(dataT0) <- c("id", "T0", "co.total")
                     dataT0 <- dataT0[order(dataT0[, "T0"], dataT0[, "co.total"], dataT0[, "id"]),] ## order of by.timing
 
@@ -193,6 +199,12 @@
 
                     m <- as.matrix(m[,missing.seq])
                     id <- id[missing.seq]
+                    ## Keep the sample column ordering in sync with m:
+                    ## by.timing reshuffles units, and the sample matrix was
+                    ## originally indexed in raw-id order so it has to follow.
+                    if (!is.null(sample)) {
+                        sample <- sample[, missing.seq, drop = FALSE]
+                    }
 
                 }
 
@@ -201,24 +213,78 @@
         }
 
         ## user-defined color setting and legend
+        ##
+        ## color = NULL                   --- theme defaults for used cells +
+        ##                                    sample-mode defaults for unused
+        ## color = c(...) (unnamed)       --- positional override of the used
+        ##                                    palette, length must equal the
+        ##                                    active break count
+        ## color = c(name = "...", ...)   --- named override. Supported names:
+        ##     control          --- Under Control
+        ##     treated          --- Under Treatment ( = treated.post)
+        ##     treated.pre      --- Treated (Pre), three-state binary only
+        ##     missing          --- Missing observations
+        ##     unused.control   --- Not used: Under Control
+        ##     unused.treated   --- Not used: Under Treatment
+        ## Unspecified names keep their theme default.
+        user_unused <- NULL   # named character vector for unused-side slots
         if (!is.null(color)) {
-            if (treat.type == "discrete") { ## discrete treatment indicator
-                if (length(col) == length(color)) {
-                    cat(paste("Specified colors in the order of: ", paste(label, collapse = ", "), ".\n", sep = ""))
+            if (treat.type == "discrete") {
+                if (!is.null(names(color)) && any(nzchar(names(color)))) {
+                    nm <- names(color)
+                    used_names   <- c("control", "treated", "treated.pre", "missing")
+                    unused_names <- c("unused.control", "unused.treated")
+                    bad <- setdiff(nm, c(used_names, unused_names))
+                    if (length(bad) > 0L) {
+                        stop("Unknown color name(s): ",
+                             paste(bad, collapse = ", "),
+                             ". Allowed names: ",
+                             paste(c(used_names, unused_names), collapse = ", "),
+                             ".", call. = FALSE)
+                    }
+                    used_overrides <- color[intersect(nm, used_names)]
+                    user_unused    <- color[intersect(nm, unused_names)]
+
+                    if (length(used_overrides) > 0L) {
+                        ## map each label position to a name. Labels carry
+                        ## the human strings ("Under Control", etc.); map
+                        ## via the underlying breaks (-1, 0, 1, -200).
+                        label_to_name <- function(b, lab) {
+                            bi <- suppressWarnings(as.integer(as.character(b)))
+                            if (!is.na(bi)) {
+                                if (bi == -1L) return("control")
+                                if (bi == 0L  && grepl("Pre", lab))
+                                    return("treated.pre")
+                                if (bi == 0L) return("treated")
+                                if (bi == 1L) return("treated")
+                                if (bi == -200L) return("missing")
+                            }
+                            NA_character_
+                        }
+                        slot_names <- mapply(label_to_name, breaks, label,
+                                             USE.NAMES = FALSE)
+                        hit <- match(names(used_overrides), slot_names)
+                        ok  <- !is.na(hit)
+                        if (any(ok)) {
+                            col[hit[ok]] <- used_overrides[ok]
+                            cat("Set used-cell colors for: ",
+                                paste(names(used_overrides)[ok],
+                                      collapse = ", "), ".\n", sep = "")
+                        }
+                    }
+                } else if (length(col) == length(color)) {
+                    cat(paste("Specified colors in the order of: ",
+                              paste(label, collapse = ", "), ".\n", sep = ""))
                     col <- color
-                } 
-                else { 
-                    stop(paste("Length of \"color\" should be equal to ",length(col),".\n", sep=""))
+                } else {
+                    stop(paste("Length of \"color\" should be equal to ",
+                               length(col),
+                               ", or use a named vector with any of: ",
+                               "control, treated, treated.pre, missing, ",
+                               "unused.control, unused.treated.\n", sep = ""))
                 }
-            } 
-            #else {
-            #    if (length(color) != 2) {
-             #       stop(paste("Length of \"color\" should be equal to ",length(col),".\n", sep=""))
-              #  } else {
-               #     col <- color
-                #}
-            #}
-        }       
+            }
+        }
         
         if (!is.null(legend.labs)) {
             if (treat.type == "discrete") { ## discrete treatment indicator
@@ -248,17 +314,89 @@
         #else{        
         res <- c(m)
         #}
-        
+
+        ## subset sample the same way obs.missing is subset, then flatten
+        ## column-major so it lines up with c(m). sample is TRUE for cells
+        ## the estimator actually used.
+        if (!is.null(sample)) {
+            if (!identical(dim(sample), dim(obs.missing))) {
+                stop(sprintf(
+                    "\"sample\" dimensions (%d x %d) must match the panel (%d x %d).",
+                    nrow(sample), ncol(sample),
+                    nrow(obs.missing), ncol(obs.missing)
+                ))
+            }
+            sample_m <- as.matrix(sample[show, , drop = FALSE])
+        }
+
         data <- cbind.data.frame(units=units, period=period, res=res)
-      
+        if (!is.null(sample)) {
+            data$used <- c(sample_m)
+        }
+
 
         if (leave.gap == 0) {
             data <- na.omit(data)
         }
 
-        #if (treat.type == "discrete") { 
-            data[,"res"] <- as.factor(data[,"res"])
-        #}
+        ## When a sample matrix is supplied, retag unused cells with a
+        ## "u"-prefixed res key so a single fill scale and a single legend
+        ## cover both the used palette and the unused palette. Extending
+        ## breaks / col / label here keeps scale_fill_manual the source of
+        ## truth.
+        ##
+        ## Missing cells (res = "-200") are NOT retagged --- a missing cell
+        ## cannot be "used" by any estimator, so the used/unused distinction
+        ## is meaningless. Keep the single "Missing" legend entry.
+        ##
+        ## Default: control / treated unused share one grey tier, so the
+        ## legend has a single "Not used" entry. Naming `unused.control` and
+        ## `unused.treated` separately in `color` opts back into the split.
+        if (!is.null(sample)) {
+            res_chr <- as.character(data$res)
+            is_miss <- res_chr == "-200"
+
+            mc <- c("#BFBFBF", "#BFBFBF")
+            if (!is.null(user_unused) && length(user_unused) > 0L) {
+                if ("unused.control" %in% names(user_unused)) {
+                    mc[1] <- user_unused[["unused.control"]]
+                }
+                if ("unused.treated" %in% names(user_unused)) {
+                    mc[2] <- user_unused[["unused.treated"]]
+                }
+            }
+            collapse_unused <- identical(mc[1], mc[2])
+
+            if (collapse_unused) {
+                ## single "Not used" tier --- one key, one legend entry.
+                data$res <- ifelse(data$used | is_miss, res_chr, "u")
+                if ("u" %in% unique(data$res)) {
+                    breaks <- c(breaks, "u")
+                    col    <- c(col,    mc[1])
+                    label  <- c(label,  "Not used")
+                }
+            } else {
+                ## split: one unused entry per status (control / treated).
+                data$res <- ifelse(data$used | is_miss,
+                                   res_chr, paste0("u", res_chr))
+                unused_keys   <- paste0("u", as.character(breaks))
+                unused_cols   <- vapply(breaks, function(b) {
+                    bi <- suppressWarnings(as.integer(as.character(b)))
+                    if (!is.na(bi) && bi >= 0) mc[2] else mc[1]
+                }, character(1))
+                unused_labels <- paste("Not used:", label)
+                drop_miss <- unused_keys == "u-200"
+                unused_keys   <- unused_keys[!drop_miss]
+                unused_cols   <- unused_cols[!drop_miss]
+                unused_labels <- unused_labels[!drop_miss]
+                keep <- unused_keys %in% unique(data$res)
+                breaks <- c(breaks, unused_keys[keep])
+                col    <- c(col,    unused_cols[keep])
+                label  <- c(label,  unused_labels[keep])
+            }
+        }
+
+        data[,"res"] <- as.factor(data[,"res"])
         
         ## check if N >= 200
         if (dim(m)[2] >= 200) {

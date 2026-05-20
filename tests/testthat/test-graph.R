@@ -23,7 +23,7 @@ get_singletons <- function(result, fe_name) {
 
 test_that("network type works with balanced panel", {
     skip_if_not_installed("igraph")
-    data(turnout, package = "panelView")
+    ## turnout is lazy-loaded by library(panelView); see DESCRIPTION LazyData: true
     result <- pv(turnout, ~1, index = c("abb", "year"), type = "network")
 
     expect_true(is.list(result))
@@ -42,7 +42,7 @@ test_that("network type works with balanced panel", {
 
 test_that("graph alias works", {
     skip_if_not_installed("igraph")
-    data(turnout, package = "panelView")
+    ## turnout is lazy-loaded by library(panelView); see DESCRIPTION LazyData: true
     result <- pv(turnout, ~1, index = c("abb", "year"), type = "graph")
 
     expect_true(is.list(result))
@@ -107,7 +107,7 @@ test_that("singleton alias works", {
 
 test_that("all layout algorithms work", {
     skip_if_not_installed("igraph")
-    data(turnout, package = "panelView")
+    ## turnout is lazy-loaded by library(panelView); see DESCRIPTION LazyData: true
     for (lay in c("fr", "bipartite", "circle")) {
         result <- pv(turnout, ~1, index = c("abb", "year"),
                      type = "network", layout = lay)
@@ -124,7 +124,7 @@ test_that("all layout algorithms work", {
 
 test_that("invalid layout errors", {
     skip_if_not_installed("igraph")
-    data(turnout, package = "panelView")
+    ## turnout is lazy-loaded by library(panelView); see DESCRIPTION LazyData: true
     expect_error(
         pv(turnout, ~1, index = c("abb", "year"),
            type = "network", layout = "invalid"),
@@ -273,7 +273,7 @@ test_that("factor IDs work", {
 
 test_that("formula with variables works for network", {
     skip_if_not_installed("igraph")
-    data(turnout, package = "panelView")
+    ## turnout is lazy-loaded by library(panelView); see DESCRIPTION LazyData: true
     result <- pv(turnout, turnout ~ policy_edr,
                  index = c("abb", "year"), type = "network")
 
@@ -287,7 +287,7 @@ test_that("formula with variables works for network", {
 # -----------------------------------------------------------------------
 
 test_that("existing treat type unaffected", {
-    data(turnout, package = "panelView")
+    ## turnout is lazy-loaded by library(panelView); see DESCRIPTION LazyData: true
     expect_no_error(
         pv(turnout, turnout ~ policy_edr, index = c("abb", "year"),
            type = "treat")
@@ -295,7 +295,7 @@ test_that("existing treat type unaffected", {
 })
 
 test_that("existing missing type unaffected", {
-    data(turnout, package = "panelView")
+    ## turnout is lazy-loaded by library(panelView); see DESCRIPTION LazyData: true
     expect_no_error(
         pv(turnout, turnout ~ 1, index = c("abb", "year"),
            type = "missing")
@@ -303,7 +303,7 @@ test_that("existing missing type unaffected", {
 })
 
 test_that("existing outcome type unaffected", {
-    data(turnout, package = "panelView")
+    ## turnout is lazy-loaded by library(panelView); see DESCRIPTION LazyData: true
     expect_no_error(
         pv(turnout, turnout ~ policy_edr, index = c("abb", "year"),
            type = "outcome")
@@ -311,7 +311,7 @@ test_that("existing outcome type unaffected", {
 })
 
 test_that("existing bivariate type unaffected", {
-    data(turnout, package = "panelView")
+    ## turnout is lazy-loaded by library(panelView); see DESCRIPTION LazyData: true
     expect_no_error(
         pv(turnout, turnout ~ policy_edr, index = c("abb", "year"),
            type = "bivariate")

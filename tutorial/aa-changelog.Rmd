@@ -1,5 +1,13 @@
 # Changelog {#sec-changelog .unnumbered}
 
+## v1.3.3
+
+(2026-05-19)
+
+* New `sample =` overlay on `panelview(type = "treat")`: shades out-of-sample cells in faded "Not used" colors. Accepts a logical T x N matrix, a `fect` / `gsynth` / `tjbal` fit (auto-pulls `$sample`), or a `PanelMatch` object (via new `panelmatch_to_sample(pm, pd)` helper).
+* New `panelview(fit)` entry-point: reconstructs `data`, `formula`, `index`, and `$sample` from a fit's slots; `sample.sort = TRUE` puts in-sample units on top.
+* `color` accepts a named vector with slots `control`, `treated`, `treated.pre`, `missing`, `unused.control`, `unused.treated`. Default collapses `unused.control` and `unused.treated` to a single grey "Not used" tier; assign distinct values to opt into the per-status split.
+
 ## v1.3.2
 
 (2026-05-14)

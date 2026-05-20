@@ -22,14 +22,16 @@
             style = NULL, by.unit = FALSE, lwd = 0.2, leave.gap = FALSE,
             display.all = NULL, by.cohort = FALSE,
             collapse.history = NULL, report.missing = FALSE,
-            show.singletons = TRUE, highlight.components = TRUE,
+            show.singletons = TRUE,
+            sample = NULL, sample.sort = FALSE,
+            highlight.components = TRUE,
             layout = "fr", node.size = 3,
             show.labels = "auto", edge.color = "gray70",
             edge.alpha = NULL, edge.width = NULL,
             singleton.color = "#D7263D")
 }
 \arguments{
-  \item{data}{a data frame. The panel does not have to be balanced.}
+  \item{data}{a data frame (the panel does not have to be balanced) \emph{or} a fitted panel-estimator object of class \code{"fect"}, \code{"gsynth"}, \code{"tjbal"}, or \code{"cip"}. When a fitted object is supplied, panelview reconstructs \code{data}, \code{formula}, and \code{index} from the object's slots (\code{$Y.dat}, \code{$D.dat}, \code{$id}, \code{$rawtime}, \code{$index}, \code{$Y}, \code{$D}) and auto-pulls \code{$sample}. This removes the data-consistency burden: the rendered panel is, by construction, the one the estimator saw.}
   \item{formula}{an object of class "formula": a symbolic description of the model to be fitted. The first variable on the right-hand-side is designated as the treatment indicator if \code{ignore.treat = FALSE}. If there is not any covariates, the formula should be like \code{Y~1}, where \code{Y} is the outcome variable.}
   \item{Y}{variable name of the outcome. Ignored if \code{formula} is provided.}
   \item{D}{variable name of the treatment. Ignored if \code{formula} is provided.}
@@ -56,7 +58,7 @@
   \item{pre.post}{a logical flag indicating whether to distinguish control status of treated units from that of control units. Only used for staggered data in the treat and outcome plots.}
   \item{id}{a vector specifying units to be shown in the plot. Useful when the number of units is very large.}
   \item{show.id}{a numeric vector or sequence specifying the sorted order of units to be shown in the \code{"treat"} plot. Useful when the number of units is very large. Ignored if \code{!is.null("id")}.}
-  \item{color}{a string vector specifying color setting for the plot.}
+  \item{color}{a character vector specifying colors for the plot. An unnamed vector is treated positionally (matching the active break order). A named vector accepts any subset of: \code{"control"} (Under Control), \code{"treated"} (Under Treatment), \code{"treated.pre"} (Treated Pre, three-state binary only), \code{"missing"} (Missing observations), \code{"unused.control"} (Not used: Under Control), \code{"unused.treated"} (Not used: Under Treatment). Unspecified names keep their theme default. Default \code{NULL}.}
   \item{axis.adjust}{a logic flag indicating whether to adjust labels on the x-axis.  Useful when the class of time variable is string and there are many time periods.}
   \item{axis.lab}{a string indicating whether labels on the x- and y-axis will be shown. There are four options: \code{"both"} (default): labels on both axes will be shown; \code{"unit"}: only labels on y-axis will be shown; \code{"time"}: only labels on the x-axis will be shown; "none": no labels will be shown.}
   \item{axis.lab.gap}{a numeric vector setting the gaps between labels on the x- or y-axis for the plot. Default is \code{axis.lab.gap = c(0, 0)}, which means that all labels will be shown. Useful for datasets with large N or T.}
@@ -79,6 +81,8 @@
   \item{collapse.history}{a logical flag indicating whether to collapse units by treat history in a "treat"" plot.}
   \item{report.missing}{a logical flag indicating whether to report missingness in the included variables.}
   \item{show.singletons}{logical. If \code{TRUE} (default), singleton nodes (degree-1) are highlighted with a red outline ring. Only used when \code{type = "network"}.}
+  \item{sample}{an estimation-sample indicator. Accepts a logical \eqn{T \times N} matrix marking cells used by the estimator (\code{TRUE} = used, \code{FALSE} = not used), or a fitted object of class \code{"fect"}, \code{"gsynth"}, \code{"tjbal"}, or \code{"cip"} whose \code{$sample} slot is pulled automatically. When supplied, cells with \code{sample = FALSE} render in a faded \dQuote{Not used} variant of the palette; cells with \code{sample = TRUE} use the normal colors. The matrix is aligned to the panel by row/column names if present (extra cells in the data are padded with \code{FALSE}; extras in the sample raise an error). Default \code{NULL}.}
+  \item{sample.sort}{a logical flag. When \code{TRUE} (and a \code{sample} is supplied), units that appear in the estimation sample (\code{colSums(sample) > 0}) are sorted above units that do not. Combines with \code{by.timing} as primary/secondary sort keys: \code{sample.sort = TRUE} (primary) + \code{by.timing = TRUE} (secondary by treatment timing). Default \code{FALSE}.}
   \item{highlight.components}{logical. If \code{TRUE} (default), connected components are shaded with convex hulls. Only used when \code{type = "network"}.}
   \item{layout}{character. Layout algorithm for the bipartite graph. One of \code{"fr"} (Fruchterman-Reingold, default), \code{"bipartite"}, or \code{"circle"}. Only used when \code{type = "network"}.}
   \item{node.size}{numeric. Size of nodes in the graph. Default is 3. Only used when \code{type = "network"}.}

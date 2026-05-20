@@ -139,6 +139,19 @@ panelview(Capacity ~ demo + lnpop + lngdp,
           axis.lab.gap = c(2, 10), theme = "red")
 ```
 
+If the dusty pink for "Under Control" feels too warm, swap in a neutral
+light grey via the named `color` argument so the dark-red treatment
+cells become the only chromatic element. All other palette slots
+inherit the red theme's defaults:
+
+```{r treat2-theme-red-grey, fig.height=10}
+panelview(Capacity ~ demo + lnpop + lngdp,
+          data = capacity, index = c("ccode", "year"),
+          main = "Democracy and State Capacity",
+          axis.lab.gap = c(2, 10), theme = "red",
+          color = c(control = "grey85"))
+```
+
 ## Customizing with ggplot2 syntax
 
 `panelview()` returns a `ggplot` object for single-panel plots, so any
@@ -273,3 +286,277 @@ panelview(Capacity ~ polity2 + lngdp,
           color = c("yellow", "orange", "red", "purple", "brown"),
           background = "white")
 ```
+
+## Overlaying the estimation sample {#sec-sample}
+
+For the treatment plot (`type = "treat"`), **panelView** can shade
+the cells the estimator actually used in grey. This shows what
+fraction of the panel a given method relies on, and which units or
+periods are dropped. The feature works for the imputation estimators
+**fect**, **gsynth**, and **tjbal**, and for the matching estimator
+**PanelMatch**.
+
+The example data in this section is the `dem` panel from
+**PanelMatch**: 175 countries from 1960 to 2010, with a binary
+democracy indicator and per-capita income (`y`) as outcome. The data
+are already in long format. `PanelMatch::PanelData()` attaches
+treatment, outcome, unit-id, and time-id metadata to the data.frame
+so that subsequent `PanelMatch()` calls can resolve those columns
+without restating them; it does not reshape the data. `fect()` and
+`panelview()` treat the result, `pd`, as an ordinary data.frame.
+
+```{r treat-data-setup, message=FALSE, warning=FALSE}
+library(PanelMatch); library(fect); library(panelView)
+data(dem)
+pd <- PanelMatch::PanelData(panel.data = dem, unit.id = "wbcode2",
+                            time.id = "year", treatment = "dem",
+                            outcome = "y")
+```
+
+### Baseline: pre-fit treatment plot
+
+Before fitting any estimator, the standard treatment plot shows the
+status of every cell:
+
+```{r treat-prefit, fig.height=10}
+panelview(y ~ dem, data = pd, index = c("wbcode2", "year"),
+          type = "treat", by.timing = TRUE, axis.lab = "off")
+```
+
+By default, dropped controls and dropped treated units share a single
+neutral grey. The control vs. treated distinction is already shown by
+the colors of used cells, so a single unused color keeps the main
+contrast in the figure between what the estimator used and what it
+did not. A two-color split for unused cells is available as an option;
+the PanelMatch section below shows when it is useful.
+
+### PanelMatch
+
+Imai, Kim, and Wang's `PanelMatch` matches each treated event to a
+set of control units on the basis of pre-treatment history. Its
+output is a list of matched sets rather than a fitted panel of
+counterfactuals. The helper `panelmatch_to_sample()` turns those
+matched sets into a $T \times N$ logical matrix that `panelview()`
+can shade. It reads only the public fields of `PanelMatch`
+(`pm$att`, `pm$atc`, and the `unit.id`, `time.id`, `lag`, `lead`
+attributes), so no changes to `PanelMatch` are needed.
+
+Run `PanelMatch` on the same `pd`:
+
+```{r treat-pm-setup, message=FALSE}
+pm <- PanelMatch(panel.data = pd, lag = 4,
+                 refinement.method = "mahalanobis",
+                 covs.formula = ~ I(lag(tradewb, 1:4)),
+                 size.match = 5,
+                 qoi = "att", lead = 0:3, match.missing = TRUE)
+```
+
+#### Pass the matched-set object directly
+
+```{r treat-pm-direct, fig.height=10}
+panelview(data = pd, formula = y ~ dem,
+          index = c("wbcode2", "year"), type = "treat",
+          by.timing = TRUE,
+          sample = pm,
+          main = "PanelMatch mask: full window [t-4, t+3]",
+          axis.lab = "off")
+```
+
+`panelview()` recognises a `PanelMatch` object and calls
+`panelmatch_to_sample()` automatically. The helper marks the window
+$[t-\text{lag},\,t+\max(\text{lead})]$ around each treated event $t$:
+the lag part covers periods used for matching, the lead part covers
+periods on which outcomes are evaluated. Within each event the
+light-blue pre-period and dark-blue post-onset cells therefore appear
+as one continuous bright band.
+
+Bright cells appear in at least one matched-set window. Grey cells
+fall outside every window. The grey area has several distinct
+sources: never-treated countries that never served as a matched
+control under this refinement; treated countries whose event window
+extends past the start or end of the panel; and periods of in-sample
+units that sit outside any nearby event.
+
+#### Split unused into control and treated
+
+To separate dropped controls from dropped treated units in the
+figure, pass different colors to `unused.control` and
+`unused.treated`:
+
+```{r treat-pm-split, fig.height=10}
+panelview(data = pd, formula = y ~ dem,
+          index = c("wbcode2", "year"), type = "treat",
+          by.timing = TRUE, sample = pm,
+          color = c(unused.control = "#D9D9D9",
+                    unused.treated = "#7A7A7A"),
+          axis.lab = "off")
+```
+
+The legend now shows "Not used: Under Control" and "Not used: Under
+Treatment" as two entries instead of one. Setting both colors to the
+same value collapses them back to a single "Not used" entry. Under
+PanelMatch both kinds are visible: the light-grey rows are
+never-democratised countries that never served as a matched control
+under this refinement, and the darker-grey rows are always-democratised
+countries that had no valid event to match.
+
+#### Customise the full palette
+
+All five used-cell colors are controlled through the same `color =`
+argument, which accepts a named vector. Any name not supplied keeps
+its theme default:
+
+```{r treat-pm-color, fig.height=10}
+panelview(data = pd, formula = y ~ dem,
+          index = c("wbcode2", "year"), type = "treat",
+          by.timing = TRUE, sample = pm,
+          color = c(control        = "#A8C686",
+                    treated        = "#D87C2A",
+                    missing        = "white",
+                    unused.control = "#F0E0CC",
+                    unused.treated = "#F0E0CC"),
+          axis.lab = "off")
+```
+
+Allowed names are `control`, `treated`, `treated.pre` (three-state
+binary only), `missing`, `unused.control`, and `unused.treated`. An
+unnamed positional vector is also accepted, preserving the older
+`color = c("#color1", "#color2", ...)` form.
+
+To change how matched sets are turned into the mask, call
+`panelmatch_to_sample(pm, pd)` directly. Useful arguments are
+`include` (limit the mask to treated units or matched controls only),
+`weight.threshold` (set the cutoff for positive weights when the
+refinement returns continuous weights), and `qoi = "atc"` (use the
+ATC matched sets when `pm` carries both).
+
+#### A wider matching spec
+
+Doubling the matching window to `lag = 8` and extending the outcome
+window to `lead = 0:6` widens each event's bright band from 8 cells
+to 15. It also drops events too close to either edge of the panel:
+events before 1968 have no $[t-8, t-1]$ history, and events after 2004
+have no $[t, t+6]$ leads.
+
+```{r treat-pm-wide, fig.height=10, message=FALSE}
+pm_wide <- PanelMatch(panel.data = pd, lag = 8,
+                      refinement.method = "mahalanobis",
+                      covs.formula = ~ I(lag(tradewb, 1:8)),
+                      size.match = 5,
+                      qoi = "att", lead = 0:6, match.missing = TRUE)
+panelview(data = pd, formula = y ~ dem,
+          index = c("wbcode2", "year"), type = "treat",
+          by.timing = TRUE, sample = pm_wide,
+          main = "PanelMatch mask: lag = 8, lead = 0:6",
+          axis.lab = "off")
+```
+
+### Imputation estimators (fect / gsynth)
+
+```{r treat-fit-setup, message=FALSE, warning=FALSE}
+fit <- fect(y ~ dem, data = pd, index = c("wbcode2", "year"),
+            method = "ife", r = 1, se = FALSE, CV = FALSE,
+            min.T0 = 2, na.rm = TRUE)
+```
+
+#### Pass the fitted object directly
+
+```{r treat-fit-1, fig.height=10}
+panelview(fit, type = "treat", by.timing = TRUE,
+          axis.lab = "off", display.all = TRUE)
+```
+
+No `data`, no `formula`, no `index` is required: `panelview()` reads
+them from the fit object. This is the simplest call because the
+figure shows exactly the panel the estimator used; the data shown in
+the plot cannot differ from the data used in estimation.
+
+Reading the figure from top to bottom: a grey "Not used" band of
+always-treated countries (democratic since 1960, with no control
+periods for fect to use) and a smaller number of never-treated
+countries whose outcome is too sparse to fit a counterfactual; then
+a dark-blue staircase of in-sample treated units ordered by year of
+transition, with light-blue cells marking their pre-transition years;
+and finally a light-blue block of never-democratised in-sample
+controls. White cells are originally missing outcomes.
+
+#### Red theme
+
+`theme = "red"` switches to a higher-contrast palette intended for
+print:
+
+```{r treat-fit-red, fig.height=10}
+panelview(fit, type = "treat", by.timing = TRUE,
+          theme = "red", axis.lab = "off", display.all = TRUE)
+```
+
+The red theme uses dusty pink (`#E8B5BC`) for "Under Control" and
+dark red (`#B83A4B`) for "Under Treatment". Cells in either treatment
+state share a warm hue; grey "Not used" cells sit visually apart.
+White cells indicate original missingness.
+
+To put the in-sample band at the top of the figure instead of the
+dropped band, set `sample.sort = TRUE`. Combined with `by.timing`,
+the four options cover the common row orderings:
+
+| `by.timing` | `sample.sort` | Row order |
+|---|---|---|
+| `FALSE` | `FALSE` | alphabetical / natural order |
+| `TRUE`  | `FALSE` | sorted by treatment timing only (default for fits) |
+| `FALSE` | `TRUE`  | in-sample first, out-of-sample below |
+| `TRUE`  | `TRUE`  | in-sample first, by treatment timing within |
+
+#### A stricter spec drops more units
+
+The shading is also useful for checking how sensitive the in-sample
+set is to specification choices. Raising `min.T0` from 2 to 10
+requires every kept unit to have at least 10 untreated periods; about
+14 more countries fail this requirement and the "Not used" band
+widens accordingly:
+
+```{r treat-fit-strict, fig.height=10, message=FALSE, warning=FALSE}
+fit_strict <- fect(y ~ dem, data = pd, index = c("wbcode2", "year"),
+                   method = "ife", r = 1, se = FALSE, CV = FALSE,
+                   min.T0 = 10, na.rm = TRUE)
+panelview(fit_strict, type = "treat", by.timing = TRUE,
+          axis.lab = "off", display.all = TRUE)
+```
+
+The in-sample share of cells drops from about 56% to about 51%.
+The "Not used" band at the top thickens compared with `fit` above.
+Originally missing cells remain white.
+
+#### Pass `sample = fit` alongside explicit data + formula
+
+The original `(data, formula, index)` form still works, and
+`sample =` accepts the fit object directly. The figure matches the
+fit-as-input view above. This form is useful when the original `data`
+object is not loaded in the current session --- for example, after
+reading a saved `.rds` fit:
+
+```{r treat-sample-explicit, eval=FALSE}
+panelview(y ~ dem, data = pd, index = c("wbcode2", "year"),
+          type = "treat", by.timing = TRUE,
+          sample = fit,
+          axis.lab = "off")
+```
+
+`sample =` accepts any `fect`, `gsynth`, or `tjbal` fit that
+exposes a `$sample` field; the same call works across the three
+packages. A logical $T \times N$ matrix can also be passed directly,
+which makes the feature available to custom estimators.
+
+**Alignment by name.** The `sample` matrix and the panel data must
+agree on which units and times appear. `panelview()` follows two
+asymmetric rules:
+
+- *Data has units or periods the sample does not.* The extra cells
+  are filled with `FALSE`. This is useful when the estimator was fit
+  on a subset of a larger panel; the extra units appear in the
+  "Not used" band.
+- *Sample has units or periods the data does not.* `panelview()`
+  stops with an error that lists the mismatched cells. This usually
+  means the sample is stale or came from a different fit.
+
+If `sample` has `rownames` and `colnames`, those are used to align by
+name. A bare matrix without dimnames is aligned by position.

@@ -55,6 +55,8 @@ panelview <- function(data, # a data frame (long-form)
                       collapse.history = NULL,
                       report.missing = FALSE,
                       show.singletons = TRUE,
+                      sample = NULL,
+                      sample.sort = FALSE,
                       highlight.components = TRUE,
                       layout = "fr",
                       node.size = 3,
@@ -68,6 +70,20 @@ panelview <- function(data, # a data frame (long-form)
     ## ------------------------- ##
     ## parse variable.           ##
     ## ------------------------- ##
+
+    ## Fit-as-input dispatch. If the user passes a fitted fect / gsynth /
+    ## tjbal / cip object as the first argument, reconstruct `data`,
+    ## `formula`, and `index` from the fit and auto-pull `$sample`. This
+    ## removes the data-consistency burden: panelview plots the same
+    ## panel the estimator saw, period.
+    if (inherits(data, c("fect", "gsynth", "tjbal", "cip"))) {
+        fit <- data
+        recon <- .pv_from_fit(fit, envir = parent.frame())
+        data    <- recon$data
+        if (is.null(formula)) formula <- recon$formula
+        if (missing(index) || is.null(index)) index <- recon$index
+        if (is.null(sample) && !is.null(recon$sample)) sample <- recon$sample
+    }
 
     if (is.data.frame(data) == FALSE || length(class(data)) > 1) {
         data <- as.data.frame(data)
@@ -191,9 +207,27 @@ panelview <- function(data, # a data frame (long-form)
             stop("\"axis.lab.angle\" must be numeric.")
         } else if (axis.lab.angle < 0 | axis.lab.angle > 90) {
             stop("\"axis.lab.angle\" needs to be in [0, 90].")
-        } 
+        }
     }
-    
+
+    ## validate sample (logical matrix marking cells used in estimation;
+    ## also accepts a fitted fect/gsynth/tjbal/cip object with a $sample
+    ## field, or a PanelMatch object --- in which case `data` is also
+    ## consulted to define the panel axes).
+    if (!is.null(sample)) {
+        if (inherits(sample, c("fect", "gsynth", "tjbal", "cip"))) {
+            if (is.null(sample$sample)) {
+                stop("The fitted object passed to \"sample\" has no $sample field. Update to a package version that exposes it.")
+            }
+            sample <- sample$sample
+        } else if (inherits(sample, "PanelMatch")) {
+            sample <- panelmatch_to_sample(sample, data)
+        }
+        if (!is.matrix(sample) || !is.logical(sample)) {
+            stop("\"sample\" must be a logical matrix (or a fitted fect/gsynth/tjbal/cip / PanelMatch object).")
+        }
+    }
+
     # pre.post
     if (is.null(pre.post) == TRUE) {
         if (type == "outcome") {
@@ -667,10 +701,78 @@ panelview <- function(data, # a data frame (long-form)
     ## raw id and time
     raw.id <- sort(unique(data[,index[1]]))
     raw.time <- sort(unique(data[,index[2]]))
-    N <- length(raw.id) 
+    N <- length(raw.id)
     TT <- length(raw.time)
 
-    ## id to be plotted 
+    ## sample column alignment. Panel internals will index columns by
+    ## sort(unique(unit_id)) (factor-level order). If the supplied sample
+    ## has column names, permute its columns to match raw.id before any
+    ## other sample-related logic runs. Without this, a sample matrix whose
+    ## columns are in a different order silently lines cells up against
+    ## the wrong units.
+    ##
+    ## A sample matrix may legitimately carry extra columns for units that
+    ## panelview has already dropped (units with all-NA Y / D / X, dropped
+    ## above when leave.gap = 1). Those are silently subset out. The hard
+    ## error is for the other direction --- a unit panelview will plot but
+    ## the sample has no column for, which would silently leave that unit
+    ## un-included.
+    ## Alignment. When `sample` has dimnames we match by name. Two
+    ## directions of mismatch get different treatment:
+    ##   - Units / times in DATA but not in SAMPLE: fill with FALSE (the
+    ##     estimator never touched them, which is correct semantically).
+    ##     This is the "fit on a subset, view on the full panel" workflow.
+    ##   - Units / times in SAMPLE but not in DATA: error. The sample
+    ##     carries cells panelview cannot plot, so these are stale or
+    ##     misaligned and we cannot render them honestly.
+    if (!is.null(sample) && !is.null(colnames(sample))) {
+        sample_cols <- as.character(colnames(sample))
+        target      <- as.character(raw.id)
+        extra   <- setdiff(sample_cols, target)
+        if (length(extra) > 0) {
+            stop("\"sample\" has columns for ", length(extra),
+                 " unit(s) not in the data panelview will plot: ",
+                 paste(head(extra, 10), collapse = ", "),
+                 if (length(extra) > 10) ", ..." else "",
+                 ". Refit on the same data, or drop these columns ",
+                 "from `sample`.", call. = FALSE)
+        }
+        missing <- setdiff(target, sample_cols)
+        if (length(missing) > 0) {
+            pad <- matrix(FALSE, nrow = nrow(sample), ncol = length(missing),
+                          dimnames = list(rownames(sample), missing))
+            sample <- cbind(sample, pad)
+        }
+        sample <- sample[, match(target, colnames(sample)), drop = FALSE]
+    }
+
+    if (!is.null(sample) && !is.null(rownames(sample))) {
+        sample_rows <- as.character(rownames(sample))
+        target_t    <- as.character(raw.time)
+        extra_t   <- setdiff(sample_rows, target_t)
+        if (length(extra_t) > 0) {
+            stop("\"sample\" has rows for ", length(extra_t),
+                 " time period(s) not in the data panelview will plot: ",
+                 paste(head(extra_t, 10), collapse = ", "),
+                 if (length(extra_t) > 10) ", ..." else "",
+                 ". Refit on the same data, or drop these rows ",
+                 "from `sample`.", call. = FALSE)
+        }
+        missing_t <- setdiff(target_t, sample_rows)
+        if (length(missing_t) > 0) {
+            pad <- matrix(FALSE, nrow = length(missing_t), ncol = ncol(sample),
+                          dimnames = list(missing_t, colnames(sample)))
+            sample <- rbind(sample, pad)
+        }
+        sample <- sample[match(target_t, rownames(sample)), , drop = FALSE]
+    }
+
+    ## sample.sort.ord placeholder; the actual sort decision is made later,
+    ## once D and obs.missing are fully built (see the "compute + apply
+    ## sample.sort.ord" block right before plot dispatch).
+    sample.sort.ord <- NULL
+
+    ## id to be plotted
     input.id <- NULL
     if (!is.null(id)) {
         if (!is.null(show.id)) {
@@ -1254,6 +1356,78 @@ else if (leave.gap == 1) {
         legend.pos <- "none"
     } else {
         legend.pos <- "bottom"
+    }
+
+    ###########################
+    ## Compute sample.sort.ord from the (sample.sort, by.timing) flags.
+    ## Two binary knobs combine as primary/secondary sort keys:
+    ##   sample.sort = TRUE  --- in-sample units (colSums(sample) > 0) above
+    ##                          out-of-sample units (primary key)
+    ##   by.timing   = TRUE  --- first treatment period ascending within
+    ##                          each group (secondary key)
+    ## Either alone gives a single-key sort. Both off = no reorder.
+    ## When sample.sort.ord is set, plot-treat.R's by.timing reorder is
+    ## suppressed below.
+    ###########################
+    if (isTRUE(sample.sort) && is.null(sample)) {
+        warning("`sample.sort = TRUE` requires `sample` to be supplied; ",
+                "ignored.", call. = FALSE)
+        sample.sort <- FALSE
+    }
+    do_sort <- (isTRUE(sample.sort) || isTRUE(by.timing)) && is.matrix(D)
+    if (do_sort) {
+        if (!is.null(sample) &&
+            !identical(as.character(colnames(sample)),
+                       as.character(raw.id))) {
+            warning("\"sample\" column names do not match raw.id at sort ",
+                    "time; sample.sort skipped.")
+        } else {
+            t0_per <- apply(D, 2, function(d) {
+                k <- which(d == 1L)
+                if (length(k) == 0L) Inf else k[1]
+            })
+            keys <- list()
+            if (isTRUE(sample.sort)) {
+                in_sample <- colSums(sample) > 0
+                keys <- c(keys, list(!in_sample))
+            }
+            if (isTRUE(by.timing)) {
+                keys <- c(keys, list(t0_per))
+            }
+            sample.sort.ord <- do.call(order, keys)
+        }
+    }
+
+    if (!is.null(sample.sort.ord)) {
+        ord <- sample.sort.ord
+        if (!is.null(obs.missing)   && is.matrix(obs.missing))
+            obs.missing   <- obs.missing[, ord, drop = FALSE]
+        if (exists("obs.missing.balance") && is.matrix(obs.missing.balance))
+            obs.missing.balance <- obs.missing.balance[, ord, drop = FALSE]
+        if (!is.null(D)             && is.matrix(D))
+            D     <- D[, ord, drop = FALSE]
+        if (exists("D.old") && !is.null(D.old) && is.matrix(D.old))
+            D.old <- D.old[, ord, drop = FALSE]
+        if (!is.null(I)             && is.matrix(I))
+            I     <- I[, ord, drop = FALSE]
+        if (!is.null(Y)             && is.matrix(Y))
+            Y     <- Y[, ord, drop = FALSE]
+        if (!is.null(M)             && is.matrix(M))
+            M     <- M[, ord, drop = FALSE]
+        if (!is.null(sample))
+            sample <- sample[, ord, drop = FALSE]
+        if (!is.null(id))
+            id    <- id[ord]
+        if (exists("unit.type") && !is.null(unit.type))
+            unit.type <- unit.type[ord]
+        if (exists("T0")        && !is.null(T0)        && length(T0) == length(ord))
+            T0 <- T0[ord]
+        if (exists("co.total")  && !is.null(co.total)  && length(co.total) == length(ord))
+            co.total <- co.total[ord]
+        ## Suppress plot-treat.R's by.timing reorder so it doesn't re-sort
+        ## on top of the sample.sort ordering. by.timing's intent is already
+        ## baked into the "in.sample" / "type" sort modes when relevant.
+        by.timing <- FALSE
     }
 
     ###########################
